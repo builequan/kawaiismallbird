@@ -50,6 +50,7 @@ This repository contains two distinct projects:
 - `pnpm tsx scripts/test-mermaid.ts` - Test Mermaid diagram block creation
 - `pnpm tsx scripts/import-terminology.ts` - Import specific WordPress post
 - `pnpm tsx scripts/fresh-import.ts` - Full fresh import from WordPress folders
+- `pnpm tsx scripts/create-about-us-page.ts` - Create/update Japanese About Us page
 - Admin UI at http://localhost:3000/admin/import-wordpress for folder-based imports
 
 ### Architecture Overview
@@ -66,7 +67,7 @@ This repository contains two distinct projects:
 
 **1. Content Management (`src/collections/`)**
 - **Posts** - Blog posts and articles with draft preview, WordPress metadata fields
-- **Pages** - Static pages with layout builder
+- **Pages** - Static pages with layout builder (includes comprehensive Japanese About Us page)
 - **Media** - File uploads with image processing
 - **Categories** - Hierarchical taxonomy with parent-child relationships, Japanese-to-English translation
 - **Tags** - Tagging system for content organization
