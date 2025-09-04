@@ -116,6 +116,13 @@ This repository contains two distinct projects:
 - Image optimization with focal point selection
 - Responsive design with TailwindCSS utilities
 
+**Image Rendering System:**
+- **Lexical Editor Integration** - UploadFeature configured with media collection support
+- **Markdown-to-Lexical Conversion** - Inline images automatically converted to upload nodes
+- **Image Processing Pipeline** - Handles both block-level and inline image syntax
+- **Verification Scripts** - Comprehensive tools for validating image rendering correctness
+- **Upload Node Structure** - Proper media collection relationships with alt text support
+
 **WordPress Import System:**
 - **Folder-based Import** - Select and import entire WordPress export folders
 - **Markdown Processing** - Converts WordPress markdown exports to Lexical format
@@ -131,6 +138,9 @@ This repository contains two distinct projects:
 - **Categories Field** must be outside tabs structure to be visible in post editor
 - **Mermaid Rendering** - Code-formatted text (format: 16) starting with Mermaid keywords auto-renders as diagrams
 - **Fix Script** - Use `scripts/fix-mermaid-blocks.ts` if encountering "blockReferences" errors with Mermaid blocks
+- **Image Rendering** - Inline images `![alt](url)` automatically converted to upload nodes during markdown processing
+- **Upload Nodes** - Images stored as `{ type: 'upload', relationTo: 'media', value: { id, alt, url } }` structure
+- **Image Verification** - Use `scripts/find-markdown-images.ts` to check for unconverted markdown images
 
 **Internal Linking System:**
 - **Automated Backlinking** - Uses vector embeddings and cosine similarity to find related content
