@@ -53,6 +53,20 @@ This repository contains two distinct projects:
 - `pnpm tsx scripts/create-about-us-page.ts` - Create/update Japanese About Us page
 - Admin UI at http://localhost:3000/admin/import-wordpress for folder-based imports
 
+**Internal Linking Commands:**
+- `pnpm tsx scripts/internal-links/01-build-index-fixed.ts` - Build post index with Japanese phrases
+- `python3 scripts/internal-links/embedding-service.py` - Generate semantic embeddings
+- `pnpm tsx scripts/internal-links/03-compute-similarity-fixed.ts` - Compute content similarity
+- `pnpm tsx scripts/internal-links/04-apply-semantic-links-fixed.ts --force` - Apply semantic links (recommended)
+- `pnpm tsx scripts/internal-links/simple-remove-all.ts` - Remove all internal links
+- Admin UI at http://localhost:3000/admin/internal-links for management dashboard
+
+**Affiliate Links Commands:**
+- `pnpm tsx scripts/affiliate-links/fix-all-posts-affiliate-links.ts` - Add affiliate links to all posts with proper validation
+- `pnpm tsx scripts/affiliate-links/remove-text-recommendations.ts` - Remove plain text product recommendations
+- `pnpm tsx scripts/affiliate-links/process-all-posts.ts` - Process posts with affiliate products
+- Admin UI at http://localhost:3000/admin/affiliate-links for complete product and link management
+
 ### Architecture Overview
 
 **Tech Stack:**
@@ -117,6 +131,30 @@ This repository contains two distinct projects:
 - **Categories Field** must be outside tabs structure to be visible in post editor
 - **Mermaid Rendering** - Code-formatted text (format: 16) starting with Mermaid keywords auto-renders as diagrams
 - **Fix Script** - Use `scripts/fix-mermaid-blocks.ts` if encountering "blockReferences" errors with Mermaid blocks
+
+**Internal Linking System:**
+- **Automated Backlinking** - Uses vector embeddings and cosine similarity to find related content
+- **Japanese Phrase Extraction** - Extracts meaningful multi-word phrases (e.g., スイングプレーン, ゴルフレッスン)
+- **Embedding Model** - Sentence Transformers (all-MiniLM-L6-v2) for 384-dimensional semantic embeddings
+- **Link Limits** - Maximum 5 internal links per post to maintain natural flow
+- **Admin Dashboard** - Complete management interface at `/admin/internal-links`
+- **Semantic Links Script** - Use `04-apply-semantic-links-fixed.ts --force` for best results
+- **Bidirectional Prevention** - Global link tracking ensures if A→B, then B won't link to A
+- **Frontend Requirements** - Post queries must use `depth: 2` to populate internal link relationships
+- **RichText Component** - Must handle internal links via `internalDocToHref` function
+- **API Authentication** - Currently disabled for development, re-enable in production by uncommenting auth checks
+
+**Affiliate Links System:**
+- **Comprehensive Integration** - 473 inline affiliate links across 80 posts (avg 5.9 links per post)
+- **Inline Text Links** - Blue, underlined links naturally embedded within article content
+- **Product Recommendations** - Styled green gradient boxes with 3 products per article
+- **JSON-Based Management** - File-based product storage with import/export functionality
+- **Contextual Matching** - Smart matching between article content and relevant products
+- **Link Styling** - Professional blue (#2563eb) links with hover effects and transitions
+- **Admin Interface** - Complete management dashboard at `/admin/affiliate-links`
+- **Validation System** - Proper link structure validation with error handling
+- **Unique Linking** - Each keyword linked only once per post to avoid over-optimization
+- **Content Integration** - `AffiliateLinksEnhanced` component extracts links from article content
 
 ## serena/ - Coding Agent Toolkit
 
