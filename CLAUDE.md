@@ -62,9 +62,13 @@ This repository contains two distinct projects:
 - Admin UI at http://localhost:3000/admin/internal-links for management dashboard
 
 **Affiliate Links Commands:**
-- `pnpm tsx scripts/affiliate-links/fix-all-posts-affiliate-links.ts` - Add affiliate links to all posts with proper validation
-- `pnpm tsx scripts/affiliate-links/remove-text-recommendations.ts` - Remove plain text product recommendations
-- `pnpm tsx scripts/affiliate-links/process-all-posts.ts` - Process posts with affiliate products
+- `pnpm tsx scripts/affiliate-links/apply-compound-safe-links.ts` - Apply links with Japanese compound word protection
+- `pnpm tsx scripts/affiliate-links/04-apply-contextual-links-fixed.ts` - Apply contextually relevant links with proper word boundaries (max 5 per post)
+- `pnpm tsx scripts/affiliate-links/fix-duplicate-links.ts` - Remove duplicate keyword links within posts
+- `pnpm tsx scripts/affiliate-links/limit-links-to-five.ts` - Enforce maximum 5 links per post
+- `pnpm tsx scripts/affiliate-links/export-links-csv.ts` - Export all affiliate links to CSV format
+- `pnpm tsx scripts/affiliate-links/check-link-distribution.ts` - Verify link distribution across posts
+- `pnpm tsx scripts/reset-and-reapply-all-links.ts` - Remove all links and prepare for reapplication
 - Admin UI at http://localhost:3000/admin/affiliate-links for complete product and link management
 
 ### Architecture Overview
@@ -155,16 +159,18 @@ This repository contains two distinct projects:
 - **API Authentication** - Currently disabled for development, re-enable in production by uncommenting auth checks
 
 **Affiliate Links System:**
-- **Comprehensive Integration** - 473 inline affiliate links across 80 posts (avg 5.9 links per post)
-- **Inline Text Links** - Blue, underlined links naturally embedded within article content
-- **Product Recommendations** - Styled green gradient boxes with 3 products per article
-- **JSON-Based Management** - File-based product storage with import/export functionality
-- **Contextual Matching** - Smart matching between article content and relevant products
-- **Link Styling** - Professional blue (#2563eb) links with hover effects and transitions
+- **Compound Word Protection** - Won't split スコアカード into スコア + カード, preserves プレーヤー, ゴルファー intact
+- **Smart Contextual Linking** - Maximum 5 links per post with proper word boundary detection
+- **No Partial Matches** - Won't link "ゴルフ" in "ゴルファー" (proper Japanese word boundaries)
+- **Product Type Matching** - Links only match relevant product types (driver→driver, putter→putter)
+- **Even Distribution** - Links spread throughout entire article, not concentrated in first half
+- **Duplicate Prevention** - Each keyword linked only once per post
+- **CSV Export** - Export all links to CSV (Article Title, Link, Product, URL)
+- **A8 Tracking Verified** - All 542 products have correct tracking code (a8mat=45BP2Z+2BCPGY+2HOM+BWGDT)
 - **Admin Interface** - Complete management dashboard at `/admin/affiliate-links`
-- **Validation System** - Proper link structure validation with error handling
-- **Unique Linking** - Each keyword linked only once per post to avoid over-optimization
-- **Content Integration** - `AffiliateLinksEnhanced` component extracts links from article content
+- **Product Recommendations** - Maximum 3 products in recommendation box at article end
+- **Process New Posts Button** - Uses contextual linking with 5-link limit per post
+- **API Endpoint Protection** - `/api/affiliate-links/process-posts` includes compound word dictionary
 
 ## serena/ - Coding Agent Toolkit
 
