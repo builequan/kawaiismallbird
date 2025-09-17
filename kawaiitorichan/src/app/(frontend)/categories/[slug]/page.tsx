@@ -43,15 +43,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  const payload = await getPayload({ config })
-  const { docs: categories } = await payload.find({
-    collection: 'categories',
-    limit: 100,
-  })
+  // Skip static generation during build if no database connection
+  if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
+    return []
+  }
 
-  return categories.map((category) => ({
-    slug: category.slug,
-  }))
+  try {
+    const payload = await getPayload({ config })
+    const { docs: categories } = await payload.find({
+      collection: 'categories',
+      limit: 100,
+    })
+
+    return categories.map((category) => ({
+      slug: category.slug,
+    }))
+  } catch (error) {
+    console.warn('Failed to generate static params for categories:', error)
+    return []
+  }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
