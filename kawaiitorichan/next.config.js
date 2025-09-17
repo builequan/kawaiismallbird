@@ -34,10 +34,30 @@ const nextConfig = {
       '.mjs': ['.mts', '.mjs'],
     }
 
+    // Fix for SCSS imports in Payload CMS
+    webpackConfig.module.rules.push({
+      test: /\.scss$/,
+      use: ['style-loader', 'css-loader', 'sass-loader'],
+    })
+
     return webpackConfig
   },
   reactStrictMode: true,
   redirects,
+  // Allow cross-origin requests from the generated domain
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
