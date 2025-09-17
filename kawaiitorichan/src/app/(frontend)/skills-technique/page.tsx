@@ -1,34 +1,20 @@
 import { Metadata } from 'next'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { getPayload } from 'payload'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import config from '@payload-config'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { Badge } from '@/components/ui/badge'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { ChevronRight, Target, Zap, Flag, Repeat, AlertCircle, Gem } from 'lucide-react'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import Image from 'next/image'
 
-// Force dynamic rendering - do not pre-render during build
+// Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {

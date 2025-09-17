@@ -1,35 +1,21 @@
 import type { Metadata } from 'next/types'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import configPromise from '@payload-config'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { getPayload } from 'payload'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import React from 'react'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { Search } from '@/search/Component'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import PageClient from './page.client'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { CardPostData } from '@/components/Card'
 
-// Force dynamic rendering - do not pre-render during build
+// Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
 type Args = {

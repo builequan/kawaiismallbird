@@ -1,42 +1,24 @@
 import type { Metadata } from 'next'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import configPromise from '@payload-config'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { getPayload } from 'payload'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { draftMode } from 'next/headers'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import React from 'react'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { RenderHero } from '@/heros/RenderHero'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { generateMeta } from '@/utilities/generateMeta'
 
-// Force dynamic rendering - do not pre-render during build
-export const dynamic = 'force-dynamic'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
-// Force dynamic rendering - do not pre-render during build
+// Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
 export default async function AboutPage() {
