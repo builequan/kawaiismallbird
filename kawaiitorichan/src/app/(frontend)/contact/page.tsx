@@ -4,6 +4,9 @@ import { ContactForm } from '@/components/ContactForm'
 import { RecaptchaProvider } from '@/components/ContactForm/RecaptchaProvider'
 import { HideRecaptchaBadge } from '@/components/ContactForm/HideRecaptchaBadge'
 
+// Force dynamic rendering - don't pre-render during build
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'お問い合わせ | Golf Website',
   description: 'お気軽にお問い合わせください。ゴルフに関するご質問、ご相談を承っております。',
