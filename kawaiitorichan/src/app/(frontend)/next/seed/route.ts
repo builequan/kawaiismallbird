@@ -4,6 +4,7 @@ import config from '@payload-config'
 import { headers } from 'next/headers'
 
 export const maxDuration = 60 // This function can run for a maximum of 60 seconds
+export const dynamic = 'force-dynamic' // Don't pre-render during build
 
 export async function POST(): Promise<Response> {
   const payload = await getPayload({ config })
