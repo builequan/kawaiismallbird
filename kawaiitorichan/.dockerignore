@@ -10,15 +10,20 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 *.log
+
+# Exclude all scripts that aren't needed in production
 scripts/
-docs/
-README.md
-memory*.md
-*.test.ts
-*.test.tsx
+src/app/api/database-import/
+src/app/(admin)/admin/database-import/
 playwright/
 playwright.config.ts
 vitest.config.ts
 coverage/
 .vscode/
 .idea/
+docs/
+README.md
+memory*.md
+*.test.ts
+*.test.tsx
+tests/
