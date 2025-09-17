@@ -9,6 +9,9 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
+// Force dynamic rendering - don't pre-render during build
+export const dynamic = 'force-dynamic'
+
 export default async function AboutUsPage() {
   const { isEnabled: draft } = await draftMode()
   const payload = await getPayload({ config: configPromise })
