@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# EXPOSE must match the actual port Next.js uses
+EXPOSE 3000
+
+# CRITICAL: Must bind to 0.0.0.0 for Docker networking
+ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+ENV NODE_ENV=development
+
+# Run Next.js in dev mode
+CMD ["npm", "run", "dev"]
