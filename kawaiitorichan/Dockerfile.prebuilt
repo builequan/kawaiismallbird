@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files and install production dependencies only
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm@9 && pnpm install --frozen-lockfile --production
+
+# Copy the pre-built .next directory and other necessary files
+COPY .next ./.next
+COPY public ./public
+COPY next.config.js ./
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+# Start the production server
+CMD ["pnpm", "start"]
