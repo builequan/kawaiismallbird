@@ -1,11 +1,14 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs-20_x"]
 
 [phases.install]
-cmds = ["pnpm install --frozen-lockfile"]
+cmds = ["pnpm install"]
 
 [phases.build]
 cmds = ["pnpm build"]
 
 [start]
-cmd = "pnpm start"
+cmd = "node .next/standalone/server.js"
+
+[variables]
+NODE_VERSION = "20"
