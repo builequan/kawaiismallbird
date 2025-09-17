@@ -8,16 +8,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build arguments for environment variables
-ARG PAYLOAD_SECRET
-ARG DATABASE_URI
-ARG NEXT_PUBLIC_SERVER_URL
-
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PAYLOAD_SECRET=$PAYLOAD_SECRET
-ENV DATABASE_URI=$DATABASE_URI
-ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
+# Skip static generation during build
+ENV SKIP_BUILD_STATIC_GENERATION=true
 
 RUN corepack enable pnpm && pnpm build
 
