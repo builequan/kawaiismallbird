@@ -112,7 +112,7 @@ export default async function CategoryPage({ params }: PageProps) {
   }
 
   // Get sibling categories if this is a child category
-  let siblingCategories = []
+  let siblingCategories: any[] = []
   if (parentCategory) {
     const { docs: siblings } = await payload.find({
       collection: 'categories',
