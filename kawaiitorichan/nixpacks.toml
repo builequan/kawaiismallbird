@@ -2,17 +2,13 @@
 nixPkgs = ['nodejs_18']
 
 [phases.install]
-cmds = [
-  'npm install -g pnpm@8',
-  'pnpm config set store-dir ~/.pnpm-store',
-  'pnpm install --no-frozen-lockfile'
-]
+cmds = ['npm install --legacy-peer-deps']
 
 [phases.build]
-cmds = ['pnpm build']
+cmds = ['npm run build']
 
 [start]
-cmd = 'pnpm start'
+cmd = 'npm run start'
 
 [variables]
 NODE_ENV = 'production'
