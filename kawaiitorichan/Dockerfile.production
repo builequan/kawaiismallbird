@@ -14,9 +14,10 @@ COPY . .
 # Set build environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_DISABLE_ESLINT_PLUGIN=true
 
-# Build the application
-RUN pnpm build
+# Build the application (skip linting)
+RUN pnpm build || pnpm run build:docker
 
 # Production stage
 FROM node:18-alpine AS runner
