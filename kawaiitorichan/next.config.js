@@ -34,12 +34,6 @@ const nextConfig = {
       '.mjs': ['.mts', '.mjs'],
     }
 
-    // Fix for SCSS imports in Payload CMS
-    webpackConfig.module.rules.push({
-      test: /\.scss$/,
-      use: ['style-loader', 'css-loader', 'sass-loader'],
-    })
-
     return webpackConfig
   },
   reactStrictMode: true,
