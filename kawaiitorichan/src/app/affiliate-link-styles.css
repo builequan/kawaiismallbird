@@ -1,0 +1,64 @@
+/* Global styles for affiliate links */
+
+/* Style all affiliate links (with nofollow sponsored) */
+a[rel*="sponsored"] {
+  color: #2563eb !important; /* Bright blue */
+  text-decoration: underline !important;
+  text-decoration-color: #2563eb !important;
+  text-underline-offset: 3px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 0 2px;
+}
+
+a[rel*="sponsored"]:hover {
+  color: #1d4ed8 !important; /* Darker blue on hover */
+  background-color: rgba(37, 99, 235, 0.08);
+  border-radius: 3px;
+  text-decoration: underline !important;
+}
+
+a[rel*="sponsored"]:visited {
+  color: #7c3aed !important; /* Purple for visited */
+  text-decoration-color: #7c3aed !important;
+}
+
+/* Shopping cart emoji removed - handled by React component */
+/* a[rel*="sponsored"]::after content removed to prevent duplication */
+
+/* Alternative styling for affiliate links in article content */
+.prose a[rel*="sponsored"],
+article a[rel*="sponsored"] {
+  color: #2563eb !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #2563eb;
+  text-decoration: none !important;
+  padding-bottom: 1px;
+  transition: all 0.2s ease;
+}
+
+.prose a[rel*="sponsored"]:hover,
+article a[rel*="sponsored"]:hover {
+  color: #1d4ed8 !important;
+  border-bottom-color: #1d4ed8;
+  background: linear-gradient(to bottom, transparent 60%, rgba(37, 99, 235, 0.1) 40%);
+}
+
+/* Special styling for Japanese content */
+[lang="ja"] a[rel*="sponsored"] {
+  text-decoration-thickness: 2px !important;
+  text-decoration-color: #2563eb !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  a[rel*="sponsored"] {
+    text-underline-offset: 2px !important;
+    padding: 2px 3px;
+  }
+  
+  a[rel*="sponsored"]::after {
+    font-size: 0.7em;
+  }
+}

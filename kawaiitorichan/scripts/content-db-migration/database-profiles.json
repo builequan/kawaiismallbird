@@ -1,0 +1,110 @@
+{
+  "profiles": {
+    "content_creation_db": {
+      "name": "Content Creation Database",
+      "description": "Main content creation database with articles from multiple websites",
+      "connection": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "content_creation_db",
+        "user": "postgres",
+        "password": "2801"
+      },
+      "tables": {
+        "articles": "articles",
+        "categories": "categories",
+        "tags": "tags",
+        "authors": "authors"
+      },
+      "fieldMappings": {
+        "id": "id",
+        "website_id": "site_id",
+        "language": "language",
+        "title": "title",
+        "content": "content",
+        "meta_description": "meta_description",
+        "keywords": "primary_keyword",
+        "category": "category",
+        "tags": "target_keywords",
+        "author": "author",
+        "status": "status",
+        "featured_image": "featured_image_url",
+        "slug": "url_slug",
+        "published_at": "published_at",
+        "created_at": "created_at",
+        "updated_at": "updated_at"
+      }
+    },
+    "blog_database": {
+      "name": "Blog Database",
+      "description": "WordPress-style blog database",
+      "connection": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "blog_db",
+        "user": "postgres",
+        "password": "2801"
+      },
+      "tables": {
+        "articles": "wp_posts",
+        "categories": "wp_terms",
+        "tags": "wp_terms",
+        "authors": "wp_users"
+      },
+      "fieldMappings": {
+        "id": "ID",
+        "website_id": "site_id",
+        "language": "post_language",
+        "title": "post_title",
+        "content": "post_content",
+        "meta_description": "post_excerpt",
+        "keywords": "meta_keywords",
+        "category": "post_category",
+        "tags": "post_tags",
+        "author": "post_author",
+        "status": "post_status",
+        "featured_image": "featured_image_url",
+        "slug": "post_name",
+        "published_at": "post_date",
+        "created_at": "post_date",
+        "updated_at": "post_modified"
+      }
+    },
+    "custom_cms_db": {
+      "name": "Custom CMS Database",
+      "description": "Custom CMS with different table structure",
+      "connection": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "custom_cms",
+        "user": "postgres",
+        "password": "2801"
+      },
+      "tables": {
+        "articles": "content_items",
+        "categories": "taxonomies",
+        "tags": "labels",
+        "authors": "users"
+      },
+      "fieldMappings": {
+        "id": "content_id",
+        "website_id": "site_identifier",
+        "language": "locale",
+        "title": "headline",
+        "content": "body_text",
+        "meta_description": "seo_description",
+        "keywords": "seo_keywords",
+        "category": "primary_category",
+        "tags": "content_labels",
+        "author": "created_by",
+        "status": "publish_status",
+        "featured_image": "hero_image",
+        "slug": "url_slug",
+        "published_at": "publish_date",
+        "created_at": "created_date",
+        "updated_at": "modified_date"
+      }
+    }
+  },
+  "defaultProfile": "content_creation_db"
+}

@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 142 42% 30%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 142 42% 30%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Admin-specific styles */
+.admin-container {
+  background-color: #f9fafb;
+  min-height: 100vh;
+}
+
+/* Ensure select dropdowns are visible */
+[role="combobox"] {
+  background-color: white !important;
+  color: #111827 !important;
+}
+
+[role="listbox"] {
+  background-color: white !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+[role="option"] {
+  color: #111827 !important;
+}
+
+[role="option"]:hover {
+  background-color: #f3f4f6 !important;
+}
+
+/* Fix for shadcn/ui components in admin */
+.admin-page {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  color: #111827;
+}
+
+.admin-page h1,
+.admin-page h2,
+.admin-page h3,
+.admin-page h4,
+.admin-page h5,
+.admin-page h6 {
+  color: #111827;
+}
+
+.admin-page p {
+  color: #4b5563;
+}
+
+/* Ensure form elements are visible */
+.admin-page input,
+.admin-page select,
+.admin-page textarea {
+  color: #111827;
+  background-color: white;
+  border-color: #d1d5db;
+}
+
+.admin-page label {
+  color: #374151;
+  font-weight: 500;
+}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Theme Settings</title>
+</head>
+<body>
+    <h1>Theme Settings Cleared</h1>
+    <p>Clearing theme preferences and setting to light mode...</p>
+
+    <script>
+        // Clear any existing theme preference
+        localStorage.removeItem('payload-theme');
+        // Explicitly set light mode
+        localStorage.setItem('payload-theme', 'light');
+
+        // Redirect to the main site
+        setTimeout(() => {
+            window.location.href = 'http://localhost:3000';
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dark Mode</title>
+</head>
+<body>
+    <h1>Dark Mode Tester</h1>
+    <button onclick="setDarkMode()">Set Dark Mode</button>
+    <button onclick="setLightMode()">Set Light Mode</button>
+    <button onclick="clearTheme()">Clear Theme (Auto)</button>
+
+    <script>
+        function setDarkMode() {
+            localStorage.setItem('payload-theme', 'dark');
+            window.location.href = 'http://localhost:3000';
+        }
+
+        function setLightMode() {
+            localStorage.setItem('payload-theme', 'light');
+            window.location.href = 'http://localhost:3000';
+        }
+
+        function clearTheme() {
+            localStorage.removeItem('payload-theme');
+            window.location.href = 'http://localhost:3000';
+        }
+    </script>
+</body>
+</html>

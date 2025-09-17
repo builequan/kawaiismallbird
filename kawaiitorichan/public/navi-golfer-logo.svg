@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" width="280" height="80">
+  <!-- Golf ball with compass star -->
+  <g transform="translate(40, 40)">
+    <!-- Shadow/hole beneath ball -->
+    <ellipse cx="0" cy="28" rx="28" ry="6" fill="#000" opacity="0.2"/>
+    
+    <!-- Golf ball circle -->
+    <circle cx="0" cy="0" r="25" fill="#000"/>
+    
+    <!-- Golf ball dimples pattern -->
+    <g fill="#fff" opacity="0.7">
+      <!-- Top row dimples -->
+      <ellipse cx="-12" cy="-16" rx="2.5" ry="2" transform="rotate(-30 -12 -16)"/>
+      <ellipse cx="0" cy="-18" rx="2.5" ry="2"/>
+      <ellipse cx="12" cy="-16" rx="2.5" ry="2" transform="rotate(30 12 -16)"/>
+      
+      <!-- Upper middle row -->
+      <ellipse cx="-18" cy="-8" rx="2.5" ry="2" transform="rotate(-60 -18 -8)"/>
+      <ellipse cx="-6" cy="-10" rx="2.5" ry="2" transform="rotate(-30 -6 -10)"/>
+      <ellipse cx="6" cy="-10" rx="2.5" ry="2" transform="rotate(30 6 -10)"/>
+      <ellipse cx="18" cy="-8" rx="2.5" ry="2" transform="rotate(60 18 -8)"/>
+      
+      <!-- Middle row -->
+      <ellipse cx="-20" cy="0" rx="2.5" ry="2.5"/>
+      <ellipse cx="-12" cy="0" rx="2.5" ry="2.5"/>
+      <ellipse cx="-4" cy="0" rx="2.5" ry="2.5"/>
+      
+      <!-- Lower middle row -->
+      <ellipse cx="-18" cy="8" rx="2.5" ry="2" transform="rotate(60 -18 8)"/>
+      <ellipse cx="-6" cy="10" rx="2.5" ry="2" transform="rotate(30 -6 10)"/>
+      <ellipse cx="6" cy="10" rx="2.5" ry="2" transform="rotate(-30 6 10)"/>
+      <ellipse cx="18" cy="8" rx="2.5" ry="2" transform="rotate(-60 18 8)"/>
+      
+      <!-- Bottom row -->
+      <ellipse cx="-12" cy="16" rx="2.5" ry="2" transform="rotate(30 -12 16)"/>
+      <ellipse cx="0" cy="18" rx="2.5" ry="2"/>
+      <ellipse cx="12" cy="16" rx="2.5" ry="2" transform="rotate(-30 12 16)"/>
+    </g>
+    
+    <!-- Compass star in center -->
+    <g fill="#fff">
+      <!-- Main star points -->
+      <path d="M 0,-10 L 1.5,-1.5 L 10,0 L 1.5,1.5 L 0,10 L -1.5,1.5 L -10,0 L -1.5,-1.5 Z"/>
+      <!-- Center circle -->
+      <circle cx="0" cy="0" r="1.5" fill="#fff"/>
+    </g>
+    
+    <!-- Radiating lines around ball -->
+    <g stroke="#000" stroke-width="1.2" stroke-linecap="round">
+      <line x1="0" y1="-33" x2="0" y2="-37"/>
+      <line x1="23" y1="-23" x2="26" y2="-26"/>
+      <line x1="33" y1="0" x2="37" y2="0"/>
+      <line x1="23" y1="23" x2="26" y2="26"/>
+      <line x1="0" y1="33" x2="0" y2="37"/>
+      <line x1="-23" y1="23" x2="-26" y2="26"/>
+      <line x1="-33" y1="0" x2="-37" y2="0"/>
+      <line x1="-23" y1="-23" x2="-26" y2="-26"/>
+      
+      <!-- Smaller rays -->
+      <line x1="16" y1="-29" x2="18" y2="-32"/>
+      <line x1="29" y1="-16" x2="32" y2="-18"/>
+      <line x1="29" y1="16" x2="32" y2="18"/>
+      <line x1="16" y1="29" x2="18" y2="32"/>
+      <line x1="-16" y1="29" x2="-18" y2="32"/>
+      <line x1="-29" y1="16" x2="-32" y2="18"/>
+      <line x1="-29" y1="-16" x2="-32" y2="-18"/>
+      <line x1="-16" y1="-29" x2="-18" y2="-32"/>
+    </g>
+  </g>
+  
+  <!-- Text: Navi-golfer with proper spacing -->
+  <text x="85" y="47" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#000" letter-spacing="0.5">Navi-golfer</text>
+</svg>

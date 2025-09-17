@@ -1,0 +1,36 @@
+{
+  "sites": {
+    "15": {
+      "name": "Website 15",
+      "description": "Mixed language content site",
+      "primaryLanguage": "mixed",
+      "url": ""
+    },
+    "17": {
+      "name": "Website 17",
+      "description": "Small content site",
+      "primaryLanguage": "mixed",
+      "url": ""
+    },
+    "18": {
+      "name": "Website 18",
+      "description": "Main content site",
+      "primaryLanguage": "mixed",
+      "url": ""
+    },
+    "19": {
+      "name": "Website 19",
+      "description": "Japanese content site",
+      "primaryLanguage": "ja",
+      "url": ""
+    }
+  },
+  "defaultSite": "18",
+  "categoryMappings": {
+    "golf-tips": "tips",
+    "golf-lessons": "lessons",
+    "golf-equipment": "equipment",
+    "golf-news": "news",
+    "golf-courses": "courses"
+  }
+}

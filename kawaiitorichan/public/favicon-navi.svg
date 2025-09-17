@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Golf ball with compass star (simplified for favicon) -->
+  <g transform="translate(32, 32)">
+    <!-- Golf ball circle -->
+    <circle cx="0" cy="0" r="28" fill="#000"/>
+    
+    <!-- Golf ball dimples pattern (simplified) -->
+    <g fill="#fff" opacity="0.7">
+      <circle cx="-10" cy="-15" r="3"/>
+      <circle cx="10" cy="-15" r="3"/>
+      <circle cx="0" cy="-18" r="3"/>
+      <circle cx="-18" cy="0" r="3"/>
+      <circle cx="18" cy="0" r="3"/>
+      <circle cx="-10" cy="15" r="3"/>
+      <circle cx="10" cy="15" r="3"/>
+      <circle cx="0" cy="18" r="3"/>
+      <circle cx="-15" cy="-8" r="3"/>
+      <circle cx="15" cy="-8" r="3"/>
+      <circle cx="-15" cy="8" r="3"/>
+      <circle cx="15" cy="8" r="3"/>
+    </g>
+    
+    <!-- Compass star in center -->
+    <g fill="#fff">
+      <!-- Main star -->
+      <path d="M 0,-10 L 2,-2 L 10,0 L 2,2 L 0,10 L -2,2 L -10,0 L -2,-2 Z"/>
+      <!-- Center dot -->
+      <circle cx="0" cy="0" r="2" fill="#fff"/>
+    </g>
+  </g>
+</svg>

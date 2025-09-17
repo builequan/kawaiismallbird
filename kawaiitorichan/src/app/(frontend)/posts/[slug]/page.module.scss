@@ -1,0 +1,75 @@
+@use '@scss/common' as *;
+
+.postPage {
+  padding-bottom: calc(var(--block-spacing) * 2);
+
+  @include mid-break {
+    padding-bottom: var(--block-spacing);
+  }
+}
+
+.postContent {
+  margin-top: calc(var(--gap-lg) * 1.5);
+
+  @include mid-break {
+    margin-top: var(--gap-md);
+  }
+  
+  // Style for affiliate links in content
+  :global {
+    // Target all links with rel="nofollow sponsored"
+    a[rel*="sponsored"] {
+      color: #2563eb !important; // Blue color
+      text-decoration: underline !important;
+      text-decoration-style: solid !important;
+      text-underline-offset: 2px !important;
+      font-weight: 500 !important;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: #1d4ed8 !important; // Darker blue on hover
+        text-decoration: underline !important;
+        background-color: rgba(37, 99, 235, 0.05);
+        padding: 0 2px;
+        border-radius: 2px;
+      }
+      
+      &:visited {
+        color: #7c3aed !important; // Purple for visited links
+      }
+    }
+    
+    // Alternative: Target links in paragraphs that contain product keywords
+    p a[href*="a8.net"],
+    p a[href*="rakuten"],
+    p a[href*="amazon"] {
+      color: #2563eb !important;
+      text-decoration: underline !important;
+      font-weight: 500 !important;
+      position: relative;
+      
+      &::after {
+        content: "🔗";
+        font-size: 0.8em;
+        margin-left: 2px;
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+.sidebar {
+  margin-top: calc(var(--gap-lg) * 2);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--gap-lg) * 1.5);
+
+  @include large-break {
+    margin-top: calc(var(--gap-xl) * 1.5);
+  }
+
+  @include mid-break {
+    margin-top: var(--gap-lg);
+    gap: var(--gap-lg);
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "products": {
+    "total": 542,
+    "japanese": 49,
+    "english": 0,
+    "both": 493
+  },
+  "posts": {
+    "total": 77,
+    "japanese": 0,
+    "english": 77,
+    "excluded": 0
+  },
+  "anchorPhrases": {
+    "total": 4774,
+    "unique": 1144
+  },
+  "timestamp": "2025-09-13T21:59:45.944Z"
+}

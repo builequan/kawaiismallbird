@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple bird icon -->
+  <g transform="translate(16, 16)">
+    <!-- Body -->
+    <ellipse cx="0" cy="0" rx="10" ry="9" fill="white" stroke="black" stroke-width="1.5"/>
+
+    <!-- Black head -->
+    <path d="M -8,-6 Q 0,-10 8,-6 Q 7,-2 0,-1 Q -7,-2 -8,-6" fill="black"/>
+
+    <!-- Eye -->
+    <circle cx="-3" cy="-3" r="2.5" fill="white"/>
+    <circle cx="3" cy="-3" r="2.5" fill="white"/>
+    <circle cx="-3" cy="-2.5" r="1.5" fill="black"/>
+    <circle cx="3" cy="-2.5" r="1.5" fill="black"/>
+
+    <!-- Beak -->
+    <path d="M -1.5,0 L 0,1.5 L 1.5,0 Z" fill="#FFA500"/>
+
+    <!-- Wing -->
+    <path d="M 6,-1 Q 9,0 8,4 Q 7,5 6,3" fill="black"/>
+  </g>
+</svg>
