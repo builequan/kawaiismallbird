@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./kawaiitorichan
+      dockerfile: Dockerfile
+    container_name: kawaii-bird-app
+    ports:
+      - "3000:3000"
+    environment:
+      # Database configuration - Dokploy will provide these
+      DATABASE_URI: ${DATABASE_URI:-postgres://postgres:postgres@db:5432/kawaii_bird}
+
+      # Application secrets
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-https://your-domain.com}
+
+      # Optional configurations
+      CRON_SECRET: ${CRON_SECRET}
+      PREVIEW_SECRET: ${PREVIEW_SECRET}
+
+      # Email configuration
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      CONTACT_EMAIL_TO: ${CONTACT_EMAIL_TO}
+
+      # reCAPTCHA keys
+      NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
+
+      NODE_ENV: production
+    depends_on:
+      - db
+    networks:
+      - dokploy-network
+    restart: unless-stopped
+    volumes:
+      - uploads:/app/public/media
+      - data:/app/data
+
+  db:
+    image: postgres:15-alpine
+    container_name: kawaii-bird-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-kawaii_bird}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dokploy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads:
+    driver: local
+  data:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true
