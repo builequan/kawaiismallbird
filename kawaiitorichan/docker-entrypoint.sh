@@ -81,5 +81,6 @@ if [ "$USE_SIMPLE_SERVER" = "true" ]; then
   exec node simple-server.cjs
 else
   echo "Starting main Next.js application..."
-  exec node server-wrapper.js
+  # Skip wrapper, run server.js directly (it's the Next.js standalone output)
+  exec node server.js
 fi
