@@ -5,20 +5,52 @@ export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
   slug: 'home',
   _status: 'published',
   hero: {
-    type: 'none',
+    type: 'lowImpact',
+    richText: {
+      root: {
+        children: [
+          {
+            children: [
+              {
+                text: 'かわいい鳥の世界へようこそ',
+                type: 'text',
+              },
+            ],
+            type: 'heading',
+            tag: 'h1',
+            version: 1,
+          },
+          {
+            children: [
+              {
+                text: '小さくてかわいい鳥たちの魅力的な世界を探索しましょう。',
+                type: 'text',
+              },
+            ],
+            type: 'paragraph',
+            version: 1,
+          },
+        ],
+        type: 'root',
+        version: 1,
+        indent: 0,
+        direction: 'ltr',
+        format: '',
+      },
+    },
   },
   meta: {
-    description: 'ゴルフの上達に役立つ技術、知識、最新情報を提供する日本語ゴルフブログサイト',
-    title: 'ホーム - ゴルフライフをサポート',
+    description: '小さくてかわいい鳥たちの魅力的な世界を探索するブログサイト',
+    title: 'ホーム - Kawaii Bird',
   },
   title: 'ホーム',
   layout: [
     {
       blockType: 'heroBlog',
       blockName: 'homepage-hero',
-      title: 'あなたのゴルフライフをサポート',
-      subtitle: 'ゴルフの上達に必要な技術、知識、そして最新の情報をお届けします。スコアアップを目指して、一緒に学びましょう。',
-      ctaText: 'ゴルフ記事を見る',
+      title: '小さくてかわいい鳥の世界',
+      subtitle: '美しい鳥たちの写真、生態、そして彼らとの素敵な暮らしについて紹介します。',
+      ctaText: '記事を読む',
       ctaLink: '/posts',
       gradientStyle: 'pinkPurple',
       layout: 'center',
