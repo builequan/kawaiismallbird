@@ -54,7 +54,10 @@ export NODE_ENV
 export PORT
 
 # Try simple server first for debugging
-if [ -f simple-server.js ]; then
+if [ -f simple-server.cjs ]; then
+  echo "Starting simple diagnostic server for testing..."
+  exec node simple-server.cjs
+elif [ -f simple-server.js ]; then
   echo "Starting simple diagnostic server for testing..."
   exec node simple-server.js
 else
