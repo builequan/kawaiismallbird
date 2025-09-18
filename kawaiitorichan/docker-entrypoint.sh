@@ -53,4 +53,11 @@ export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
 
-exec node server-wrapper.js
+# Try simple server first for debugging
+if [ -f simple-server.js ]; then
+  echo "Starting simple diagnostic server for testing..."
+  exec node simple-server.js
+else
+  echo "Starting main application..."
+  exec node server-wrapper.js
+fi
