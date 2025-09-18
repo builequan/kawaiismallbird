@@ -41,14 +41,14 @@ export default async function AboutPage() {
   const page = result.docs?.[0]
 
   if (!page) {
-    return <PayloadRedirects url="/about" />
+    return <PayloadRedirects url="/about-us" />
   }
 
   const { hero, layout } = page
 
   return (
     <article className="min-h-screen bg-white">
-      <PayloadRedirects disableNotFound url="/about" />
+      <PayloadRedirects disableNotFound url="/about-us" />
       {draft && <LivePreviewListener />}
       <div className="bg-white">
         <RenderHero {...hero} />

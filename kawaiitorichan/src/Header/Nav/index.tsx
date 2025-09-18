@@ -45,7 +45,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
 
   // Static Japanese navigation items for bird site
   const japaneseNavItems = [
-    { label: '私たちについて', href: '/about' },
+    { label: '私たちについて', href: '/about-us' },
     { label: 'カテゴリー', href: '/categories', hasDropdown: true },
     { label: 'ギャラリー', href: '/gallery' },
     { label: 'お問い合わせ', href: '/contact' },
