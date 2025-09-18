@@ -53,6 +53,28 @@ export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
 
+# Parse DATABASE_URI to get connection details
+if [ -n "$DATABASE_URI" ]; then
+  # Extract components from postgresql://user:pass@host:port/dbname
+  export DB_USER=$(echo $DATABASE_URI | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
+  export DB_PASSWORD=$(echo $DATABASE_URI | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
+  export DB_HOST=$(echo $DATABASE_URI | sed -n 's/.*@\([^:]*\):.*/\1/p')
+  export DB_PORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+  export DB_NAME=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
+
+  echo "Database connection parsed:"
+  echo "- Host: $DB_HOST"
+  echo "- Port: $DB_PORT"
+  echo "- Database: $DB_NAME"
+  echo "- User: $DB_USER"
+
+  # Try to initialize database if needed
+  if [ -f init-db.sh ]; then
+    echo "Running database initialization check..."
+    sh init-db.sh || echo "Database init failed or not needed, continuing..."
+  fi
+fi
+
 # Check if we need to use the simple server or the full app
 if [ "$USE_SIMPLE_SERVER" = "true" ]; then
   echo "Using simple diagnostic server..."

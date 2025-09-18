@@ -27,6 +27,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install PostgreSQL client for database initialization
+RUN apk add --no-cache postgresql-client
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -39,7 +42,12 @@ COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 COPY --from=builder /app/start.sh ./
 COPY --from=builder /app/simple-server.cjs ./
-RUN chmod +x ./docker-entrypoint.sh ./start.sh
+COPY --from=builder /app/init-db.sh ./
+COPY --from=builder /app/schema.sql ./
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh
+
+# Change ownership of all files to nextjs user
+RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000
