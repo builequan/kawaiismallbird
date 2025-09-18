@@ -11,7 +11,7 @@ export const aboutUsPage: RequiredDataFromCollectionSlug<'pages'> = {
     {
       blockType: 'heroBlog',
       title: '私たちについて',
-      subtitle: 'ゴルフを愛するすべての人のために',
+      subtitle: '小さくてかわいい鳥たちの魅力を伝える',
       gradientStyle: 'mintBlue',
       layout: 'center',
       id: 'about-hero-01',

@@ -1,72 +1,104 @@
 import { getPayload } from 'payload'
-import configPromise from '../src/payload.config'
+import configPromise from '@payload-config'
 
 async function setupBirdCategories() {
-  const payload = await getPayload({ config: configPromise })
-
-  const categories = [
-    {
-      title: '鳥の種類',
-      slug: 'bird-species',
-      description: '世界中のかわいい小鳥たちの種類と特徴',
-      order: 1,
-    },
-    {
-      title: '観察用具',
-      slug: 'birdwatching-gear',
-      description: 'バードウォッチングに必要な道具と使い方',
-      order: 2,
-    },
-    {
-      title: '撮影技術',
-      slug: 'photography',
-      description: '野鳥撮影のテクニックとコツ',
-      order: 3,
-    },
-    {
-      title: '生息地',
-      slug: 'habitats',
-      description: '鳥たちが暮らす様々な環境',
-      order: 4,
-    },
-    {
-      title: '保護活動',
-      slug: 'conservation',
-      description: '野鳥保護と環境保全の取り組み',
-      order: 5,
-    },
-  ]
-
   try {
-    // Delete existing golf categories if any
-    const existingCategories = await payload.find({
-      collection: 'categories',
-      limit: 100,
-    })
+    const payload = await getPayload({ config: configPromise })
 
-    for (const category of existingCategories.docs) {
-      await payload.delete({
-        collection: 'categories',
-        id: category.id,
-      })
-    }
-    console.log('✅ Cleared existing categories')
+    const categories = [
+      {
+        title: '野鳥観察',
+        slug: 'wild-birds',
+        description: '日本の野鳥の観察記録と写真',
+        color: 'green',
+      },
+      {
+        title: '飼い鳥',
+        slug: 'pet-birds',
+        description: 'インコ、文鳥、カナリアなどの飼い鳥について',
+        color: 'blue',
+      },
+      {
+        title: '鳥の写真',
+        slug: 'bird-photos',
+        description: '美しい鳥たちの写真ギャラリー',
+        color: 'purple',
+      },
+      {
+        title: '鳥の生態',
+        slug: 'bird-ecology',
+        description: '鳥たちの習性と生態について',
+        color: 'orange',
+      },
+      {
+        title: '鳥の飼い方',
+        slug: 'bird-care',
+        description: '小鳥の飼育方法とお世話のコツ',
+        color: 'pink',
+      },
+      {
+        title: '鳥の種類',
+        slug: 'bird-species',
+        description: '様々な鳥の種類と特徴',
+        color: 'cyan',
+      },
+      {
+        title: '鳥の健康',
+        slug: 'bird-health',
+        description: '鳥の健康管理と病気の予防',
+        color: 'red',
+      },
+      {
+        title: '鳥のグッズ',
+        slug: 'bird-goods',
+        description: '鳥用品とおすすめアイテム',
+        color: 'yellow',
+      },
+    ]
 
-    // Create new bird categories
+    console.log('🦜 Setting up bird categories...')
+
     for (const categoryData of categories) {
-      await payload.create({
+      // Check if category already exists
+      const existing = await payload.find({
         collection: 'categories',
-        data: categoryData,
+        where: {
+          slug: {
+            equals: categoryData.slug,
+          },
+        },
       })
-      console.log(`✅ Created category: ${categoryData.title}`)
+
+      if (existing.docs.length === 0) {
+        // Create new category
+        await payload.create({
+          collection: 'categories',
+          data: {
+            ...categoryData,
+            _status: 'published',
+          },
+        })
+        console.log(`✅ Created category: ${categoryData.title}`)
+      } else {
+        // Update existing category
+        await payload.update({
+          collection: 'categories',
+          id: existing.docs[0].id,
+          data: {
+            ...categoryData,
+            _status: 'published',
+          },
+        })
+        console.log(`📝 Updated category: ${categoryData.title}`)
+      }
     }
 
-    console.log('🎉 All bird categories set up successfully!')
+    console.log('🎉 All bird categories have been set up successfully!')
+    process.exit(0)
   } catch (error) {
-    console.error('❌ Error setting up categories:', error)
+    console.error('❌ Failed to setup categories:', error)
+    process.exit(1)
   }
-
-  process.exit(0)
 }
 
 setupBirdCategories()

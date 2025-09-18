@@ -78,6 +78,15 @@ if [ -n "$DATABASE_URI" ]; then
     echo "Running database initialization check..."
     sh init-db.sh || echo "Database init failed or not needed, continuing..."
   fi
+
+  # Initialize bird theme content if requested
+  if [ "$INIT_BIRD_THEME" = "true" ]; then
+    echo ""
+    echo "🦜 Initializing Kawaii Bird theme content..."
+    if [ -f scripts/production-init.sh ]; then
+      sh scripts/production-init.sh || echo "Bird theme initialization completed or failed"
+    fi
+  fi
 fi
 
 # Check if we need to use the simple server or the full app
