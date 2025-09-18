@@ -53,6 +53,11 @@ export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
 
-# Start the main application now that we know container works
-echo "Starting main Next.js application..."
-exec node server.js
+# Check if we need to use the simple server or the full app
+if [ "$USE_SIMPLE_SERVER" = "true" ]; then
+  echo "Using simple diagnostic server..."
+  exec node simple-server.cjs
+else
+  echo "Starting main Next.js application..."
+  exec node server-wrapper.js
+fi
