@@ -59,15 +59,16 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { isEnabled: draft } = await draftMode()
-  const { slug = 'home' } = await paramsPromise
-  const url = '/' + slug
+  try {
+    const { isEnabled: draft } = await draftMode()
+    const { slug = 'home' } = await paramsPromise
+    const url = '/' + slug
 
-  let page: RequiredDataFromCollectionSlug<'pages'> | null
+    let page: RequiredDataFromCollectionSlug<'pages'> | null
 
-  page = await queryPageBySlug({
-    slug,
-  })
+    page = await queryPageBySlug({
+      slug,
+    })
 
   // Remove this code once your website is seeded
   if (!page && slug === 'home') {
@@ -98,6 +99,12 @@ export default async function Page({ params: paramsPromise }: Args) {
       <RenderBlocks blocks={layout} />
     </article>
   )
+  } catch (error) {
+    console.error('Error loading page:', error)
+    console.error('DATABASE_URI:', process.env.DATABASE_URI?.substring(0, 30) + '...')
+    console.error('PAYLOAD_SECRET exists:', !!process.env.PAYLOAD_SECRET)
+    throw error
+  }
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
