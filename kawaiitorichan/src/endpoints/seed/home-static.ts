@@ -46,17 +46,6 @@ export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
   title: 'ホーム',
   layout: [
     {
-      blockType: 'heroBlog',
-      blockName: 'homepage-hero',
-      title: 'かわいい鳥たちの世界へようこそ',
-      subtitle: '小さくて愛らしい鳥たちの魅力、美しい写真、そして彼らとの素敵な暮らしをご紹介します。',
-      ctaText: '鳥の記事を読む',
-      ctaLink: '/posts',
-      gradientStyle: 'pinkPurple',
-      layout: 'center',
-      id: 'hero-01',
-    },
-    {
       blockType: 'homepageLayout',
       blockName: 'homepage-content',
       showMostViewedPosts: true,
