@@ -1,14 +1,14 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-# Files are at the root of the build context (./kawaiitorichan)
-COPY package.json pnpm-lock.yaml ./
+# Context is repository root, files are in kawaiitorichan subdirectory
+COPY kawaiitorichan/package.json kawaiitorichan/pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# Copy everything from kawaiitorichan context
-COPY . .
+# Copy all files from kawaiitorichan subdirectory
+COPY kawaiitorichan/ .
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -34,7 +34,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy runtime scripts from builder stage
+# Copy runtime scripts from builder stage (they're now in /app after COPY kawaiitorichan/)
 COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 RUN chmod +x ./docker-entrypoint.sh

@@ -1,7 +1,8 @@
 # Dockerfile for Dokploy deployment - Located at repository root
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY kawaiitorichan/package.json kawaiitorichan/pnpm-lock.yaml ./
+# Copy from kawaiitorichan subdirectory when context is root
+COPY ./kawaiitorichan/package.json ./kawaiitorichan/pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
