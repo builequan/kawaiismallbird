@@ -45,27 +45,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export async function generateStaticParams() {
-  // Skip static generation during build if no database connection
-  if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
-    return []
-  }
+// Completely disable static generation for Docker builds
+// export async function generateStaticParams() {
+//   // Skip static generation during build if no database connection
+//   if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
+//     return []
+//   }
 
-  try {
-    const payload = await getPayload({ config })
-    const { docs: categories } = await payload.find({
-      collection: 'categories',
-      limit: 100,
-    })
+//   try {
+//     const payload = await getPayload({ config })
+//     const { docs: categories } = await payload.find({
+//       collection: 'categories',
+//       limit: 100,
+//     })
 
-    return categories.map((category) => ({
-      slug: category.slug,
-    }))
-  } catch (error) {
-    console.warn('Failed to generate static params for categories:', error)
-    return []
-  }
-}
+//     return categories.map((category) => ({
+//       slug: category.slug,
+//     }))
+//   } catch (error) {
+//     console.warn('Failed to generate static params for categories:', error)
+//     return []
+//   }
+// }
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params
