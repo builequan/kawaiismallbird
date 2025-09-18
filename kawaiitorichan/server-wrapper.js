@@ -27,6 +27,19 @@ process.on('unhandledRejection', (reason, promise) => {
 // Try to start the server
 try {
   console.log('Loading server.js...');
+
+  // Ensure PORT is set
+  if (!process.env.PORT) {
+    process.env.PORT = '3000';
+    console.log('PORT not set, defaulting to 3000');
+  }
+
+  // Ensure HOSTNAME is set for Docker
+  if (!process.env.HOSTNAME) {
+    process.env.HOSTNAME = '0.0.0.0';
+    console.log('HOSTNAME not set, defaulting to 0.0.0.0');
+  }
+
   require('./server.js');
 } catch (error) {
   console.error('❌ Failed to start server:');
