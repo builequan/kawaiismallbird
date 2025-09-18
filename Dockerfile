@@ -9,6 +9,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY kawaiitorichan/ .
 
+# Ensure runtime scripts are in the builder stage
+RUN test -f docker-entrypoint.sh || echo "ERROR: docker-entrypoint.sh not found"
+RUN test -f server-wrapper.js || echo "ERROR: server-wrapper.js not found"
+
 # Build-time environment variables (will be replaced at runtime)
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_BUILD_STATIC_GENERATION=true
