@@ -1,4 +1,4 @@
-# Optimized Dockerfile for Dokploy deployment
+# Dockerfile for Dokploy deployment - Located at repository root
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY kawaiitorichan/package.json kawaiitorichan/pnpm-lock.yaml ./
