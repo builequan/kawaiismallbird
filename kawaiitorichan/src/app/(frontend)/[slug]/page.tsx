@@ -6,6 +6,7 @@ import { getPayload, type RequiredDataFromCollectionSlug } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
+import { aboutStatic } from '@/endpoints/seed/about-static'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
@@ -70,13 +71,15 @@ export default async function Page({ params: paramsPromise }: Args) {
       slug,
     })
 
-  // Remove this code once your website is seeded
-  if (!page && slug === 'home') {
-    page = homeStatic
-  }
-
+  // Static fallbacks for pages not in database
   if (!page) {
-    return <PayloadRedirects url={url} />
+    if (slug === 'home') {
+      page = homeStatic
+    } else if (slug === 'about-us') {
+      page = aboutStatic
+    } else {
+      return <PayloadRedirects url={url} />
+    }
   }
 
   const { hero, layout } = page
@@ -109,9 +112,18 @@ export default async function Page({ params: paramsPromise }: Args) {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = 'home' } = await paramsPromise
-  const page = await queryPageBySlug({
+  let page = await queryPageBySlug({
     slug,
   })
+
+  // Use static fallback for metadata if page not found
+  if (!page) {
+    if (slug === 'home') {
+      page = homeStatic
+    } else if (slug === 'about-us') {
+      page = aboutStatic
+    }
+  }
 
   return generateMeta({ doc: page })
 }

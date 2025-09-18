@@ -18,30 +18,41 @@ import { generateMeta } from '@/utilities/generateMeta'
 
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
+import { aboutStatic } from '@/endpoints/seed/about-static'
+
 // Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
 export default async function AboutPage() {
   const { isEnabled: draft } = await draftMode()
-  const payload = await getPayload({ config: configPromise })
 
-  const result = await payload.find({
-    collection: 'pages',
-    draft,
-    limit: 1,
-    pagination: false,
-    overrideAccess: draft,
-    where: {
-      slug: {
-        equals: 'about-us',
+  let page
+
+  try {
+    const payload = await getPayload({ config: configPromise })
+
+    const result = await payload.find({
+      collection: 'pages',
+      draft,
+      limit: 1,
+      pagination: false,
+      overrideAccess: draft,
+      where: {
+        slug: {
+          equals: 'about-us',
+        },
       },
-    },
-  })
+    })
 
-  const page = result.docs?.[0]
+    page = result.docs?.[0]
+  } catch (error) {
+    console.log('Failed to fetch about page from database, using static fallback')
+    page = null
+  }
 
+  // Use static fallback if page not found in database
   if (!page) {
-    return <PayloadRedirects url="/about-us" />
+    page = aboutStatic
   }
 
   const { hero, layout } = page
@@ -61,18 +72,31 @@ export default async function AboutPage() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const payload = await getPayload({ config: configPromise })
-  const result = await payload.find({
-    collection: 'pages',
-    limit: 1,
-    pagination: false,
-    where: {
-      slug: {
-        equals: 'about-us',
-      },
-    },
-  })
+  let page
 
-  const page = result.docs?.[0]
+  try {
+    const payload = await getPayload({ config: configPromise })
+    const result = await payload.find({
+      collection: 'pages',
+      limit: 1,
+      pagination: false,
+      where: {
+        slug: {
+          equals: 'about-us',
+        },
+      },
+    })
+
+    page = result.docs?.[0]
+  } catch (error) {
+    console.log('Failed to fetch about page metadata from database, using static fallback')
+    page = null
+  }
+
+  // Use static fallback if page not found
+  if (!page) {
+    page = aboutStatic
+  }
+
   return generateMeta({ doc: page })
 }
