@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronRight, Calendar, Clock, Eye } from 'lucide-react'
 import Image from 'next/image'
 
+// Force dynamic rendering to avoid build-time Payload initialization issues
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{
     slug: string

@@ -9,6 +9,8 @@ import React from 'react'
 import PageClient from './page.client'
 import { notFound } from 'next/navigation'
 
+// Force dynamic rendering to avoid build-time Payload initialization issues
+export const dynamic = 'force-dynamic'
 export const revalidate = 600
 
 type Args = {

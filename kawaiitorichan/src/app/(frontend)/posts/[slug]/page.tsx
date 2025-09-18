@@ -23,6 +23,9 @@ import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
+// Force dynamic rendering to avoid build-time Payload initialization issues
+export const dynamic = 'force-dynamic'
+
 export async function generateStaticParams() {
   // Skip static generation during build if no database connection
   if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
