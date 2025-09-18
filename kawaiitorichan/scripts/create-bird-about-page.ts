@@ -1,461 +1,281 @@
 import { getPayload } from 'payload'
-import configPromise from '../src/payload.config'
+import config from '@payload-config'
 
-async function createAboutUsPage() {
-  const payload = await getPayload({ config: configPromise })
+const createBirdAboutPage = async () => {
+  const payload = await getPayload({ config })
 
-  try {
-    // Check if about-us page already exists
-    const existingPages = await payload.find({
-      collection: 'pages',
-      where: {
-        slug: {
-          equals: 'about-us',
-        },
-      },
-    })
+  console.log('🦜 Creating Bird-themed About Us page...')
 
-    if (existingPages.docs.length > 0) {
-      // Update existing page
-      const pageId = existingPages.docs[0].id
-      const updatedPage = await payload.update({
-        collection: 'pages',
-        id: pageId,
-        context: {
-          disableRevalidate: true,
-        },
-        data: {
-          title: 'About Us - Kawaii Small Birds',
-          slug: 'about-us',
-          hero: {
-            type: 'lowImpact',
-            media: null,
-            richText: {
-              root: {
-                type: 'root',
-                format: '',
-                indent: 0,
-                version: 1,
-                children: [
-                  {
-                    type: 'heading',
-                    format: '',
-                    indent: 0,
-                    version: 1,
-                    children: [
-                      {
-                        mode: 'normal',
-                        text: 'かわいい小鳥たちの世界へようこそ',
-                        type: 'text',
-                        style: '',
-                        detail: 0,
-                        format: 0,
-                        version: 1,
-                      },
-                    ],
-                    direction: 'ltr',
-                    tag: 'h1',
-                  },
-                  {
-                    type: 'paragraph',
-                    format: '',
-                    indent: 0,
-                    version: 1,
-                    children: [
-                      {
-                        mode: 'normal',
-                        text: 'Welcome to the World of Kawaii Small Birds',
-                        type: 'text',
-                        style: '',
-                        detail: 0,
-                        format: 0,
-                        version: 1,
-                      },
-                    ],
-                    direction: 'ltr',
-                  },
-                ],
-                direction: 'ltr',
-              },
-            },
-          },
-          layout: [
+  const aboutUsPageData = {
+    title: 'わたしたちについて',
+    slug: 'about-us',
+    _status: 'published' as const,
+    hero: {
+      type: 'lowImpact' as const,
+      richText: {
+        root: {
+          type: 'root',
+          version: 1,
+          children: [
             {
-              blockType: 'content',
-              columns: [
+              type: 'heading',
+              tag: 'h1',
+              version: 1,
+              children: [
                 {
-                  size: 'full',
-                  richText: {
-                    root: {
-                      type: 'root',
-                      format: '',
-                      indent: 0,
-                      version: 1,
-                      children: [
-                        {
-                          type: 'heading',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: '私たちのミッション',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                          tag: 'h2',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'Kawaii Small Birdsは、世界中のかわいい小鳥たちの魅力を伝えることを使命としています。私たちは、これらの小さな生き物たちの美しさ、個性、そして生態系における重要性を広く知ってもらいたいと考えています。',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'Our mission at Kawaii Small Birds is to share the charm and wonder of adorable small birds from around the world. We believe in celebrating these tiny creatures\' beauty, unique personalities, and their vital role in our ecosystems.',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                        {
-                          type: 'heading',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: '私たちが大切にしていること',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                          tag: 'h2',
-                        },
-                        {
-                          type: 'list',
-                          listType: 'bullet',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              type: 'listitem',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                              children: [
-                                {
-                                  mode: 'normal',
-                                  text: '鳥たちの保護と環境保全 - Bird Conservation and Environmental Protection',
-                                  type: 'text',
-                                  style: '',
-                                  detail: 0,
-                                  format: 0,
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              value: 1,
-                            },
-                            {
-                              type: 'listitem',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                              children: [
-                                {
-                                  mode: 'normal',
-                                  text: '正確な情報の提供 - Providing Accurate Information',
-                                  type: 'text',
-                                  style: '',
-                                  detail: 0,
-                                  format: 0,
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              value: 2,
-                            },
-                            {
-                              type: 'listitem',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                              children: [
-                                {
-                                  mode: 'normal',
-                                  text: '野鳥観察の楽しさを広める - Promoting the Joy of Birdwatching',
-                                  type: 'text',
-                                  style: '',
-                                  detail: 0,
-                                  format: 0,
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              value: 3,
-                            },
-                            {
-                              type: 'listitem',
-                              format: '',
-                              indent: 0,
-                              version: 1,
-                              children: [
-                                {
-                                  mode: 'normal',
-                                  text: '写真と動画による美しい記録 - Beautiful Documentation through Photos and Videos',
-                                  type: 'text',
-                                  style: '',
-                                  detail: 0,
-                                  format: 0,
-                                  version: 1,
-                                },
-                              ],
-                              direction: 'ltr',
-                              value: 4,
-                            },
-                          ],
-                          direction: 'ltr',
-                          start: 1,
-                          tag: 'ul',
-                        },
-                        {
-                          type: 'heading',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: '私たちのチーム',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                          tag: 'h2',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: '私たちは、鳥類学者、写真家、自然愛好家、そして世界中の小鳥ファンから成る情熱的なチームです。日本の美しい野鳥から世界各地の珍しい種まで、幅広い知識と経験を共有しています。',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'We are a passionate team of ornithologists, photographers, nature enthusiasts, and bird lovers from around the world. From Japan\'s beautiful wild birds to rare species across the globe, we share a wealth of knowledge and experience.',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                        {
-                          type: 'heading',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'お問い合わせ',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                          tag: 'h2',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'ご質問、ご提案、または野鳥の情報共有については、お気軽にお問い合わせください。私たちは常に新しい発見や美しい鳥の写真を歓迎しています。',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                        {
-                          type: 'paragraph',
-                          format: '',
-                          indent: 0,
-                          version: 1,
-                          children: [
-                            {
-                              mode: 'normal',
-                              text: 'For questions, suggestions, or sharing bird information, please feel free to contact us. We always welcome new discoveries and beautiful bird photography.',
-                              type: 'text',
-                              style: '',
-                              detail: 0,
-                              format: 0,
-                              version: 1,
-                            },
-                          ],
-                          direction: 'ltr',
-                        },
-                      ],
-                      direction: 'ltr',
-                    },
-                  },
-                  id: '1',
+                  type: 'text',
+                  text: 'Kawaii Bird へようこそ',
+                  detail: 0,
+                  format: 0,
+                  mode: 'normal',
+                  style: '',
+                  version: 1,
                 },
               ],
-              id: '1',
+            },
+            {
+              type: 'paragraph',
+              version: 1,
+              children: [
+                {
+                  type: 'text',
+                  text: '小さくてかわいい鳥たちの魅力を世界中に広めることを使命としています',
+                  detail: 0,
+                  format: 0,
+                  mode: 'normal',
+                  style: '',
+                  version: 1,
+                },
+              ],
             },
           ],
-          meta: {
-            title: 'About Us - Kawaii Small Birds',
-            description: 'Learn about our mission to share the beauty and wonder of kawaii small birds from around the world.',
-            image: null,
-          },
-          publishedDate: new Date().toISOString(),
-          _status: 'published',
+          direction: 'ltr',
+          format: '',
+          indent: 0,
         },
-      })
-      console.log('✅ About Us page updated successfully!')
-    } else {
-      // Create new page
-      const newPage = await payload.create({
-        collection: 'pages',
-        context: {
-          disableRevalidate: true,
-        },
-        data: {
-          title: 'About Us - Kawaii Small Birds',
-          slug: 'about-us',
-          hero: {
-            type: 'lowImpact',
-            media: null,
+      },
+    },
+    layout: [
+      {
+        blockType: 'content',
+        columns: [
+          {
+            size: 'full',
             richText: {
               root: {
                 type: 'root',
-                format: '',
-                indent: 0,
-                version: 1,
                 children: [
                   {
                     type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: '私たちのビジョン' }],
+                    direction: 'ltr',
                     format: '',
                     indent: 0,
                     version: 1,
-                    children: [
-                      {
-                        mode: 'normal',
-                        text: 'かわいい小鳥たちの世界へようこそ',
-                        type: 'text',
-                        style: '',
-                        detail: 0,
-                        format: 0,
-                        version: 1,
-                      },
-                    ],
-                    direction: 'ltr',
-                    tag: 'h1',
                   },
                   {
                     type: 'paragraph',
+                    children: [{
+                      type: 'text',
+                      text: 'Kawaii Birdは、小鳥たちの可愛らしさと魅力を世界中の人々と共有することを目的としています。私たちは、鳥たちの美しい姿、愛らしい仕草、そして彼らとの幸せな暮らし方について情報を発信しています。',
+                      detail: 0,
+                      format: 0,
+                      mode: 'normal',
+                      style: '',
+                      version: 1,
+                    }],
+                    direction: 'ltr',
                     format: '',
                     indent: 0,
                     version: 1,
+                  },
+                  {
+                    type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: '私たちが大切にしていること' }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
+                  },
+                  {
+                    type: 'list',
+                    listType: 'bullet',
+                    version: 1,
                     children: [
                       {
-                        mode: 'normal',
-                        text: 'Welcome to the World of Kawaii Small Birds',
-                        type: 'text',
-                        style: '',
-                        detail: 0,
-                        format: 0,
+                        type: 'listitem',
                         version: 1,
+                        children: [
+                          { type: 'text', text: '🐦 鳥たちの美しい写真と動画の共有' }
+                        ],
+                      },
+                      {
+                        type: 'listitem',
+                        version: 1,
+                        children: [
+                          { type: 'text', text: '📚 鳥の生態や習性についての正確な情報提供' }
+                        ],
+                      },
+                      {
+                        type: 'listitem',
+                        version: 1,
+                        children: [
+                          { type: 'text', text: '🏠 鳥たちとの幸せな暮らし方のアドバイス' }
+                        ],
+                      },
+                      {
+                        type: 'listitem',
+                        version: 1,
+                        children: [
+                          { type: 'text', text: '🌿 野鳥観察の楽しみ方の紹介' }
+                        ],
+                      },
+                      {
+                        type: 'listitem',
+                        version: 1,
+                        children: [
+                          { type: 'text', text: '💝 鳥を愛する人々のコミュニティづくり' }
+                        ],
                       },
                     ],
+                  },
+                  {
+                    type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: 'なぜ小鳥が大切なのか' }],
                     direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
+                  },
+                  {
+                    type: 'paragraph',
+                    children: [{
+                      type: 'text',
+                      text: '小鳥たちは私たちの生活に彩りと癒しをもたらしてくれます。その愛らしい姿と美しい歌声は、日々のストレスから私たちを解放し、自然とのつながりを思い出させてくれます。',
+                      detail: 0,
+                      format: 0,
+                      mode: 'normal',
+                      style: '',
+                      version: 1,
+                    }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
+                  },
+                  {
+                    type: 'paragraph',
+                    children: [{
+                      type: 'text',
+                      text: '私たちは、この素晴らしい小鳥たちの世界を、より多くの人々と共有したいと考えています。一緒に小鳥たちの魅力を探求し、彼らとの素敵な時間を過ごしましょう。',
+                      detail: 0,
+                      format: 0,
+                      mode: 'normal',
+                      style: '',
+                      version: 1,
+                    }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
                   },
                 ],
                 direction: 'ltr',
+                format: '',
+                indent: 0,
+                version: 1,
               },
             },
           },
-          _status: 'published',
-        },
-      })
-      console.log('✅ About Us page created successfully!')
-    }
-  } catch (error) {
-    console.error('❌ Error creating/updating About Us page:', error)
+        ],
+      },
+      {
+        blockType: 'content',
+        columns: [
+          {
+            size: 'full',
+            richText: {
+              root: {
+                type: 'root',
+                children: [
+                  {
+                    type: 'heading',
+                    tag: 'h2',
+                    children: [{ type: 'text', text: 'お問い合わせ' }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
+                  },
+                  {
+                    type: 'paragraph',
+                    children: [{
+                      type: 'text',
+                      text: '鳥に関するご質問やご意見、写真の投稿など、お気軽にお問い合わせください。私たちは鳥を愛するすべての方々からのメッセージをお待ちしています。',
+                      detail: 0,
+                      format: 0,
+                      mode: 'normal',
+                      style: '',
+                      version: 1,
+                    }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    version: 1,
+                  },
+                ],
+                direction: 'ltr',
+                format: '',
+                indent: 0,
+                version: 1,
+              },
+            },
+          },
+        ],
+      },
+    ],
+    meta: {
+      title: 'わたしたちについて - Kawaii Bird',
+      description: '小さくてかわいい鳥たちの魅力を世界中に広めるKawaii Birdのミッションとビジョン',
+    },
+  }
+
+  // Check if the page already exists
+  const existingPages = await payload.find({
+    collection: 'pages',
+    where: {
+      slug: {
+        equals: 'about-us',
+      },
+    },
+  })
+
+  if (existingPages.docs.length > 0) {
+    // Update existing page
+    const updated = await payload.update({
+      collection: 'pages',
+      id: existingPages.docs[0].id,
+      data: aboutUsPageData,
+    })
+    console.log('✅ About Us page updated successfully!')
+    console.log('Page ID:', updated.id)
+  } else {
+    // Create new page
+    const created = await payload.create({
+      collection: 'pages',
+      data: aboutUsPageData,
+    })
+    console.log('✅ About Us page created successfully!')
+    console.log('Page ID:', created.id)
   }
 
   process.exit(0)
 }
 
-createAboutUsPage()
+createBirdAboutPage().catch((error) => {
+  console.error('❌ Error:', error)
+  process.exit(1)
+})

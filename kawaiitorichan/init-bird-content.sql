@@ -88,7 +88,7 @@ INSERT INTO pages (
 ) VALUES (
     1000002,
     'about-us',
-    '私たちについて',
+    'わたしたちについて',
     jsonb_build_object(
         'type', 'lowImpact',
         'richText', jsonb_build_object(
