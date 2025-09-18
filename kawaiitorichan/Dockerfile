@@ -12,9 +12,10 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Skip static generation during build
 ENV SKIP_BUILD_STATIC_GENERATION=true
-# Use dummy values for build time - real values will be provided at runtime
-ENV PAYLOAD_SECRET=dummy_secret_for_build_only_not_for_production
-ENV DATABASE_URI=postgres://dummy:dummy@localhost:5432/dummy
+# IMPORTANT: These are dummy values for build only
+# Real values MUST be provided at runtime via Docker environment
+ENV PAYLOAD_SECRET=build_time_secret_replaced_at_runtime
+ENV DATABASE_URI=postgres://build:build@localhost:5432/build
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
 RUN corepack enable pnpm && pnpm build
@@ -31,8 +32,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy the entrypoint script
+# Copy additional runtime scripts
 COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+COPY --chown=nextjs:nodejs server-wrapper.js ./
 RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs

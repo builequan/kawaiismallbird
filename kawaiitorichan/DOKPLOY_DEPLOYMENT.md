@@ -1,11 +1,17 @@
 # Dokploy Deployment Guide
 
+## 🔥 CRITICAL FIX APPLIED
+
+We've resolved the runtime environment variable issue that was causing the server-side exception. The problem was that environment variables were being compiled at build time instead of being read at runtime.
+
 ## Prerequisites
 1. Database created in Dokploy (PostgreSQL)
 2. Application created in Dokploy
 3. Environment variables configured
 
 ## Environment Variables Setup in Dokploy
+
+**IMPORTANT:** These MUST be set in Dokploy's environment variables section, not in build arguments.
 
 Copy these to your Dokploy environment variables:
 
@@ -19,10 +25,17 @@ PAYLOAD_SECRET=76a2b7954f87ee6abbe2924dbbc2b1be198dc0bc1d008abea0228863f1aed42d
 # REQUIRED - Update with your actual domain
 NEXT_PUBLIC_SERVER_URL=http://webblog-bird-3ynfsd-973333-72-60-195-24.traefik.me
 
-# Optional but recommended
+# REQUIRED for production
 NODE_ENV=production
 PORT=3000
+HOSTNAME=0.0.0.0
 ```
+
+## Using the Optimized Dockerfile
+
+For Dokploy, use `Dockerfile.dokploy` instead of the regular Dockerfile:
+1. In Dokploy settings, set the Dockerfile path to: `./kawaiitorichan/Dockerfile.dokploy`
+2. Or rename it to `Dockerfile` in your repository
 
 ## Common Issues and Solutions
 

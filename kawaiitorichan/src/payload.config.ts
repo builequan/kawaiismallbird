@@ -1,5 +1,5 @@
 // storage-adapter-import-placeholder
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { getDatabaseAdapter } from './db/getDatabase'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -19,6 +19,7 @@ import { InternalLinksSettings } from './globals/InternalLinksSettings'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { getPayloadSecret } from './utilities/getRuntimeConfig'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -72,11 +73,7 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URI || '',
-    },
-  }),
+  db: getDatabaseAdapter(),
   collections: [Pages, Posts, Media, Categories, Tags, Users, AffiliateProducts],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, InternalLinksSettings],
@@ -84,7 +81,7 @@ export default buildConfig({
     ...plugins,
     // storage-adapter-placeholder
   ],
-  secret: process.env.PAYLOAD_SECRET || 'dummy_secret_for_build_only_not_for_production',
+  secret: getPayloadSecret(),
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
