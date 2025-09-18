@@ -1,7 +1,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-# Since context is ./kawaiitorichan, files are in current directory
-COPY ./package.json ./pnpm-lock.yaml ./
+# Files are at the root of the build context (./kawaiitorichan)
+COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
