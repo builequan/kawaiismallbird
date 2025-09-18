@@ -1,11 +1,13 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+# Since context is ./kawaiitorichan, files are in current directory
+COPY ./package.json ./pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+# Copy everything from kawaiitorichan context
 COPY . .
 
 # Set environment variables for build
