@@ -84,7 +84,7 @@ export default buildConfig({
     ...plugins,
     // storage-adapter-placeholder
   ],
-  secret: process.env.PAYLOAD_SECRET || 'dummy-secret-for-build-only',
+  secret: process.env.PAYLOAD_SECRET || 'dummy_secret_for_build_only_not_for_production',
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

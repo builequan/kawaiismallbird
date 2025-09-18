@@ -8,19 +8,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Accept build arguments from Docker build command
-ARG PAYLOAD_SECRET
-ARG DATABASE_URI
-ARG NEXT_PUBLIC_SERVER_URL
-
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 # Skip static generation during build
 ENV SKIP_BUILD_STATIC_GENERATION=true
-# Set build-time environment variables with fallbacks
-ENV PAYLOAD_SECRET=${PAYLOAD_SECRET:-dummy_secret_for_build_only}
-ENV DATABASE_URI=${DATABASE_URI:-postgres://dummy:dummy@localhost:5432/dummy}
-ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
+# Use dummy values for build time - real values will be provided at runtime
+ENV PAYLOAD_SECRET=dummy_secret_for_build_only_not_for_production
+ENV DATABASE_URI=postgres://dummy:dummy@localhost:5432/dummy
+ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
 RUN corepack enable pnpm && pnpm build
 
