@@ -53,14 +53,6 @@ export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
 
-# Try simple server first for debugging
-if [ -f simple-server.cjs ]; then
-  echo "Starting simple diagnostic server for testing..."
-  exec node simple-server.cjs
-elif [ -f simple-server.js ]; then
-  echo "Starting simple diagnostic server for testing..."
-  exec node simple-server.js
-else
-  echo "Starting main application..."
-  exec node server-wrapper.js
-fi
+# Start the main application now that we know container works
+echo "Starting main Next.js application..."
+exec node server.js
