@@ -37,8 +37,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy runtime scripts
-COPY --chown=nextjs:nodejs kawaiitorichan/docker-entrypoint.sh kawaiitorichan/server-wrapper.js ./
+# Copy runtime scripts from kawaiitorichan directory
+COPY --from=builder /app/docker-entrypoint.sh ./
+COPY --from=builder /app/server-wrapper.js ./
 RUN chmod +x ./docker-entrypoint.sh
 
 # Switch to non-root user
