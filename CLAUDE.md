@@ -172,6 +172,80 @@ This repository contains two distinct projects:
 - **Process New Posts Button** - Uses contextual linking with 5-link limit per post
 - **API Endpoint Protection** - `/api/affiliate-links/process-posts` includes compound word dictionary
 
+## Dokploy Deployment
+
+### Prerequisites
+- Dokploy VPS with Docker
+- PostgreSQL database created in Dokploy
+- GitHub repository connected
+
+### Dokploy Configuration
+
+**Build Settings:**
+- **Build Path**: `./kawaiitorichan`
+- **Docker File**: `Dockerfile`
+- **Docker Context Path**: `.`
+
+**Required Environment Variables:**
+```env
+DATABASE_URI=postgresql://postgres:password@database-service-name:5432/database-name
+PAYLOAD_SECRET=your-secret-key-here
+NEXT_PUBLIC_SERVER_URL=http://your-domain.traefik.me
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+
+# For first deployment only
+FORCE_DB_INIT=true
+```
+
+### Database Initialization
+
+**First Deployment:**
+1. Set `FORCE_DB_INIT=true` to create all tables
+2. Deploy the application
+3. After successful deployment, remove `FORCE_DB_INIT` or set to `false`
+
+**Database Schema:**
+- Schema exported from local `golfer` database
+- Contains all Payload CMS tables (posts, pages, users, footer, header, etc.)
+- Automatically applied via `init-db.sh` on container startup
+
+### Troubleshooting
+
+**Bad Gateway Error:**
+- Check if environment variables are set correctly
+- Verify database connection string
+- Check container logs for specific errors
+
+**Database Tables Missing:**
+- Set `FORCE_DB_INIT=true` and redeploy
+- This will drop and recreate all tables
+
+**ES Module Errors:**
+- Application uses ES modules (`type: "module"`)
+- Use `.cjs` extension for CommonJS files
+- Main server runs via `node server.js` directly
+
+### Key Deployment Files
+
+- `kawaiitorichan/Dockerfile` - Production Docker configuration
+- `kawaiitorichan/docker-entrypoint.sh` - Startup script with DB initialization
+- `kawaiitorichan/schema.sql` - Complete database schema
+- `kawaiitorichan/init-db.sh` - Checks and initializes database
+- `kawaiitorichan/force-init-db.sh` - Force recreates all tables
+
+### Local Development vs Production
+
+**Local Databases:**
+- `golfer` - Payload CMS with 88 imported posts
+- `content_creation_db` - 1372 articles from content system
+
+**Production:**
+- Single PostgreSQL database in Dokploy
+- Schema from `golfer` applied
+- Content can be imported via scripts or created fresh
+
 ## serena/ - Coding Agent Toolkit
 
 ### Development Commands

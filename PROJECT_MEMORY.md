@@ -169,4 +169,62 @@ pnpm tsx scripts/inspect-blocks.ts
 - `src/collections/Categories.ts` - Hierarchical structure
 - `src/payload.config.ts` - Main CMS configuration
 
-This memory serves as a reference for future development and debugging of the WordPress import system.
+## Dokploy Deployment
+
+### Deployment Configuration
+Successfully deployed to Dokploy VPS with the following setup:
+
+**Database**: PostgreSQL running in Docker container
+- Database name: `kawaii-bird-db`
+- Connection via internal Docker network: `webblog-kawaiibirddb-gq00ip`
+
+**Required Environment Variables**:
+```env
+DATABASE_URI=postgresql://postgres:2801@webblog-kawaiibirddb-gq00ip:5432/kawaii-bird-db
+PAYLOAD_SECRET=<your-secret-key>
+NEXT_PUBLIC_SERVER_URL=http://your-domain.traefik.me
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+FORCE_DB_INIT=true  # Only for first deployment
+```
+
+### Key Deployment Fixes Applied
+
+1. **ES Module Issues**: Fixed by running `server.js` directly instead of wrapper scripts
+2. **Database Initialization**: Created automatic schema application on container startup
+3. **Docker Build Context**: Properly configured for monorepo structure with `/kawaiitorichan` subdirectory
+4. **Runtime Environment**: Ensured environment variables are read at runtime, not build time
+5. **Port Binding**: Configured to bind to `0.0.0.0` for proper container networking
+
+### Database Schema Management
+
+**Local Databases**:
+- `golfer`: Contains Payload CMS schema with 88 imported posts
+- `content_creation_db`: Contains 1372 articles from content creation system
+
+**Schema Export/Import**:
+```bash
+# Export schema from local
+PGPASSWORD=2801 pg_dump -h localhost -U postgres -d golfer --schema-only > schema.sql
+
+# Applied automatically on first container start via init-db.sh
+```
+
+### Deployment Process
+
+1. **Build Path**: `./kawaiitorichan`
+2. **Docker File**: `Dockerfile`
+3. **Docker Context Path**: `.`
+
+**Force Database Initialization**: Set `FORCE_DB_INIT=true` to recreate all tables from schema.sql
+
+### Important Files for Deployment
+
+- `kawaiitorichan/Dockerfile` - Production Docker configuration
+- `kawaiitorichan/docker-entrypoint.sh` - Container startup script with DB initialization
+- `kawaiitorichan/schema.sql` - Complete Payload CMS database schema
+- `kawaiitorichan/init-db.sh` - Database initialization check script
+- `kawaiitorichan/force-init-db.sh` - Force recreate all tables
+
+This memory serves as a reference for future development and debugging of the WordPress import system and Dokploy deployment.

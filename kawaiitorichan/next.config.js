@@ -13,6 +13,10 @@ const nextConfig = {
     // Skip static generation during build - generate at runtime instead
     isrMemoryCacheSize: 0,
   },
+  // Ensure public directory assets are included
+  publicRuntimeConfig: {
+    staticFolder: '/public',
+  },
   eslint: {
     ignoreDuringBuilds: true, // Ignore ESLint errors during production builds
   },

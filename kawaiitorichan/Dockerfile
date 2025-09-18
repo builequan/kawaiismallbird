@@ -33,9 +33,13 @@ RUN apk add --no-cache postgresql-client
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+# Copy public directory with all static assets including bird images
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Explicitly ensure bird images are included (in case standalone build excludes them)
+COPY --from=builder --chown=nextjs:nodejs /app/public/birdimage ./public/birdimage
 
 # Copy runtime scripts from builder stage (they're now in /app after COPY kawaiitorichan/)
 COPY --from=builder /app/docker-entrypoint.sh ./
