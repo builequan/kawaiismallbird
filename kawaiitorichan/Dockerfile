@@ -32,9 +32,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy additional runtime scripts
-COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
-COPY --chown=nextjs:nodejs server-wrapper.js ./
+# Copy runtime scripts from builder stage
+COPY --from=builder /app/docker-entrypoint.sh ./
+COPY --from=builder /app/server-wrapper.js ./
 RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs
