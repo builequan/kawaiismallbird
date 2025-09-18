@@ -55,6 +55,7 @@ COPY --from=builder /app/schema.sql ./
 
 # Copy bird theme SQL initialization
 COPY --from=builder /app/init-bird-content.sql ./
+COPY --from=builder /app/init-full-bird-content.sql ./
 COPY --from=builder /app/init-bird-production.sh ./
 RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh
 

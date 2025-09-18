@@ -15,17 +15,27 @@ if [ -n "$DATABASE_URI" ]; then
   echo "   Host: $PGHOST"
   echo "   Database: $PGDATABASE"
 
-  # Run SQL script
-  if [ -f init-bird-content.sql ]; then
+  # Run SQL script - try full content first, fallback to basic
+  if [ -f init-full-bird-content.sql ]; then
+    echo "📝 Using full bird content initialization..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f init-full-bird-content.sql
+
+    if [ $? -eq 0 ]; then
+      echo "✅ Full bird content initialized successfully!"
+    else
+      echo "⚠️ Failed to initialize full bird content (may already exist)"
+    fi
+  elif [ -f init-bird-content.sql ]; then
+    echo "📝 Using basic bird content initialization..."
     psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f init-bird-content.sql
 
     if [ $? -eq 0 ]; then
-      echo "✅ Bird content initialized successfully!"
+      echo "✅ Basic bird content initialized successfully!"
     else
       echo "⚠️ Failed to initialize bird content (may already exist)"
     fi
   else
-    echo "❌ SQL script not found: init-bird-content.sql"
+    echo "❌ No SQL initialization scripts found"
   fi
 else
   echo "❌ DATABASE_URI not set!"
