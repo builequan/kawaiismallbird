@@ -10,13 +10,13 @@ async function updateAboutPage() {
       collection: 'pages',
       where: {
         slug: {
-          equals: 'about',
+          equals: 'about-us',
         },
       },
     })
 
     const aboutPageData = {
-      slug: 'about',
+      slug: 'about-us',
       title: '私たちについて',
       _status: 'published' as const,
       hero: {

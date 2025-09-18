@@ -22,7 +22,7 @@ HOSTNAME=0.0.0.0
 # First deployment only - creates database tables
 FORCE_DB_INIT=true
 
-# First deployment only - sets up bird theme content
+# First deployment only - initializes bird theme content via SQL
 INIT_BIRD_THEME=true
 ```
 
@@ -46,10 +46,11 @@ The deployment includes:
 - Bird slideshow images (`/birdimage/`)
 - Kawaii bird logo
 - Favicons
+- Removed golf images
 
-✅ **Database Content**
-- Bird-themed homepage with slideshow
-- About page with bird content
+✅ **Database Content** (via SQL)
+- Bird-themed homepage with bird slideshow
+- About page with correct slug (`about-us`)
 - Bird-related categories (野鳥観察, 飼い鳥, etc.)
 
 ✅ **Theme Configuration**
@@ -59,32 +60,37 @@ The deployment includes:
 
 ### Manual Updates (if needed)
 
-If the automatic initialization doesn't work, you can run these commands manually in the container:
+If the automatic initialization doesn't work, you can run SQL directly:
 
 ```bash
-# Update homepage
-pnpm tsx scripts/update-homepage-bird.ts
+# Connect to container
+docker exec -it [container-id] sh
 
-# Update about page
-pnpm tsx scripts/update-about-bird.ts
+# Run SQL initialization
+psql $DATABASE_URI -f init-bird-content.sql
 
-# Setup categories
-pnpm tsx scripts/setup-bird-categories.ts
-
-# Or run all at once
-pnpm tsx scripts/deploy-bird-theme.ts
+# Or run the init script
+sh init-bird-production.sh
 ```
 
 ### Verification Checklist
 
 After deployment, verify:
 
-- [ ] Homepage shows bird slideshow (not golf content)
-- [ ] Logo shows "Kawaii Bird" (not golf logo)
-- [ ] About page has bird content
+- [ ] Homepage shows bird slideshow images
+- [ ] HeroBlog component displays bird images (not golf)
+- [ ] Logo shows "Kawaii Bird"
+- [ ] About page works at `/about` route
 - [ ] Categories are bird-related
 - [ ] Navigation menu is in Japanese
-- [ ] Images load correctly
+- [ ] All bird images load correctly
+
+### Recent Fixes Applied
+
+✅ **Fixed HeroBlog Component** - Now uses bird images instead of golf images
+✅ **Fixed About Page 404** - Corrected slug to `about-us`
+✅ **SQL-based Initialization** - Works without Node.js runtime in production
+✅ **Removed Golf Images** - Deleted `/golf-images/` directory
 
 ### Troubleshooting
 

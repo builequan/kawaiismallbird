@@ -53,12 +53,10 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/schema.sql ./
 
-# Copy bird theme initialization scripts
-COPY --from=builder /app/scripts/production-init.sh ./scripts/
-COPY --from=builder /app/scripts/update-homepage-bird.ts ./scripts/
-COPY --from=builder /app/scripts/update-about-bird.ts ./scripts/
-COPY --from=builder /app/scripts/setup-bird-categories.ts ./scripts/
-RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./scripts/production-init.sh
+# Copy bird theme SQL initialization
+COPY --from=builder /app/init-bird-content.sql ./
+COPY --from=builder /app/init-bird-production.sh ./
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh
 
 # Change ownership of all files to nextjs user
 RUN chown -R nextjs:nodejs /app

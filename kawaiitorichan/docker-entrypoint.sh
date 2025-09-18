@@ -83,8 +83,8 @@ if [ -n "$DATABASE_URI" ]; then
   if [ "$INIT_BIRD_THEME" = "true" ]; then
     echo ""
     echo "🦜 Initializing Kawaii Bird theme content..."
-    if [ -f scripts/production-init.sh ]; then
-      sh scripts/production-init.sh || echo "Bird theme initialization completed or failed"
+    if [ -f init-bird-production.sh ]; then
+      sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
     fi
   fi
 fi

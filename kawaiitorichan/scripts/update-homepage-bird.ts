@@ -62,9 +62,9 @@ async function updateHomepage() {
         {
           blockType: 'heroBlog',
           blockName: 'homepage-hero',
-          title: '小さくてかわいい鳥の世界',
-          subtitle: '美しい鳥たちの写真、生態、そして彼らとの素敵な暮らしについて紹介します。',
-          ctaText: '記事を読む',
+          title: 'かわいい鳥たちの世界へようこそ',
+          subtitle: '小さくて愛らしい鳥たちの魅力、美しい写真、そして彼らとの素敵な暮らしをご紹介します。',
+          ctaText: '鳥の記事を読む',
           ctaLink: '/posts',
           gradientStyle: 'pinkPurple',
           layout: 'center',

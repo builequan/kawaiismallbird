@@ -18,14 +18,16 @@ const gradientClasses = {
   lavenderPink: 'bg-gradient-to-br from-pastel-lavender via-pink-200 to-pastel-pink',
 }
 
-const golfImages = [
-  '/golf-images/first-round-hero.webp',
-  '/golf-images/golf-alignment-training.webp',
-  '/golf-images/golf-beginner-featured.jpg',
-  '/golf-images/golf-options.jpg',
-  '/golf-images/golf-preparation.jpg',
-  '/golf-images/golf-stance-posture.webp',
-  '/golf-images/golf-warmup-stretches.webp',
+const birdImages = [
+  '/birdimage/download.webp',
+  '/birdimage/download (1).webp',
+  '/birdimage/download (2).webp',
+  '/birdimage/download (3).webp',
+  '/birdimage/download (4).webp',
+  '/birdimage/download (5).webp',
+  '/birdimage/download (6).webp',
+  '/birdimage/download (7).webp',
+  '/birdimage/download (8).webp',
 ]
 
 export const HeroBlogBlock: React.FC<Props> = ({ 
@@ -44,7 +46,7 @@ export const HeroBlogBlock: React.FC<Props> = ({
   // Auto-rotate images every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % golfImages.length)
+      setCurrentImageIndex((prev) => (prev + 1) % birdImages.length)
     }, 5000)
 
     return () => clearInterval(interval)
@@ -52,9 +54,9 @@ export const HeroBlogBlock: React.FC<Props> = ({
 
   return (
     <section className={cn('relative overflow-hidden min-h-screen', className)}>
-      {/* Golf Images Slideshow Background */}
+      {/* Bird Images Slideshow Background */}
       <div className="absolute inset-0 w-full h-full z-10">
-        {golfImages.map((image, index) => (
+        {birdImages.map((image, index) => (
           <div
             key={image}
             className={cn(
@@ -64,7 +66,7 @@ export const HeroBlogBlock: React.FC<Props> = ({
           >
             <img
               src={image}
-              alt={`Golf scene ${index + 1}`}
+              alt={`鳥の画像 ${index + 1}`}
               className="absolute inset-0 w-full h-full object-cover"
             />
           </div>
