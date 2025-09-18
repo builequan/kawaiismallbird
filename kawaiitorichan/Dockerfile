@@ -43,8 +43,9 @@ COPY --from=builder /app/server-wrapper.js ./
 COPY --from=builder /app/start.sh ./
 COPY --from=builder /app/simple-server.cjs ./
 COPY --from=builder /app/init-db.sh ./
+COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/schema.sql ./
-RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh
 
 # Change ownership of all files to nextjs user
 RUN chown -R nextjs:nodejs /app

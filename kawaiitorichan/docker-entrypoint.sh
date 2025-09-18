@@ -68,8 +68,13 @@ if [ -n "$DATABASE_URI" ]; then
   echo "- Database: $DB_NAME"
   echo "- User: $DB_USER"
 
-  # Try to initialize database if needed
-  if [ -f init-db.sh ]; then
+  # Check if we should force initialize the database
+  if [ "$FORCE_DB_INIT" = "true" ]; then
+    echo "FORCE_DB_INIT is set, reinitializing database..."
+    if [ -f force-init-db.sh ]; then
+      sh force-init-db.sh || echo "Force init completed or failed"
+    fi
+  elif [ -f init-db.sh ]; then
     echo "Running database initialization check..."
     sh init-db.sh || echo "Database init failed or not needed, continuing..."
   fi
