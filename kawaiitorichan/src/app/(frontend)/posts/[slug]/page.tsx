@@ -128,12 +128,12 @@ export default async function Post({ params: paramsPromise }: Args) {
           <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-8 pb-8 text-gray-900">
             {/* Wrap content to add inline affiliate links */}
             <ContentWithAffiliateLinksOptimized postId={String(post.id)} products={affiliateProducts}>
-              {/* Use filtered RichText that excludes reference sections */}
+              {/* Display content without references section */}
               <RichTextWithFilteredReferences className="text-gray-900 [&_*]:text-gray-900" content={post.content} />
             </ContentWithAffiliateLinksOptimized>
 
-            {/* Display collapsible references if found in content */}
-            <PostReferences content={post.content} />
+            {/* Display collapsible references - default closed */}
+            <PostReferences content={post.content} defaultOpen={false} />
 
             {/* Display enhanced affiliate product recommendations with products from the article */}
             <AffiliateLinksEnhanced postId={post.id} content={post.content} />

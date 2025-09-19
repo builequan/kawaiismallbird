@@ -5,6 +5,7 @@ import { SimpleCollapsibleReferences } from './CollapsibleReferences'
 
 interface PostReferencesProps {
   content: any // Lexical content
+  defaultOpen?: boolean
 }
 
 // Extract references from Lexical content and get their indices
@@ -26,16 +27,12 @@ function extractReferencesWithIndices(content: any): { references: string[], sta
     if (child.type === 'heading') {
       const headingText = extractTextFromNode(child)
 
-      // Look for reference section markers - be very specific
+      // Look for reference section markers - check if heading contains 出典
       if (headingText && (
-        headingText === '出典・参考文献' ||
-        headingText === '出典・参考文献出典・参考文献' ||  // Handle duplicated text
-        headingText === '参考文献' ||
-        headingText === '参考文献参考文献' ||
-        headingText === '出典および参考文献' ||
-        headingText === '出典および参考文献出典および参考文献' ||
-        headingText === 'References' ||
-        (headingText.startsWith('出典') && i > content.root.children.length * 0.7) // Only if in last 30% of content
+        headingText.includes('出典') ||  // Any heading with 出典 (sources)
+        headingText.includes('参考文献') ||  // References
+        headingText.includes('References') ||
+        headingText.includes('参考資料') // Reference materials
       )) {
         foundReferencesHeading = true
         startIndex = i
@@ -52,16 +49,33 @@ function extractReferencesWithIndices(content: any): { references: string[], sta
           if (listItem.type === 'listitem') {
             const text = extractTextFromNode(listItem)
             if (text && text.trim()) {
-              references.push(text.trim())
+              // Store the reference title
+              const currentRef = text.trim()
+
+              // Check if the next element is a paragraph with a link
+              const nextIndex = i + 1
+              if (nextIndex < content.root.children.length) {
+                const nextChild = content.root.children[nextIndex]
+                if (nextChild.type === 'paragraph') {
+                  const paraText = extractTextFromNode(nextChild)
+                  if (paraText && paraText.trim() && (paraText.includes('http') || paraText.includes('リンク'))) {
+                    // Combine title and link
+                    references.push(currentRef + '\n' + paraText.trim())
+                  } else {
+                    // Just the title
+                    references.push(currentRef)
+                  }
+                }
+              } else {
+                // Just the title
+                references.push(currentRef)
+              }
             }
           }
         })
       } else if (child.type === 'paragraph') {
-        // Also include paragraphs that might be part of references
-        const text = extractTextFromNode(child)
-        if (text && text.trim() && (text.includes('http') || text.includes('リンク'))) {
-          references.push(text.trim())
-        }
+        // Skip paragraphs as they're handled above with their list items
+        continue
       }
     }
   }
@@ -88,7 +102,7 @@ function extractReferencesWithIndices(content: any): { references: string[], sta
   return { references: uniqueReferences, startIndex }
 }
 
-export default function PostReferences({ content }: PostReferencesProps) {
+export default function PostReferences({ content, defaultOpen = false }: PostReferencesProps) {
   const { references, startIndex } = useMemo(() => extractReferencesWithIndices(content), [content])
 
   // Only show if we have actual references
@@ -101,6 +115,7 @@ export default function PostReferences({ content }: PostReferencesProps) {
       <SimpleCollapsibleReferences
         references={references}
         title="参考文献・出典"
+        defaultOpen={defaultOpen}
       />
     </div>
   )
@@ -118,16 +133,12 @@ export function findReferenceSectionStart(content: any): number {
     if (child.type === 'heading') {
       const headingText = extractTextFromNode(child)
 
-      // Be very specific about reference headings
+      // Check if heading contains reference keywords
       if (headingText && (
-        headingText === '出典・参考文献' ||
-        headingText === '出典・参考文献出典・参考文献' ||  // Handle duplicated text
-        headingText === '参考文献' ||
-        headingText === '参考文献参考文献' ||
-        headingText === '出典および参考文献' ||
-        headingText === '出典および参考文献出典および参考文献' ||
-        headingText === 'References' ||
-        (headingText.startsWith('出典') && i > content.root.children.length * 0.7) // Only if in last 30% of content
+        headingText.includes('出典') ||  // Any heading with 出典 (sources)
+        headingText.includes('参考文献') ||  // References
+        headingText.includes('References') ||
+        headingText.includes('参考資料') // Reference materials
       )) {
         return i
       }

@@ -25,12 +25,12 @@ export default function RichTextWithFilteredReferences({ content, className }: R
       if (child.type === 'heading') {
         const headingText = extractTextFromNode(child)
 
-        // Look for reference section markers
+        // Look for reference section markers - check if heading contains 出典
         if (headingText && (
-          headingText.includes('出典') ||
-          headingText.includes('参考文献') ||
-          headingText.includes('参考資料') ||
-          headingText.includes('References')
+          headingText.includes('出典') ||  // Any heading with 出典 (sources)
+          headingText.includes('参考文献') ||  // References
+          headingText.includes('References') ||
+          headingText.includes('参考資料') // Reference materials
         )) {
           // Found a reference heading, check if it's the last reference heading
           referenceStartIndex = i
@@ -40,10 +40,10 @@ export default function RichTextWithFilteredReferences({ content, className }: R
             if (prevChild.type === 'heading') {
               const prevHeadingText = extractTextFromNode(prevChild)
               if (prevHeadingText && (
-                prevHeadingText.includes('出典') ||
-                prevHeadingText.includes('参考文献') ||
-                prevHeadingText.includes('参考資料') ||
-                prevHeadingText.includes('References')
+                prevHeadingText.includes('出典') ||  // Any heading with 出典 (sources)
+                prevHeadingText.includes('参考文献') ||  // References
+                prevHeadingText.includes('References') ||
+                prevHeadingText.includes('参考資料') // Reference materials
               )) {
                 referenceStartIndex = j
               } else {

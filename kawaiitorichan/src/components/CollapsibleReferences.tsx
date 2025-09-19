@@ -87,8 +87,9 @@ export const CollapsibleReferences: React.FC<CollapsibleReferencesProps> = ({
 export const SimpleCollapsibleReferences: React.FC<{
   references: string[]
   title?: string
-}> = ({ references, title = '出典・参考文献' }) => {
-  const [isOpen, setIsOpen] = useState(false)
+  defaultOpen?: boolean
+}> = ({ references, title = '出典・参考文献', defaultOpen = false }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
     <div className="my-6 text-sm">
