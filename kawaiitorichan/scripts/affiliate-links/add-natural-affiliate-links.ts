@@ -138,7 +138,7 @@ function processParagraph(
         }
         
         // Create affiliate link
-        const affiliateUrl = match.product.affiliate_url || match.product.clean_url
+        const affiliateUrl = match.product.clean_url || match.product.affiliate_url
         segments.push({
           type: 'link',
           fields: {

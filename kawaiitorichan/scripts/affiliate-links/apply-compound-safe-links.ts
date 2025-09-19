@@ -427,7 +427,7 @@ function createRecommendationBox(products: ProductIndex[]): any {
           ],
           fields: {
             linkType: 'custom',
-            url: product.affiliate_url,
+            url: product.clean_url || product.affiliate_url,
             newTab: true,
             rel: 'nofollow sponsored',
           },

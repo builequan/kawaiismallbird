@@ -39,13 +39,27 @@ function addLinksToContent(node: any, products: Product[], usedKeywords: Set<str
   // Process paragraph nodes
   if (node.type === 'paragraph' && node.children) {
     const newChildren: any[] = []
-    
+    let paragraphHasLink = false // Track if this paragraph already has a link
+
+    // First, check if paragraph already contains any links
     for (const child of node.children) {
-      if (linkCount.count >= maxLinks) {
+      if (child.type === 'link' || child.type === 'autolink') {
+        paragraphHasLink = true
+        break
+      }
+    }
+
+    // If paragraph already has a link, don't add more
+    if (paragraphHasLink) {
+      return node
+    }
+
+    for (const child of node.children) {
+      if (linkCount.count >= maxLinks || paragraphHasLink) {
         newChildren.push(child)
         continue
       }
-      
+
       // Skip if already has link
       if (child.type === 'link' || child.type === 'autolink') {
         newChildren.push(child)
@@ -90,7 +104,7 @@ function addLinksToContent(node: any, products: Product[], usedKeywords: Set<str
               }
               
               // Create affiliate link using actual product URL
-              const affiliateUrl = product.affiliate_url || product.clean_url
+              const affiliateUrl = product.clean_url || product.affiliate_url
               segments.push({
                 type: 'link',
                 fields: {
@@ -123,16 +137,23 @@ function addLinksToContent(node: any, products: Product[], usedKeywords: Set<str
               
               usedKeywords.add(phrase.toLowerCase())
               linkCount.count++
+              paragraphHasLink = true // Mark that this paragraph now has a link
               console.log(`      Linked "${phrase}" → ${product.product_name.substring(0, 50)}...`)
               break
             }
           }
           
-          if (foundMatch) break
+          if (foundMatch || paragraphHasLink) break // Stop after adding one link to paragraph
         }
         
         if (foundMatch && segments.length > 0) {
           newChildren.push(...segments)
+          // After adding a link, push all remaining children without processing
+          const currentIndex = node.children.indexOf(child)
+          for (let i = currentIndex + 1; i < node.children.length; i++) {
+            newChildren.push(node.children[i])
+          }
+          break // Stop processing this paragraph
         } else {
           newChildren.push(child)
         }

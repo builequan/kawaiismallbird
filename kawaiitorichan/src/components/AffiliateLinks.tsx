@@ -6,6 +6,7 @@ interface Product {
   id: string
   product_name: string
   affiliate_url: string
+  clean_url?: string
   price: string
 }
 
@@ -70,7 +71,7 @@ export default function AffiliateLinks({ postId }: AffiliateLinksProps) {
           <p className="text-gray-700">価格: {product.price}</p>
           <p className="mt-2">
             <a 
-              href={extractAffiliateUrl(product.affiliate_url)}
+              href={product.clean_url || extractAffiliateUrl(product.affiliate_url)}
               target="_blank"
               rel="nofollow sponsored"
               className="text-blue-600 underline hover:text-blue-800 font-medium"

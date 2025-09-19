@@ -389,6 +389,40 @@ export default function AffiliateLinksManager() {
     }
   }
 
+  // Sync JSON products to database
+  const handleSyncToDatabase = async () => {
+    if (!confirm('Sync JSON products to database? This will add/update products in the database collection.')) return
+
+    setProcessingStatus({ isProcessing: true, currentStep: 'Syncing products to database...' })
+    setSelectedAction('sync')
+
+    try {
+      const response = await fetch('/api/affiliate-links/sync-to-db', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) throw new Error('Sync failed')
+
+      const result = await response.json()
+      toast({
+        title: 'Sync Complete',
+        description: `${result.imported} imported, ${result.updated} updated, ${result.skipped} skipped`,
+      })
+
+      await fetchStatistics()
+    } catch (error) {
+      toast({
+        title: 'Sync Failed',
+        description: 'Failed to sync products to database',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessingStatus({ isProcessing: false })
+      setSelectedAction('')
+    }
+  }
+
   // Process posts
   const handleProcessPosts = async (all: boolean = false) => {
     const message = all 
@@ -616,7 +650,7 @@ export default function AffiliateLinksManager() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Button 
+            <Button
               onClick={() => setShowImportDialog(true)}
               disabled={processingStatus.isProcessing}
               variant="outline"
@@ -625,8 +659,18 @@ export default function AffiliateLinksManager() {
               <Upload className="w-4 h-4 mr-2" />
               Import Products
             </Button>
-            
-            <Button 
+
+            <Button
+              onClick={handleSyncToDatabase}
+              disabled={processingStatus.isProcessing}
+              variant="outline"
+              className="justify-start"
+            >
+              <Database className="w-4 h-4 mr-2" />
+              Sync to Database
+            </Button>
+
+            <Button
               onClick={handleRebuildIndex}
               disabled={processingStatus.isProcessing}
               variant="outline"

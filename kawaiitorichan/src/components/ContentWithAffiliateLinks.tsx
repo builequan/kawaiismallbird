@@ -8,6 +8,7 @@ interface Product {
   keyword_research: string
   keywords: string[]
   affiliate_url: string
+  clean_url?: string
 }
 
 interface ContentWithAffiliateLinksProps {
@@ -114,8 +115,8 @@ export default function ContentWithAffiliateLinks({ postId, children }: ContentW
             // Check if this keyword exists in the text
             if (!originalText.includes(keyword)) continue
             
-            // Create the link
-            const url = extractAffiliateUrl(product.affiliate_url)
+            // Create the link - use clean_url if available, otherwise extract from affiliate_url
+            const url = product.clean_url || extractAffiliateUrl(product.affiliate_url)
             const link = document.createElement('a')
             link.href = url
             link.target = '_blank'

@@ -95,7 +95,7 @@ function processParagraph(
   paragraph: any,
   products: Product[],
   globalUsedKeywords: Set<string>,
-  paragraphLinkLimit: number = 2, // Max 2 links per paragraph for naturalness
+  paragraphLinkLimit: number = 1, // Max 1 link per paragraph to avoid cluttering
   globalLinkCount: { count: number },
   globalMaxLinks: number
 ): any {
@@ -113,16 +113,18 @@ function processParagraph(
   }
   countLinks(paragraph)
   
-  // If paragraph already has 2 or more links, don't add more
-  if (existingLinkCount >= paragraphLinkLimit) {
+  // If paragraph already has any links, don't add more (max 1 per paragraph)
+  if (existingLinkCount >= 1) {
     return paragraph
   }
   
   const newChildren: any[] = []
   let paragraphLinkCount = existingLinkCount // Start with existing links
   
-  for (const child of paragraph.children) {
-    if (paragraphLinkCount >= paragraphLinkLimit || globalLinkCount.count >= globalMaxLinks) {
+  let linkAdded = false
+  for (let i = 0; i < paragraph.children.length; i++) {
+    const child = paragraph.children[i]
+    if (paragraphLinkCount >= paragraphLinkLimit || globalLinkCount.count >= globalMaxLinks || linkAdded) {
       newChildren.push(child)
       continue
     }
@@ -187,7 +189,7 @@ function processParagraph(
         }
         
         // Create affiliate link
-        const affiliateUrl = match.product.affiliate_url || match.product.clean_url
+        const affiliateUrl = match.product.clean_url || match.product.affiliate_url
         segments.push({
           type: 'link',
           fields: {
@@ -212,6 +214,7 @@ function processParagraph(
         globalUsedKeywords.add(match.phrase.toLowerCase())
         paragraphLinkCount++
         globalLinkCount.count++
+        linkAdded = true // Mark that we added a link
         break // Only add one link per text node
       }
       
@@ -225,6 +228,11 @@ function processParagraph(
           })
         }
         newChildren.push(...segments)
+        // After adding a link, push all remaining children without processing
+        for (let j = i + 1; j < paragraph.children.length; j++) {
+          newChildren.push(paragraph.children[j])
+        }
+        break // Stop processing this paragraph
       } else {
         newChildren.push(child)
       }
@@ -243,7 +251,7 @@ function addNaturalAffiliateLinks(node: any, products: Product[]): { content: an
   
   // Calculate distribution
   const totalParagraphs = countParagraphs(node)
-  const targetLinks = Math.min(6, totalParagraphs * 2) // Max 2 per paragraph, total max 6
+  const targetLinks = Math.min(5, totalParagraphs) // Max 1 per paragraph, total max 5
   
   function processNode(n: any): any {
     if (isHeading(n)) return n

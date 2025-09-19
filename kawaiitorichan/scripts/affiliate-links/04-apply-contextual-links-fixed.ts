@@ -548,7 +548,7 @@ function createContextualRecommendationBox(products: ProductIndex[]): any {
           version: 2,
           fields: {
             linkType: 'custom',
-            url: product.affiliate_url,
+            url: product.clean_url || product.affiliate_url,
             newTab: true,
             rel: 'nofollow sponsored',
           }
@@ -759,8 +759,8 @@ async function main() {
 }
 
 // Run if called directly
-if (require.main === module) {
-  main().catch(console.error)
-}
+// if (require.main === module) {
+main().catch(console.error)
+// }
 
 export { processPost, MAX_INLINE_LINKS, MAX_PRODUCTS_BOX }

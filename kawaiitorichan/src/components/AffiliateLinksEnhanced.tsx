@@ -6,6 +6,7 @@ interface Product {
   id: string
   product_name: string
   affiliate_url: string
+  clean_url?: string
   price: string
   image_url?: string
 }
@@ -200,7 +201,7 @@ export default function AffiliateLinksEnhanced({ postId, content }: AffiliateLin
             
             {/* CTA link without background */}
             <a 
-              href={extractAffiliateUrl(product.affiliate_url)}
+              href={product.clean_url || extractAffiliateUrl(product.affiliate_url)}
               target="_blank"
               rel="nofollow sponsored"
               className="inline-block text-blue-600 py-2 font-semibold text-sm hover:text-blue-800 hover:underline transition-colors"
