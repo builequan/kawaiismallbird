@@ -131,10 +131,17 @@ This repository contains two distinct projects:
 - **Folder-based Import** - Select and import entire WordPress export folders
 - **Markdown Processing** - Converts WordPress markdown exports to Lexical format
 - **Category Translation** - Japanese-to-English category mapping with hierarchical structure
-- **Media Handling** - Processes and uploads images from separate directories
+- **Media Handling** - Downloads and uploads images to Media collection automatically
 - **Mermaid Support** - Extracts and renders Mermaid diagrams from code blocks
 - **Metadata Preservation** - Maintains WordPress metadata, SEO fields, and publish dates
 - **Progress Tracking** - Real-time import progress with error handling
+
+**Content Import System (`/api/content-import/import`):**
+- **Image Download & Upload** - Automatically fetches external images and creates Media entries
+- **Lexical Node Structure** - Minimal upload nodes: `{ type: 'upload', relationTo: 'media', value: mediaId }`
+- **List Item Fix** - All list items include `indent: 0` to prevent "Invalid indent value" errors
+- **Upload Value Format** - Uses media ID directly (number), not object with id property
+- **Error Prevention** - Validates all Lexical node structures before database insertion
 
 **Critical Block Structure Knowledge:**
 - **Mermaid Blocks** must use `fields.blockType: 'mermaidDiagram'` not top-level `blockName`
@@ -143,8 +150,15 @@ This repository contains two distinct projects:
 - **Mermaid Rendering** - Code-formatted text (format: 16) starting with Mermaid keywords auto-renders as diagrams
 - **Fix Script** - Use `scripts/fix-mermaid-blocks.ts` if encountering "blockReferences" errors with Mermaid blocks
 - **Image Rendering** - Inline images `![alt](url)` automatically converted to upload nodes during markdown processing
-- **Upload Nodes** - Images stored as `{ type: 'upload', relationTo: 'media', value: { id, alt, url } }` structure
+- **Upload Nodes** - Images stored as `{ type: 'upload', relationTo: 'media', value: mediaId }` structure (media ID only)
 - **Image Verification** - Use `scripts/find-markdown-images.ts` to check for unconverted markdown images
+
+**Reference Section Display:**
+- **PostReferences Component** - Extracts and displays references with collapsible toggle
+- **RichTextWithFilteredReferences** - Removes reference sections from main content display
+- **Flexible Detection** - Matches any heading containing "出典" (sources), "参考文献", "References", or "参考資料"
+- **Toggle Functionality** - Default closed state with toggle to show/hide references
+- **Separation Pattern** - Main content displays without references, separate collapsible section shows references
 
 **Internal Linking System:**
 - **Automated Backlinking** - Uses vector embeddings and cosine similarity to find related content
