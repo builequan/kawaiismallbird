@@ -10,7 +10,8 @@ import { SearchIcon, ChevronDownIcon, Menu, X } from 'lucide-react'
 
 export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const navItems = data?.navItems || []
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [hoveredSubmenu, setHoveredSubmenu] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -20,7 +21,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false)
+        setOpenDropdown(null)
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false)
@@ -46,18 +47,83 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   // Static Japanese navigation items for bird site
   const japaneseNavItems = [
     { label: '私たちについて', href: '/about-us' },
-    { label: 'カテゴリー', href: '/categories', hasDropdown: true },
-    { label: 'ギャラリー', href: '/gallery' },
+    {
+      label: '小鳥の種類',
+      href: '/birds',
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'セキセイインコ', href: '/birds/budgerigars' },
+        { label: 'オカメインコ', href: '/birds/cockatiels' },
+        { label: 'コザクラインコ', href: '/birds/lovebirds' },
+        { label: 'フィンチ類', href: '/birds/finches' },
+        { label: 'マメルリハ', href: '/birds/parrotlets' },
+        { label: 'カナリア', href: '/birds/canaries' },
+        { label: '小型コニュア', href: '/birds/miniature-conures' },
+      ]
+    },
+    {
+      label: 'カテゴリー',
+      href: '/categories',
+      hasDropdown: true,
+      hasNestedDropdown: true,
+      dropdownItems: [
+        {
+          label: '飼育環境・ケージ設定',
+          href: '/categories/housing',
+          submenu: [
+            { label: 'ケージのサイズと配置', href: '/categories/cage-setup' },
+            { label: '照明とUV要件', href: '/categories/lighting' },
+            { label: '止まり木の種類', href: '/categories/perches' },
+            { label: '温度管理と換気', href: '/categories/temperature' },
+            { label: 'おもちゃと遊具', href: '/categories/toys' },
+          ]
+        },
+        {
+          label: '健康・獣医ケア',
+          href: '/categories/health',
+          submenu: [
+            { label: '定期健康診断', href: '/categories/wellness-exams' },
+            { label: '一般的な呼吸器疾患', href: '/categories/respiratory' },
+            { label: '羽の抜け替わり管理', href: '/categories/molting' },
+            { label: '爪とくちばしのケア', href: '/categories/nail-beak' },
+            { label: '寄生虫予防', href: '/categories/parasites' },
+            { label: '緊急時の応急処置', href: '/categories/first-aid' },
+          ]
+        },
+        {
+          label: '栄養・餌やり',
+          href: '/categories/nutrition',
+          submenu: [
+            { label: 'シードミックスvsペレット', href: '/categories/seed-pellet' },
+            { label: '新鮮な野菜と果物', href: '/categories/fresh-foods' },
+            { label: 'カルシウムとミネラル補給', href: '/categories/supplements' },
+            { label: '給餌スケジュール', href: '/categories/feeding-schedule' },
+            { label: '種類別の食事要件', href: '/categories/species-diet' },
+          ]
+        },
+        {
+          label: '行動・トレーニング',
+          href: '/categories/training',
+          submenu: [
+            { label: '基本的なしつけ', href: '/categories/basic-training' },
+            { label: '手乗り訓練', href: '/categories/hand-taming' },
+            { label: '言葉を教える', href: '/categories/speech-training' },
+            { label: '問題行動の対処', href: '/categories/behavior-issues' },
+            { label: '社会化トレーニング', href: '/categories/socialization' },
+          ]
+        },
+        {
+          label: '法律・倫理・飼育の考慮',
+          href: '/categories/legal',
+          submenu: [
+            { label: '飼育許可と規制', href: '/categories/permits' },
+            { label: '責任ある飼育', href: '/categories/responsible-ownership' },
+            { label: '倫理的な配慮', href: '/categories/ethical-considerations' },
+          ]
+        },
+      ]
+    },
     { label: 'お問い合わせ', href: '/contact' },
-  ]
-
-  // Bird category items for dropdown
-  const categoryItems = [
-    { label: '鳥の種類', href: '/categories/bird-species' },
-    { label: '観察用具', href: '/categories/birdwatching-gear' },
-    { label: '撮影技術', href: '/categories/photography' },
-    { label: '生息地', href: '/categories/habitats' },
-    { label: '保護活動', href: '/categories/conservation' },
   ]
 
   const handleSearch = (e: React.FormEvent) => {
@@ -73,29 +139,66 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       <nav className="hidden lg:flex gap-6 items-center">
         {/* Japanese Navigation Items */}
         {japaneseNavItems.map((item, i) => (
-        <div key={i} className="relative" ref={item.hasDropdown ? dropdownRef : undefined}>
+        <div
+          key={i}
+          className="relative"
+          ref={item.hasDropdown ? dropdownRef : undefined}
+          onMouseEnter={() => item.hasDropdown && setOpenDropdown(item.label)}
+          onMouseLeave={() => item.hasDropdown && setOpenDropdown(null)}
+        >
           {item.hasDropdown ? (
             <>
               <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-1 text-gray-700 hover:text-primary transition-colors duration-200 font-semibold px-4 py-2 rounded-full hover:bg-primary/10"
               >
                 {item.label}
-                <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
               </button>
-              
-              {/* Categories Dropdown */}
-              {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
-                  {categoryItems.map((category, idx) => (
-                    <Link
+
+              {/* Dropdown Menu */}
+              {openDropdown === item.label && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                  {item.dropdownItems.map((dropItem, idx) => (
+                    <div
                       key={idx}
-                      href={category.href}
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium"
-                      onClick={() => setIsDropdownOpen(false)}
+                      className="relative"
+                      onMouseEnter={() => dropItem.submenu && setHoveredSubmenu(dropItem.label)}
+                      onMouseLeave={() => dropItem.submenu && setHoveredSubmenu(null)}
                     >
-                      {category.label}
-                    </Link>
+                      {dropItem.submenu ? (
+                        <>
+                          <Link
+                            href={dropItem.href}
+                            className="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium"
+                          >
+                            {dropItem.label}
+                            <ChevronDownIcon className="w-4 h-4 -rotate-90" />
+                          </Link>
+
+                          {/* Nested Submenu */}
+                          {hoveredSubmenu === dropItem.label && (
+                            <div className="absolute left-full top-0 ml-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2">
+                              {dropItem.submenu.map((subItem, subIdx) => (
+                                <Link
+                                  key={subIdx}
+                                  href={subItem.href}
+                                  className="block px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium text-sm"
+                                >
+                                  {subItem.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          href={dropItem.href}
+                          className="block px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium"
+                        >
+                          {dropItem.label}
+                        </Link>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -185,26 +288,57 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                   {item.hasDropdown ? (
                     <div>
                       <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
                         className="w-full flex items-center justify-between px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg hover:bg-primary/10 transition-colors"
                       >
                         {item.label}
-                        <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
                       </button>
-                      {isDropdownOpen && (
+                      {openDropdown === item.label && (
                         <div className="mt-2 ml-4 space-y-1">
-                          {categoryItems.map((category, idx) => (
-                            <Link
-                              key={idx}
-                              href={category.href}
-                              className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium"
-                              onClick={() => {
-                                setIsMobileMenuOpen(false)
-                                setIsDropdownOpen(false)
-                              }}
-                            >
-                              {category.label}
-                            </Link>
+                          {item.dropdownItems.map((dropItem, idx) => (
+                            <div key={idx}>
+                              {dropItem.submenu ? (
+                                <>
+                                  <button
+                                    onClick={() => setHoveredSubmenu(hoveredSubmenu === dropItem.label ? null : dropItem.label)}
+                                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium"
+                                  >
+                                    {dropItem.label}
+                                    <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${hoveredSubmenu === dropItem.label ? 'rotate-180' : ''}`} />
+                                  </button>
+                                  {hoveredSubmenu === dropItem.label && (
+                                    <div className="mt-1 ml-4 space-y-1">
+                                      {dropItem.submenu.map((subItem, subIdx) => (
+                                        <Link
+                                          key={subIdx}
+                                          href={subItem.href}
+                                          className="block px-4 py-1 text-sm text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                          onClick={() => {
+                                            setIsMobileMenuOpen(false)
+                                            setOpenDropdown(null)
+                                            setHoveredSubmenu(null)
+                                          }}
+                                        >
+                                          {subItem.label}
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <Link
+                                  href={dropItem.href}
+                                  className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium"
+                                  onClick={() => {
+                                    setIsMobileMenuOpen(false)
+                                    setOpenDropdown(null)
+                                  }}
+                                >
+                                  {dropItem.label}
+                                </Link>
+                              )}
+                            </div>
                           ))}
                         </div>
                       )}
@@ -222,22 +356,6 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
               ))}
             </div>
 
-            {/* Quick Links Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-500 mb-3">人気のカテゴリー</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {categoryItems.slice(0, 4).map((category, idx) => (
-                  <Link
-                    key={idx}
-                    href={category.href}
-                    className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-center"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {category.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       )}

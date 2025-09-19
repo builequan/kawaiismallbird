@@ -22,7 +22,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
             children: [
               {
                 mode: 'normal',
-                text: '🕊️ かわいい小鳥の世界について 🕊️',
+                text: '小鳥と暮らす幸せな毎日へ',
                 type: 'text',
                 style: '',
                 detail: 0,
@@ -60,7 +60,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: 'Kawaii Birdは、小鳥たちの可愛らしさと魅力を世界中の人々と共有することを目的としています。私たちは、鳥たちの美しい姿、愛らしい仕草、そして彼らとの幸せな暮らし方について情報を発信しています。',
+                    text: 'Kawaii Birdは、小鳥をペットとして飼育する方々のための総合情報サイトです。セキセイインコ、オカメインコ、フィンチなど、人気の小鳥たちの飼育方法、健康管理、栄養管理など、小鳥と幸せに暮らすための実践的な情報をお届けしています。',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
@@ -90,35 +90,35 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '🐦 鳥たちの美しい写真と動画の共有' }
+                        { type: 'text', text: '🐦 小鳥の種類別の詳しい飼育ガイド' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '📚 鳥の生態や習性についての正確な情報提供' }
+                        { type: 'text', text: '🏥 健康管理と病気予防の正確な情報' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '🏠 鳥たちとの幸せな暮らし方のアドバイス' }
+                        { type: 'text', text: '🥗 栄養バランスの取れた食事管理' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '🌿 野鳥観察の楽しみ方の紹介' }
+                        { type: 'text', text: '🏠 快適なケージ環境の作り方' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '💝 鳥を愛する人々のコミュニティづくり' }
+                        { type: 'text', text: '💝 小鳥との絆を深めるトレーニング方法' }
                       ],
                     },
                   ],

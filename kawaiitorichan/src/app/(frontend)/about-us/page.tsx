@@ -12,13 +12,13 @@ import React from 'react'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 
-import { RenderHero } from '@/heros/RenderHero'
-
 import { generateMeta } from '@/utilities/generateMeta'
 
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 import { aboutStatic } from '@/endpoints/seed/about-static'
+
+import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
 
 // Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
@@ -62,7 +62,7 @@ export default async function AboutPage() {
       <PayloadRedirects disableNotFound url="/about-us" />
       {draft && <LivePreviewListener />}
       <div className="bg-white">
-        <RenderHero {...hero} />
+        <HeroWithSlideshow hero={hero} />
         <div className="prose-headings:text-gray-900 prose-p:text-gray-900 prose-li:text-gray-900 prose-strong:text-gray-900">
           <RenderBlocks blocks={layout} />
         </div>
