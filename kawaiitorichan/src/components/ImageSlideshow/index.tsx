@@ -28,8 +28,8 @@ export const ImageSlideshow: React.FC = () => {
   }, [])
 
   return (
-    <div className="relative w-full h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden">
-      {/* Image container with full size */}
+    <div className="relative w-full h-[65vh] md:h-[70vh] lg:h-[75vh] overflow-hidden">
+      {/* Image container with bigger height matching PetPal ratio */}
       <div className="absolute inset-0">
         {birdImages.map((image, index) => (
           <div
@@ -53,10 +53,10 @@ export const ImageSlideshow: React.FC = () => {
       </div>
 
       {/* Subtle gradient overlay only at bottom for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-      {/* Dots indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+      {/* Dots indicator - moved up slightly for better visibility */}
+      <div className="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
         {birdImages.map((_, index) => (
           <button
             key={index}

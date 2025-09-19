@@ -48,20 +48,6 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const japaneseNavItems = [
     { label: '私たちについて', href: '/about-us' },
     {
-      label: '小鳥の種類',
-      href: '/birds',
-      hasDropdown: true,
-      dropdownItems: [
-        { label: 'セキセイインコ', href: '/birds/budgerigars' },
-        { label: 'オカメインコ', href: '/birds/cockatiels' },
-        { label: 'コザクラインコ', href: '/birds/lovebirds' },
-        { label: 'フィンチ類', href: '/birds/finches' },
-        { label: 'マメルリハ', href: '/birds/parrotlets' },
-        { label: 'カナリア', href: '/birds/canaries' },
-        { label: '小型コニュア', href: '/birds/miniature-conures' },
-      ]
-    },
-    {
       label: 'カテゴリー',
       href: '/categories',
       hasDropdown: true,
