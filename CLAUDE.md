@@ -174,17 +174,19 @@ This repository contains two distinct projects:
 
 **Affiliate Links System:**
 - **Compound Word Protection** - Won't split スコアカード into スコア + カード, preserves プレーヤー, ゴルファー intact
-- **Smart Contextual Linking** - Maximum 5 links per post with proper word boundary detection
+- **One Link Per Paragraph** - Maximum 1 affiliate link per paragraph to avoid cluttered content
+- **Smart URL Handling** - Uses `clean_url` (proper affiliate URL) instead of `affiliate_url` (HTML table code)
 - **No Partial Matches** - Won't link "ゴルフ" in "ゴルファー" (proper Japanese word boundaries)
 - **Product Type Matching** - Links only match relevant product types (driver→driver, putter→putter)
-- **Even Distribution** - Links spread throughout entire article, not concentrated in first half
+- **Even Distribution** - Maximum 5 links per post, distributed across different paragraphs
 - **Duplicate Prevention** - Each keyword linked only once per post
 - **CSV Export** - Export all links to CSV (Article Title, Link, Product, URL)
-- **A8 Tracking Verified** - All 542 products have correct tracking code (a8mat=45BP2Z+2BCPGY+2HOM+BWGDT)
+- **A8 Tracking Preserved** - All products maintain correct tracking code (a8mat=45BP2Z+2BCPGY+2HOM+BWGDT)
 - **Admin Interface** - Complete management dashboard at `/admin/affiliate-links`
+- **Database Sync** - "Sync to Database" button imports JSON products to Payload CMS collection
 - **Product Recommendations** - Maximum 3 products in recommendation box at article end
-- **Process New Posts Button** - Uses contextual linking with 5-link limit per post
-- **API Endpoint Protection** - `/api/affiliate-links/process-posts` includes compound word dictionary
+- **Process New Posts Button** - Applies links with 1-per-paragraph limit and clean_url priority
+- **API Endpoint Protection** - `/api/affiliate-links/process-posts` enforces all link limits
 
 ## Dokploy Deployment
 
