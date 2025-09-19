@@ -4,23 +4,17 @@ import configPromise from '@payload-config'
 async function debugReferences() {
   const payload = await getPayload({ config: configPromise })
 
-  // Get the specific post
-  const posts = await payload.find({
+  // Get the specific post with references
+  const post = await payload.findByID({
     collection: 'posts',
-    where: {
-      slug: {
-        equals: 'key-elements-of-golf-course-architecture-every-new-player-should-know-ja'
-      }
-    },
-    depth: 2,
+    id: 1581,
+    depth: 0
   })
 
-  if (posts.docs.length === 0) {
+  if (!post) {
     console.log('Post not found')
     return
   }
-
-  const post = posts.docs[0]
   console.log(`\nAnalyzing post: ${post.title}`)
   console.log('=' .repeat(60))
 

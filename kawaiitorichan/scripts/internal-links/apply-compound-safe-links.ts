@@ -118,25 +118,57 @@ function hasWordBoundary(text: string, position: number): boolean {
 }
 
 /**
- * Find valid anchor phrases in text that respect compound words
+ * Universal metadata filter patterns
+ */
+const METADATA_PATTERNS = [
+  // UI/Structure elements
+  'ヒーロー画像', 'アイキャッチ', 'サムネイル', 'イメージ画像',
+  '出典', '参考文献', 'リンク:', '画像:', 'ソース:',
+  'コメント', 'シェア', 'いいね', 'フォロー',
+
+  // Navigation/UI
+  '次へ', '前へ', 'トップ', 'ホーム', 'メニュー', 'ページ',
+  'クリック', 'タップ', 'スクロール', 'ズーム',
+
+  // Time/Date patterns
+  /^\d{4}年\d{1,2}月/, /^\d{1,2}月\d{1,2}日/, /^今週/, /^先週/, /^来週/,
+
+  // Common unrelated terms (any domain)
+  /^(州|市|町|村)(議会|長|役所|政府)/, // Political terms
+  /^(動画|ビデオ|写真|図|表|グラフ|チャート)/, // Media/visualization labels
+  /^\[.*\]/, // Bracketed content (often metadata)
+
+  // Reference/citation patterns
+  /リンク$/, /ページ$/, /サイト$/,
+]
+
+/**
+ * Check if a phrase is metadata/structural content
+ */
+function isMetadataPhrase(phrase: string): boolean {
+  return METADATA_PATTERNS.some(pattern =>
+    typeof pattern === 'string'
+      ? phrase.includes(pattern)
+      : pattern.test(phrase)
+  )
+}
+
+/**
+ * Find valid anchor phrases in text that respect compound words (UNIVERSAL VERSION)
  */
 function findValidAnchorPhrases(text: string, targetPost: PostIndex): Array<{phrase: string; position: number}> {
   const validPhrases: Array<{phrase: string; position: number}> = []
-
-  // Priority phrases for golf content
-  const golfTerms = [
-    'スイング', 'グリップ', 'スタンス', 'ドライバー', 'アイアン',
-    'パター', 'バックスイング', 'フォロースルー', 'アプローチ',
-    'ティーショット', 'フェアウェイ', 'グリーン', 'バンカー'
-  ]
 
   // Check target's anchor phrases
   for (const phrase of targetPost.anchorPhrases) {
     // Skip too short phrases
     if (phrase.length < 3) continue
 
-    // Skip generic terms
-    if (phrase === 'ゴルフ' || phrase === 'の') continue
+    // Skip metadata/UI phrases
+    if (isMetadataPhrase(phrase)) continue
+
+    // Skip overly generic single character particles
+    if (phrase === 'の' || phrase === 'で' || phrase === 'と') continue
 
     let position = text.indexOf(phrase)
     while (position !== -1) {
@@ -156,23 +188,26 @@ function findValidAnchorPhrases(text: string, targetPost: PostIndex): Array<{phr
     }
   }
 
-  // Try golf terms if not enough phrases found
+  // If not enough phrases found, look for meaningful terms from title
   if (validPhrases.length < 3) {
-    for (const term of golfTerms) {
-      if (text.includes(term) && targetPost.title.includes(term)) {
-        let position = text.indexOf(term)
+    // Extract keywords from target post title
+    const titleWords = targetPost.title.match(/[ァ-ヶー一-龠]{3,}/g) || []
+
+    for (const word of titleWords) {
+      if (text.includes(word) && !isMetadataPhrase(word) && word.length >= 3) {
+        let position = text.indexOf(word)
         while (position !== -1) {
-          if (!isPartOfCompoundWord(text, term, position)) {
+          if (!isPartOfCompoundWord(text, word, position)) {
             const beforeOk = hasWordBoundary(text, position)
-            const afterOk = hasWordBoundary(text, position + term.length)
+            const afterOk = hasWordBoundary(text, position + word.length)
 
             if (beforeOk && afterOk) {
-              validPhrases.push({ phrase: term, position })
+              validPhrases.push({ phrase: word, position })
               break
             }
           }
 
-          position = text.indexOf(term, position + 1)
+          position = text.indexOf(word, position + 1)
         }
       }
     }

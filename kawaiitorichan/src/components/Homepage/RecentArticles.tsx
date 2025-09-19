@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Clock, ArrowRight, TrendingUp } from 'lucide-react'
 import type { Post } from '@/payload-types'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
+import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 
 interface RecentArticlesProps {
   posts: Post[]
@@ -45,12 +46,45 @@ export const RecentArticles: React.FC<RecentArticlesProps> = ({ posts }) => {
           </Link>
         </div>
 
-        {/* Articles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.slice(0, 6).map((post, index) => {
-            const heroImageUrl = post.heroImage
-              ? getMediaUrl(post.heroImage)
-              : '/birdimage/download.webp'
+        {/* Articles Grid - 4 columns */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {posts.slice(0, 8).map((post, index) => {
+            // Try to get hero image from post.hero field
+            let heroImageUrl = '/birdimage/download.webp' // default image
+
+            if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
+              heroImageUrl = post.hero.url
+            } else if (post.hero && typeof post.hero === 'string') {
+              heroImageUrl = post.hero
+            } else if (post.content) {
+              // Try to extract first image from content if no hero image
+              try {
+                if (typeof post.content === 'object' && post.content.root) {
+                  const findFirstImage = (node: any): string | null => {
+                    // Check if this node is an upload (image)
+                    if (node.type === 'upload' && node.value) {
+                      if (typeof node.value === 'object' && node.value.url) {
+                        return node.value.url
+                      }
+                    }
+                    // Recursively search children
+                    if (node.children && Array.isArray(node.children)) {
+                      for (const child of node.children) {
+                        const result = findFirstImage(child)
+                        if (result) return result
+                      }
+                    }
+                    return null
+                  }
+                  const firstImage = findFirstImage(post.content.root)
+                  if (firstImage) {
+                    heroImageUrl = fixMediaUrl(firstImage)
+                  }
+                }
+              } catch (e) {
+                console.error('Error extracting image from content:', e)
+              }
+            }
 
             return (
               <Link
@@ -58,12 +92,12 @@ export const RecentArticles: React.FC<RecentArticlesProps> = ({ posts }) => {
                 href={`/posts/${post.slug}`}
                 className="group"
               >
-                <article className="h-full bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  {/* Image Container */}
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
+                <article className="h-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  {/* Image Container - Square aspect ratio for grid */}
+                  <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
                     <Image
                       src={heroImageUrl}
-                      alt={post.heroImageAlt || post.title}
+                      alt={post.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -84,31 +118,17 @@ export const RecentArticles: React.FC<RecentArticlesProps> = ({ posts }) => {
                     )}
                   </div>
 
-                  {/* Content */}
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors duration-300">
+                  {/* Content - Simplified for grid layout */}
+                  <div className="p-4">
+                    <h3 className="text-sm md:text-base font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-amber-600 transition-colors duration-300 min-h-[2.5rem]">
                       {post.title}
                     </h3>
 
-                    {post.excerpt && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                        {typeof post.excerpt === 'string'
-                          ? post.excerpt
-                          : post.excerpt?.root?.children?.[0]?.children?.[0]?.text || ''}
-                      </p>
-                    )}
-
-                    {/* Date */}
+                    {/* Date - Compact display */}
                     <div className="flex items-center justify-between">
-                      <time className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
+                      <time className="text-xs text-gray-500">
                         {formatDate(post.publishedAt || new Date())}
                       </time>
-
-                      <span className="text-xs font-medium text-amber-600 group-hover:text-amber-700 transition-colors flex items-center gap-1">
-                        読む
-                        <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
-                      </span>
                     </div>
                   </div>
                 </article>

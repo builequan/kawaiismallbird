@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Calendar, Eye, Heart } from 'lucide-react'
 import type { Post } from '@/payload-types'
 import { getMediaUrl } from '@/utilities/getMediaUrl'
+import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 
 interface ArticleCarouselProps {
   posts: Post[]
@@ -96,9 +97,44 @@ export const ArticleCarousel: React.FC<ArticleCarouselProps> = ({ posts }) => {
         >
           {visiblePosts.map((post, index) => {
             const date = formatDate(post.publishedAt || new Date())
-            const heroImageUrl = post.heroImage
-              ? getMediaUrl(post.heroImage)
-              : '/birdimage/download.webp'
+
+            // Extract hero image from various sources
+            let heroImageUrl = '/birdimage/download.webp'
+
+            if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
+              heroImageUrl = fixMediaUrl(post.hero.url)
+            } else if (post.hero && typeof post.hero === 'string') {
+              heroImageUrl = post.hero
+            } else if (post.content) {
+              try {
+                if (typeof post.content === 'object' && post.content.root) {
+                  const findFirstImage = (node: any): string | null => {
+                    if (node.type === 'upload' && node.value) {
+                      if (typeof node.value === 'object') {
+                        if ('url' in node.value) {
+                          return node.value.url
+                        } else if ('filename' in node.value) {
+                          return `/media/${node.value.filename}`
+                        }
+                      }
+                    }
+                    if (node.children && Array.isArray(node.children)) {
+                      for (const child of node.children) {
+                        const result = findFirstImage(child)
+                        if (result) return result
+                      }
+                    }
+                    return null
+                  }
+                  const firstImage = findFirstImage(post.content.root)
+                  if (firstImage) {
+                    heroImageUrl = fixMediaUrl(firstImage)
+                  }
+                }
+              } catch (e) {
+                console.error('Error extracting image:', e)
+              }
+            }
 
             return (
               <Link
@@ -111,7 +147,7 @@ export const ArticleCarousel: React.FC<ArticleCarouselProps> = ({ posts }) => {
                   <div className="relative h-56 md:h-64 overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
                     <Image
                       src={heroImageUrl}
-                      alt={post.heroImageAlt || post.title}
+                      alt={post.title}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, 33vw"

@@ -20,30 +20,6 @@ const birdSpeciesData = [
 ]
 
 export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
-
-  // Get post count for each bird species
-  const getBirdCount = (birdName: string) => {
-    const category = categories.find(cat =>
-      cat.title === birdName || cat.title.includes(birdName.replace('インコ', ''))
-    )
-
-    // Use deterministic fallback values to avoid hydration errors
-    if (!category?.postCount) {
-      const defaultCounts: { [key: string]: number } = {
-        'セキセイインコ': 5,
-        'オカメインコ': 9,
-        '文鳥': 19,
-        'カナリア': 15,
-        'コザクラインコ': 7,
-        'フィンチ': 9,
-        'その他の鳥': 5,
-      }
-      return defaultCounts[birdName] || 3
-    }
-
-    return category.postCount
-  }
-
   return (
     <section className="py-8 md:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -55,8 +31,6 @@ export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
         {/* Bird Species Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6">
           {birdSpeciesData.map((bird, index) => {
-            const count = getBirdCount(bird.name)
-
             return (
               <Link
                 key={index}
@@ -79,18 +53,13 @@ export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
                   {bird.name}
                 </span>
 
-                {/* Article Count */}
-                <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 group-hover:bg-amber-200">
-                  {count}記事
-                </span>
-
               </Link>
             )
           })}
 
           {/* All Articles Card */}
           <Link
-            href="/posts"
+            href="/birds/all"
             className="
               group flex flex-col items-center justify-center
               p-5 md:p-6 rounded-2xl transition-all duration-300

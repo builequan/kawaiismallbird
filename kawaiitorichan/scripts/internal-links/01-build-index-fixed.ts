@@ -47,7 +47,93 @@ function extractTextFromLexical(node: any, result: string[] = []): string {
 }
 
 /**
- * Extract meaningful Japanese phrases that make good anchor text
+ * Universal metadata filter patterns
+ */
+const METADATA_PATTERNS = [
+  // UI/Structure elements
+  'ヒーロー画像', 'アイキャッチ', 'サムネイル', 'イメージ画像',
+  '出典', '参考文献', 'リンク:', '画像:', 'ソース:',
+  'コメント', 'シェア', 'いいね', 'フォロー',
+
+  // Navigation/UI
+  '次へ', '前へ', 'トップ', 'ホーム', 'メニュー', 'ページ',
+  'クリック', 'タップ', 'スクロール', 'ズーム',
+
+  // Time/Date patterns
+  /^\d{4}年\d{1,2}月/, /^\d{1,2}月\d{1,2}日/, /^今週/, /^先週/, /^来週/,
+
+  // Common unrelated terms (any domain)
+  /^(州|市|町|村)(議会|長|役所|政府)/, // Political terms
+  /^(動画|ビデオ|写真|図|表|グラフ|チャート)/, // Media/visualization labels
+  /^\[.*\]/, // Bracketed content (often metadata)
+
+  // Reference/citation patterns
+  /リンク$/, /ページ$/, /サイト$/,
+]
+
+/**
+ * Check if a phrase is metadata/structural content
+ */
+function isMetadataPhrase(phrase: string): boolean {
+  return METADATA_PATTERNS.some(pattern =>
+    typeof pattern === 'string'
+      ? phrase.includes(pattern)
+      : pattern.test(phrase)
+  )
+}
+
+/**
+ * Common Japanese verb endings for proper phrase completion
+ */
+const VERB_ENDINGS = [
+  'する', 'した', 'して', 'すれば', 'しよう', 'します', 'しない', 'しました',
+  'くる', 'きた', 'きて', 'くれば', 'こよう', 'きます', 'こない', 'きました',
+  'いる', 'いた', 'いて', 'いれば', 'いよう', 'います', 'いない', 'いました',
+  'ある', 'あった', 'あって', 'あれば', 'あろう', 'あります', 'ない', 'ありました',
+  'できる', 'できた', 'できて', 'できれば', 'できよう', 'できます', 'できない', 'できました',
+  'なる', 'なった', 'なって', 'なれば', 'なろう', 'なります', 'ならない', 'なりました',
+  'れる', 'られる', 'せる', 'させる', 'れた', 'られた', 'せた', 'させた'
+]
+
+/**
+ * Check if a phrase ends with a broken verb stem
+ */
+function isBrokenVerb(phrase: string): boolean {
+  // Common patterns of truncated verbs
+  const brokenPatterns = [
+    /[^で][すく]$/, // ends with す or く (but not です)
+    /[いう]$/, // ends with い or う (could be incomplete)
+    /[つむぶぬぐずじ]$/ // other incomplete verb stems
+  ]
+
+  return brokenPatterns.some(pattern => pattern.test(phrase))
+}
+
+/**
+ * Attempt to complete a broken verb phrase
+ */
+function completeVerb(phrase: string, fullText: string): string {
+  // Look for the complete verb in the surrounding text
+  for (const ending of VERB_ENDINGS) {
+    const possibleComplete = phrase + ending.substring(phrase.length > 0 ? phrase[phrase.length - 1] === ending[0] ? 1 : 0 : 0)
+    if (fullText.includes(possibleComplete)) {
+      return possibleComplete
+    }
+  }
+
+  // If no complete version found, try common completions
+  if (phrase.endsWith('す') && !phrase.endsWith('です')) {
+    return phrase + 'る'
+  }
+  if (phrase.endsWith('く')) {
+    return phrase + 'る'
+  }
+
+  return phrase // Return as-is if can't complete
+}
+
+/**
+ * Extract meaningful Japanese phrases that make good anchor text (UNIVERSAL VERSION)
  */
 function extractJapanesePhrases(text: string): string[] {
   const phrases = new Set<string>()
@@ -59,49 +145,13 @@ function extractJapanesePhrases(text: string): string[] {
     .replace(/\s+/g, ' ')
     .trim()
   
-  // Golf-specific compound terms (these are meaningful multi-word phrases)
-  const golfCompounds = [
-    // Technical swing terms
-    'ゴルフスイング', 'スイングプレーン', 'バックスイング', 'ダウンスイング',
-    'フォロースルー', 'インパクトゾーン', 'スイングアーク', 'テークバック',
-    'アドレスポジション', 'トップオブスイング', 'スイングパス', 'スイングテンポ',
-    
-    // Club and shot types
-    'ドライバーショット', 'アイアンショット', 'パターストローク', 'ウェッジショット',
-    'フェアウェイウッド', 'ユーティリティクラブ', 'サンドウェッジ', 'ピッチングウェッジ',
-    'ロブウェッジ', 'ギャップウェッジ',
-    
-    // Course management
-    'ティーショット', 'アプローチショット', 'バンカーショット', 'グリーン周り',
-    'ピンポジション', 'コースマネジメント', 'クラブ選択', 'ショット選択',
-    'コース戦略', 'ホールレイアウト', 'グリーンリーディング',
-    
-    // Practice and improvement
-    'ゴルフ練習', 'ゴルフレッスン', '練習方法', '上達方法',
-    '飛距離アップ', '方向性向上', 'スコアメイク', 'ミスショット',
-    'スイング改善', 'グリップ練習', 'パッティング練習', 'ショートゲーム',
-    
-    // Equipment
-    'ゴルフクラブ', 'ゴルフボール', 'ゴルフシューズ', 'ゴルフグローブ',
-    'キャディバッグ', 'ゴルフウェア', 'レンジファインダー', 'スコアカード',
-    
-    // Rules and etiquette
-    'ゴルフルール', 'ゴルフマナー', 'エチケット', 'ローカルルール',
-    'ペナルティストローク', 'アンプレイアブル', 'ウォーターハザード', 'OBライン',
-    
-    // Mental game
-    'メンタルゲーム', 'プレッシャー対処', '集中力向上', 'ルーティン確立',
-    'プレショットルーティン', 'ポストショットルーティン', 'ビジュアライゼーション',
-    
-    // Common terms for beginners
-    '初心者ゴルファー', '初心者向け', 'ゴルフ入門', 'ゴルフデビュー',
-    '基本スイング', '基本グリップ', '基本スタンス', '基本アドレス'
-  ]
-  
-  // First, extract all predefined golf compound terms
-  for (const compound of golfCompounds) {
-    if (cleanText.includes(compound)) {
-      phrases.add(compound)
+  // Extract compound nouns (katakana + kanji or kanji + katakana combinations)
+  const compoundNouns = cleanText.match(/[ァ-ヶー]{2,}[一-龠]{1,}|[一-龠]{2,}[ァ-ヶー]{1,}/g)
+  if (compoundNouns) {
+    for (const compound of compoundNouns) {
+      if (compound.length >= 3 && compound.length <= 12 && !isMetadataPhrase(compound)) {
+        phrases.add(compound)
+      }
     }
   }
   
@@ -124,22 +174,36 @@ function extractJapanesePhrases(text: string): string[] {
       }
     }
     
-    // Look for compound katakana + kanji terms (common in golf)
+    // Look for compound katakana + kanji terms (universal pattern)
     const compoundTerms = trimmed.match(/[ァ-ヶー]{3,}[一-龠]{1,4}/g)
     if (compoundTerms) {
       for (const term of compoundTerms) {
-        if (term.length >= 4 && term.length <= 12) {
+        if (term.length >= 4 && term.length <= 12 && !isMetadataPhrase(term)) {
           phrases.add(term)
         }
       }
     }
     
-    // Look for verb phrases (e.g., "飛距離を伸ばす")
-    const verbPhrases = trimmed.match(/[一-龠]{2,}[をがに][一-龠]{2,}[するくいうつむぶぬぐずじ]/g)
+    // Look for complete verb phrases with proper endings
+    const verbPhrases = trimmed.match(/[一-龠]{2,}[をがに][一-龠]{2,}(する|くる|いる|ある|できる|なる|れる|られる|せる|させる|した|きた|いた|あった|できた|なった|れた|られた|せた|させた|して|きて|いて|あって|できて|なって|れて|られて|せて|させて)/g)
     if (verbPhrases) {
       for (const phrase of verbPhrases) {
-        if (phrase.length >= 5 && phrase.length <= 15) {
+        if (phrase.length >= 5 && phrase.length <= 15 && !isMetadataPhrase(phrase)) {
           phrases.add(phrase)
+        }
+      }
+    }
+
+    // Also look for potentially broken verb phrases and try to complete them
+    const potentialVerbPhrases = trimmed.match(/[一-龠]{2,}[をがに][一-龠]{2,}[すくいうつむぶぬぐずじ]/g)
+    if (potentialVerbPhrases) {
+      for (const phrase of potentialVerbPhrases) {
+        if (phrase.length >= 5 && phrase.length <= 15 && !isMetadataPhrase(phrase)) {
+          // Try to complete the verb
+          const completed = completeVerb(phrase, cleanText)
+          if (completed !== phrase) {
+            phrases.add(completed)
+          }
         }
       }
     }
@@ -148,41 +212,29 @@ function extractJapanesePhrases(text: string): string[] {
     const descriptivePhrases = trimmed.match(/[良悪正確適切基本重要大小高低早遅強弱][いしくかな]*[ァ-ヶー一-龠]{2,}/g)
     if (descriptivePhrases) {
       for (const phrase of descriptivePhrases) {
-        if (phrase.length >= 3 && phrase.length <= 10) {
+        if (phrase.length >= 3 && phrase.length <= 10 && !isMetadataPhrase(phrase)) {
           phrases.add(phrase)
         }
       }
     }
   }
   
-  // Extract important standalone golf terms (but only if they're meaningful)
-  const importantTerms = [
-    'ドライバー', 'アイアン', 'パター', 'ウェッジ', 'フェアウェイ',
-    'グリーン', 'バンカー', 'ラフ', 'ティー', 'ピン', 'カップ',
-    'スイング', 'グリップ', 'スタンス', 'アドレス', 'インパクト',
-    'フォロー', 'フィニッシュ', 'テンポ', 'リズム', 'タイミング',
-    'スライス', 'フック', 'ドロー', 'フェード', 'プッシュ', 'プル',
-    'トップ', 'ダフり', 'シャンク', 'チーピン', 'テンプラ',
-    'パー', 'バーディ', 'イーグル', 'ボギー', 'アルバトロス',
-    'ハンディキャップ', 'スコア', 'ストローク', 'ヤード', 'メートル'
-  ]
-  
-  for (const term of importantTerms) {
-    if (cleanText.includes(term)) {
-      // Only add standalone terms if they appear in a meaningful context
-      const contextPattern = new RegExp(`[ァ-ヶー一-龠]*${term}[ァ-ヶー一-龠]*`, 'g')
-      const matches = cleanText.match(contextPattern)
-      if (matches) {
-        for (const match of matches) {
-          // Add the extended phrase if it's longer than just the term
-          if (match.length > term.length) {
-            phrases.add(match)
-          } else {
-            // Add the term itself if it appears standalone
-            phrases.add(term)
-          }
-        }
+  // Extract meaningful standalone terms from the content itself (no hardcoding)
+  // Look for terms that appear multiple times (likely important)
+  const termCounts = new Map<string, number>()
+  const termMatches = cleanText.match(/[ァ-ヶー一-龠]{3,8}/g)
+  if (termMatches) {
+    for (const term of termMatches) {
+      if (!isMetadataPhrase(term)) {
+        termCounts.set(term, (termCounts.get(term) || 0) + 1)
       }
+    }
+  }
+
+  // Add frequently occurring terms (appear 2+ times)
+  for (const [term, count] of termCounts) {
+    if (count >= 2 && term.length >= 3 && term.length <= 8) {
+      phrases.add(term)
     }
   }
   
@@ -198,15 +250,9 @@ function extractJapanesePhrases(text: string): string[] {
     })
     // Sort by relevance: longer phrases first, then by frequency in text
     .sort((a, b) => {
-      // Prioritize golf-specific compounds
-      const aIsCompound = golfCompounds.includes(a)
-      const bIsCompound = golfCompounds.includes(b)
-      if (aIsCompound && !bIsCompound) return -1
-      if (!aIsCompound && bIsCompound) return 1
-      
-      // Then by length (longer = more specific)
+      // Prioritize longer phrases (more specific)
       if (b.length !== a.length) return b.length - a.length
-      
+
       // Then alphabetically
       return a.localeCompare(b)
     })

@@ -1,77 +1,110 @@
-#!/usr/bin/env node
-
-import { getPayload } from 'payload';
-import configPromise from '../src/payload.config';
-import { getDatabaseConnection } from './content-db-migration/multi-database-connection';
-import { articleToLexical } from './content-db-migration/article-to-lexical';
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
 
 async function testLexicalDirect() {
-  const pool = getDatabaseConnection('content_creation_db');
+  const payload = await getPayload({ config: configPromise })
 
   try {
-    // Get the problematic article
-    const query = `
-      SELECT
-        id,
-        title,
-        content,
-        url_slug as slug,
-        meta_description,
-        primary_keyword as keywords,
-        created_at,
-        updated_at,
-        status,
-        featured_image_url,
-        category as author,
-        language,
-        site_id
-      FROM articles
-      WHERE site_id = 19
-        AND language = 'ja'
-      LIMIT 1
-    `;
+    // First, check what media we have
+    const media = await payload.find({
+      collection: 'media',
+      limit: 1,
+    })
 
-    const result = await pool.query(query);
-    const article = result.rows[0];
+    if (media.docs.length === 0) {
+      console.log('No media found. Please upload an image first.')
+      process.exit(1)
+    }
 
-    console.log('📄 Converting article to Lexical...');
-    const lexicalContent = await articleToLexical(article);
+    const mediaItem = media.docs[0]
+    console.log('Using media:', {
+      id: mediaItem.id,
+      filename: mediaItem.filename,
+      alt: mediaItem.alt,
+    })
 
-    console.log('📋 Generated Lexical content:');
-    console.log(JSON.stringify(lexicalContent, null, 2));
-
-    // Now try to create a post with this exact content
-    console.log('\n📤 Attempting to create post...');
-
-    const payload = await getPayload({ config: configPromise });
-
-    try {
-      const created = await payload.create({
-        collection: 'posts',
-        data: {
-          title: article.title,
-          content: lexicalContent,
-          slug: 'test-direct-' + Date.now(),
-          language: 'ja',
-          _status: 'draft',
-        },
-      });
-
-      console.log(`✅ Success! Post created with ID: ${created.id}`);
-    } catch (error: any) {
-      console.error('❌ Failed to create post:', error?.message || error);
-
-      // If validation error, show details
-      if (error?.data?.errors) {
-        console.error('Validation errors:', JSON.stringify(error.data.errors, null, 2));
+    // Create a test post with proper upload node structure
+    const testContent = {
+      root: {
+        type: 'root',
+        version: 1,
+        children: [
+          {
+            type: 'heading',
+            version: 1,
+            tag: 'h1',
+            children: [
+              {
+                type: 'text',
+                version: 1,
+                text: 'Test Post with Image'
+              }
+            ]
+          },
+          {
+            type: 'paragraph',
+            version: 1,
+            children: [
+              {
+                type: 'text',
+                version: 1,
+                text: 'This is a paragraph before the image.'
+              }
+            ]
+          },
+          {
+            type: 'upload',
+            version: 1,
+            relationTo: 'media',
+            value: mediaItem.id, // Just the ID, not an object
+          },
+          {
+            type: 'paragraph',
+            version: 1,
+            children: [
+              {
+                type: 'text',
+                version: 1,
+                text: 'This is a paragraph after the image.'
+              }
+            ]
+          }
+        ]
       }
     }
 
+    console.log('\nCreating test post with structure:')
+    console.log(JSON.stringify(testContent, null, 2))
+
+    // Create the post
+    const post = await payload.create({
+      collection: 'posts',
+      data: {
+        title: 'Test Post with Embedded Image',
+        content: testContent,
+        slug: 'test-post-with-image',
+        language: 'en',
+        _status: 'published',
+        publishedAt: new Date().toISOString(),
+        meta: {
+          title: 'Test Post',
+          description: 'Testing image embedding',
+        },
+      },
+    })
+
+    console.log('\n✅ Post created successfully!')
+    console.log('Post ID:', post.id)
+    console.log('View at: http://localhost:3000/posts/' + post.slug)
+
   } catch (error) {
-    console.error('Error:', error);
-  } finally {
-    process.exit(0);
+    console.error('Error:', error)
+    if (error?.data) {
+      console.error('Validation errors:', JSON.stringify(error.data, null, 2))
+    }
   }
+
+  process.exit(0)
 }
 
-testLexicalDirect();
+testLexicalDirect().catch(console.error)

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { ChevronRight, Calendar, Clock, Eye } from 'lucide-react'
 import Image from 'next/image'
+import { getCategoryBySlug } from '@/data/categoryData'
 
 // Force dynamic rendering to avoid build-time Payload initialization issues
 export const dynamic = 'force-dynamic'
@@ -71,7 +72,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params
   const payload = await getPayload({ config })
-  
+
+  // Get category display data
+  const categoryDisplayData = getCategoryBySlug(slug)
+
   // Get the category
   const { docs: categories } = await payload.find({
     collection: 'categories',
@@ -84,7 +88,7 @@ export default async function CategoryPage({ params }: PageProps) {
   })
 
   const category = categories[0]
-  
+
   if (!category) {
     notFound()
   }
@@ -116,7 +120,7 @@ export default async function CategoryPage({ params }: PageProps) {
     },
     limit: 50,
     sort: '-publishedAt',
-    depth: 2,
+    depth: 3,
   })
 
   // Get parent category if this is a child
@@ -149,11 +153,43 @@ export default async function CategoryPage({ params }: PageProps) {
     siblingCategories = siblings
   }
 
+  // Group posts by subcategory
+  const postsBySubcategory = childCategories.map(subcat => {
+    const subcatPosts = posts.filter(post => {
+      if (!post.categories || !Array.isArray(post.categories)) return false
+      return post.categories.some(cat =>
+        typeof cat === 'object' && cat.id === subcat.id
+      )
+    })
+    return {
+      category: subcat,
+      posts: subcatPosts
+    }
+  }).filter(group => group.posts.length > 0)
+
+  // Posts directly in parent category (not in any subcategory)
+  const directPosts = posts.filter(post => {
+    if (!post.categories || !Array.isArray(post.categories)) return false
+    const postCategoryIds = post.categories
+      .filter(cat => typeof cat === 'object')
+      .map(cat => cat.id)
+
+    // Check if post is in parent but not in any child
+    const inParent = postCategoryIds.includes(category.id)
+    const inChild = childCategories.some(child => postCategoryIds.includes(child.id))
+    return inParent && !inChild
+  })
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Green Background */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
-        <div className="container mx-auto px-4 py-16">
+      {/* Hero Section with Category-specific Styling */}
+      <div className={categoryDisplayData ? `bg-gradient-to-r ${categoryDisplayData.color} text-white relative overflow-hidden` : "bg-gradient-to-r from-green-600 to-green-700 text-white"}>
+        {categoryDisplayData && (
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 right-10 text-[200px]">{categoryDisplayData.icon}</div>
+          </div>
+        )}
+        <div className="container mx-auto px-4 py-16 relative z-10">
           {/* Breadcrumb Navigation */}
           <nav className="flex items-center gap-2 mb-6 text-sm">
             <Link href="/" className="hover:text-green-200 transition-colors">
@@ -181,13 +217,22 @@ export default async function CategoryPage({ params }: PageProps) {
           {/* Category Header */}
           <div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.title}</h1>
-            {category.description && (
-              <p className="text-lg opacity-90 max-w-3xl">{category.description}</p>
+            {categoryDisplayData ? (
+              <p className="text-lg opacity-90 max-w-3xl">{categoryDisplayData.description}</p>
+            ) : (
+              category.description && (
+                <p className="text-lg opacity-90 max-w-3xl">{category.description}</p>
+              )
             )}
             <div className="flex items-center gap-4 mt-6">
               <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                {posts.length} {posts.length === 1 ? 'article' : 'articles'}
+                {posts.length} {posts.length === 1 ? '記事' : '記事'}
               </Badge>
+              {childCategories.length > 0 && (
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                  {childCategories.length} サブカテゴリー
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -196,27 +241,38 @@ export default async function CategoryPage({ params }: PageProps) {
       {/* Main Content Area */}
       <div className="container mx-auto px-4 py-8 max-w-7xl">
 
-        {/* Child Categories */}
+        {/* Featured Subcategories Grid */}
         {childCategories.length > 0 && (
-          <div className="mb-8 bg-gray-50 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900">Subcategories</h2>
-          <div className="flex flex-wrap gap-2">
-            {childCategories.map((child) => (
-              <Link
-                key={child.id}
-                href={`/categories/${child.slug}`}
-              >
-                <Badge 
-                  variant="outline" 
-                  className="bg-white hover:bg-green-50 hover:border-green-600 transition-colors cursor-pointer text-gray-700"
-                >
-                  {child.title}
-                </Badge>
-              </Link>
-            ))}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">サブカテゴリー</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {childCategories.map((child) => {
+                const childPostCount = posts.filter(post => {
+                  if (!post.categories || !Array.isArray(post.categories)) return false
+                  return post.categories.some(cat =>
+                    typeof cat === 'object' && cat.id === child.id
+                  )
+                }).length
+
+                return (
+                  <Link
+                    key={child.id}
+                    href={`/categories/${child.slug}`}
+                    className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-500 hover:shadow-lg transition-all text-center group"
+                  >
+                    <div className="text-3xl mb-2">📁</div>
+                    <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                      {child.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {childPostCount}件の記事
+                    </p>
+                  </Link>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Sibling Categories */}
         {siblingCategories.length > 0 && (
@@ -240,20 +296,131 @@ export default async function CategoryPage({ params }: PageProps) {
         </div>
       )}
 
-        {/* Posts Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => {
-          const heroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero 
-            ? post.hero 
-            : null
-            
+        {/* Posts by Subcategory */}
+        {postsBySubcategory.map((group) => (
+          <div key={group.category.id} className="mb-12">
+            <div className="flex items-center justify-between mb-6 border-b-2 border-gray-200 pb-2">
+              <h2 className="text-xl font-bold text-gray-900">{group.category.title}</h2>
+              <Link
+                href={`/categories/${group.category.slug}`}
+                className="text-sm text-green-600 hover:text-green-700 font-medium"
+              >
+                すべて見る →
+              </Link>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {group.posts.slice(0, 4).map((post) => {
+                const heroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
+                  ? post.hero
+                  : null
+
+                return (
+                  <Card key={post.id} className="bg-white hover:shadow-lg transition-shadow overflow-hidden border-gray-200">
+                    {heroImage && (
+                      <div className="relative w-full h-40">
+                        <Image
+                          src={heroImage.url}
+                          alt={heroImage.alt || post.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base line-clamp-2 min-h-[3rem] text-gray-900">
+                        <Link
+                          href={`/posts/${post.slug}`}
+                          className="hover:text-green-600 transition-colors"
+                        >
+                          {post.title}
+                        </Link>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        {post.publishedAt && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>
+                              {new Date(post.publishedAt).toLocaleDateString('ja-JP', {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        )}
+                        {post.views && (
+                          <div className="flex items-center gap-1">
+                            <Eye className="w-3 h-3" />
+                            <span>{post.views}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+
+        {/* Direct Posts (not in subcategories) */}
+        {directPosts.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 border-b-2 border-gray-200 pb-2">
+              その他の記事
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {directPosts.map((post) => {
+          // Extract hero image properly
+          let heroImageUrl: string | null = null
+
+          if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
+            heroImageUrl = post.hero.url
+          } else if (post.content) {
+            // Try to extract first image from content
+            try {
+              if (typeof post.content === 'object' && post.content.root) {
+                const findFirstImage = (node: any): string | null => {
+                  if (node.type === 'upload' && node.value) {
+                    if (typeof node.value === 'object' && 'url' in node.value) {
+                      return node.value.url
+                    } else if (typeof node.value === 'object' && 'filename' in node.value) {
+                      return `/media/${node.value.filename}`
+                    }
+                  }
+                  if (node.children && Array.isArray(node.children)) {
+                    for (const child of node.children) {
+                      const result = findFirstImage(child)
+                      if (result) return result
+                    }
+                  }
+                  return null
+                }
+                const firstImage = findFirstImage(post.content.root)
+                if (firstImage) {
+                  heroImageUrl = firstImage
+                }
+              }
+            } catch (e) {
+              console.error('Error extracting image:', e)
+            }
+          }
+
+          // Apply URL fix if we have an image
+          if (heroImageUrl) {
+            if (heroImageUrl.includes('/api/media/file/')) {
+              heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
+            }
+          }
+
           return (
             <Card key={post.id} className="bg-white hover:shadow-lg transition-shadow overflow-hidden border-gray-200">
-              {heroImage && (
+              {heroImageUrl && (
                 <div className="relative w-full h-48">
                   <Image
-                    src={heroImage.url}
-                    alt={heroImage.alt || post.title}
+                    src={heroImageUrl}
+                    alt={post.title}
                     fill
                     className="object-cover"
                   />
@@ -320,15 +487,17 @@ export default async function CategoryPage({ params }: PageProps) {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
         {posts.length === 0 && (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <p className="text-lg text-gray-600">
-              No articles found in this category yet. Check back soon for new content!
+              このカテゴリーにはまだ記事がありません。新しいコンテンツをお楽しみに！
             </p>
           </div>
         )}

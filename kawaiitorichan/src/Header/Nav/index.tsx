@@ -14,14 +14,17 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const [hoveredSubmenu, setHoveredSubmenu] = useState<string | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isDropdownClicked, setIsDropdownClicked] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setOpenDropdown(null)
+        setIsDropdownClicked(false)
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false)
@@ -30,6 +33,15 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
   }, [])
 
   // Prevent body scroll when mobile menu is open
@@ -54,57 +66,59 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       hasNestedDropdown: true,
       dropdownItems: [
         {
-          label: '飼育環境・ケージ設定',
-          href: '/categories/housing',
+          label: '🏠 鳥の飼い方',
+          href: '/bird-care',
           submenu: [
-            { label: 'ケージのサイズと配置', href: '/categories/cage-setup' },
-            { label: '照明とUV要件', href: '/categories/lighting' },
-            { label: '止まり木の種類', href: '/categories/perches' },
-            { label: '温度管理と換気', href: '/categories/temperature' },
-            { label: 'おもちゃと遊具', href: '/categories/toys' },
+            { label: '飼育環境・ケージ設定', href: '/bird-care#cage-setup' },
+            { label: '健康・獣医ケア', href: '/bird-care#health-care' },
+            { label: '栄養・餌やり', href: '/bird-care#feeding' },
+            { label: '行動・トレーニング', href: '/bird-care#behavior-training' },
+            { label: '法律・倫理・飼育の考慮', href: '/bird-care#legal-ethics' },
           ]
         },
         {
-          label: '健康・獣医ケア',
-          href: '/categories/health',
+          label: '💊 鳥の健康',
+          href: '/categories/bird-health',
           submenu: [
-            { label: '定期健康診断', href: '/categories/wellness-exams' },
-            { label: '一般的な呼吸器疾患', href: '/categories/respiratory' },
-            { label: '羽の抜け替わり管理', href: '/categories/molting' },
-            { label: '爪とくちばしのケア', href: '/categories/nail-beak' },
-            { label: '寄生虫予防', href: '/categories/parasites' },
-            { label: '緊急時の応急処置', href: '/categories/first-aid' },
+            { label: '定期健康診断', href: '/categories/bird-health' },
+            { label: '一般的な呼吸器疾患', href: '/categories/bird-health' },
+            { label: '羽の抜け替わり管理', href: '/categories/bird-health' },
+            { label: '爪とくちばしのケア', href: '/categories/bird-health' },
+            { label: '寄生虫予防', href: '/categories/bird-health' },
+            { label: '緊急時の応急処置', href: '/categories/bird-health' },
           ]
         },
         {
-          label: '栄養・餌やり',
-          href: '/categories/nutrition',
+          label: '🦜 鳥の種類',
+          href: '/bird-species',
           submenu: [
-            { label: 'シードミックスvsペレット', href: '/categories/seed-pellet' },
-            { label: '新鮮な野菜と果物', href: '/categories/fresh-foods' },
-            { label: 'カルシウムとミネラル補給', href: '/categories/supplements' },
-            { label: '給餌スケジュール', href: '/categories/feeding-schedule' },
-            { label: '種類別の食事要件', href: '/categories/species-diet' },
+            { label: 'インコ・オウム類', href: '/bird-species#parrots' },
+            { label: 'フィンチ類', href: '/bird-species#finches' },
+            { label: '文鳥・カナリア', href: '/bird-species#java-canary' },
+            { label: '野鳥の種類', href: '/bird-species#wild-birds' },
+            { label: '希少種・保護種', href: '/bird-species#rare-species' },
           ]
         },
         {
-          label: '行動・トレーニング',
-          href: '/categories/training',
+          label: '🌿 鳥の生態',
+          href: '/categories/bird-ecology',
           submenu: [
-            { label: '基本的なしつけ', href: '/categories/basic-training' },
-            { label: '手乗り訓練', href: '/categories/hand-taming' },
-            { label: '言葉を教える', href: '/categories/speech-training' },
-            { label: '問題行動の対処', href: '/categories/behavior-issues' },
-            { label: '社会化トレーニング', href: '/categories/socialization' },
+            { label: '自然な行動パターン', href: '/categories/bird-ecology' },
+            { label: '繁殖と子育て', href: '/categories/bird-ecology' },
+            { label: '渡り鳥の生態', href: '/categories/bird-ecology' },
+            { label: '生息地と環境', href: '/categories/bird-ecology' },
+            { label: '進化と適応', href: '/categories/bird-ecology' },
           ]
         },
         {
-          label: '法律・倫理・飼育の考慮',
-          href: '/categories/legal',
+          label: '🔭 野鳥観察',
+          href: '/categories/wild-birds',
           submenu: [
-            { label: '飼育許可と規制', href: '/categories/permits' },
-            { label: '責任ある飼育', href: '/categories/responsible-ownership' },
-            { label: '倫理的な配慮', href: '/categories/ethical-considerations' },
+            { label: '観察の基本', href: '/categories/wild-birds' },
+            { label: 'おすすめスポット', href: '/categories/wild-birds' },
+            { label: '種類の識別', href: '/categories/wild-birds' },
+            { label: '季節の野鳥', href: '/categories/wild-birds' },
+            { label: '観察記録', href: '/categories/wild-birds' },
           ]
         },
       ]
@@ -129,21 +143,62 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
           key={i}
           className="relative"
           ref={item.hasDropdown ? dropdownRef : undefined}
-          onMouseEnter={() => item.hasDropdown && setOpenDropdown(item.label)}
-          onMouseLeave={() => item.hasDropdown && setOpenDropdown(null)}
+          onMouseEnter={() => {
+            if (item.hasDropdown && !isDropdownClicked) {
+              // Clear any existing timeout
+              if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+              }
+              setOpenDropdown(item.label)
+            }
+          }}
+          onMouseLeave={() => {
+            if (item.hasDropdown && !isDropdownClicked) {
+              // Add delay before closing
+              timeoutRef.current = setTimeout(() => {
+                setOpenDropdown(null)
+              }, 300)
+            }
+          }}
         >
           {item.hasDropdown ? (
             <>
               <button
-                className="flex items-center gap-1 text-gray-700 hover:text-primary transition-colors duration-200 font-semibold px-4 py-2 rounded-full hover:bg-primary/10"
+                onClick={() => {
+                  if (openDropdown === item.label) {
+                    setOpenDropdown(null)
+                    setIsDropdownClicked(false)
+                  } else {
+                    setOpenDropdown(item.label)
+                    setIsDropdownClicked(true)
+                  }
+                }}
+                className="flex items-center gap-1 text-gray-700 hover:text-primary transition-colors duration-200 font-semibold px-4 py-3 rounded-full hover:bg-primary/10 relative"
               >
                 {item.label}
                 <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown Menu */}
+              {/* Dropdown Menu with invisible bridge for smooth hover */}
               {openDropdown === item.label && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                <>
+                  {/* Invisible bridge to prevent dropdown from closing when moving mouse */}
+                  <div className="absolute top-full left-0 w-full h-4" />
+                  <div
+                    className="absolute top-full left-0 mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-100 py-3 z-50"
+                    onMouseEnter={() => {
+                      if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current)
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (!isDropdownClicked) {
+                        timeoutRef.current = setTimeout(() => {
+                          setOpenDropdown(null)
+                        }, 300)
+                      }
+                    }}
+                  >
                   {item.dropdownItems.map((dropItem, idx) => (
                     <div
                       key={idx}
@@ -155,38 +210,56 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                         <>
                           <Link
                             href={dropItem.href}
-                            className="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium"
+                            className="flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium rounded-md mx-2"
+                            onClick={() => {
+                              setOpenDropdown(null)
+                              setIsDropdownClicked(false)
+                            }}
                           >
                             {dropItem.label}
                             <ChevronDownIcon className="w-4 h-4 -rotate-90" />
                           </Link>
 
-                          {/* Nested Submenu */}
+                          {/* Nested Submenu with invisible bridge */}
                           {hoveredSubmenu === dropItem.label && (
-                            <div className="absolute left-full top-0 ml-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2">
-                              {dropItem.submenu.map((subItem, subIdx) => (
-                                <Link
-                                  key={subIdx}
-                                  href={subItem.href}
-                                  className="block px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium text-sm"
-                                >
-                                  {subItem.label}
-                                </Link>
-                              ))}
-                            </div>
+                            <>
+                              {/* Invisible bridge for smooth hover */}
+                              <div className="absolute left-full top-0 w-4 h-full" />
+                              <div className="absolute left-full top-0 ml-1 w-64 bg-white rounded-lg shadow-xl border border-gray-100 py-3">
+                                {dropItem.submenu.map((subItem, subIdx) => (
+                                  <Link
+                                    key={subIdx}
+                                    href={subItem.href}
+                                    className="block px-4 py-2.5 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium text-sm rounded-md mx-2"
+                                    onClick={() => {
+                                      setOpenDropdown(null)
+                                      setIsDropdownClicked(false)
+                                      setHoveredSubmenu(null)
+                                    }}
+                                  >
+                                    {subItem.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </>
                           )}
                         </>
                       ) : (
                         <Link
                           href={dropItem.href}
-                          className="block px-4 py-2 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium"
+                          className="block px-4 py-3 text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors duration-150 font-medium rounded-md mx-2"
+                          onClick={() => {
+                            setOpenDropdown(null)
+                            setIsDropdownClicked(false)
+                          }}
                         >
                           {dropItem.label}
                         </Link>
                       )}
                     </div>
                   ))}
-                </div>
+                  </div>
+                </>
               )}
             </>
           ) : (

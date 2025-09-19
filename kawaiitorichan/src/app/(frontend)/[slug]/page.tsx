@@ -14,6 +14,8 @@ import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
+import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
+import type { Post, Category } from '@/payload-types'
 
 // Force dynamic rendering to avoid build-time Payload initialization issues
 export const dynamic = 'force-dynamic'
@@ -65,43 +67,129 @@ export default async function Page({ params: paramsPromise }: Args) {
     const { slug = 'home' } = await paramsPromise
     const url = '/' + slug
 
+    // If it's the homepage, render the modern homepage
+    if (slug === 'home') {
+      const payload = await getPayload({ config: configPromise })
+
+      // Fetch featured posts (most recent posts)
+      const featuredPosts = await payload.find({
+        collection: 'posts',
+        draft,
+        limit: 9,
+        sort: '-publishedAt',
+        where: {
+          _status: {
+            equals: 'published'
+          }
+        },
+        depth: 2
+      })
+
+      // Fetch recent posts
+      const recentPosts = await payload.find({
+        collection: 'posts',
+        draft,
+        limit: 6,
+        sort: '-publishedAt',
+        where: {
+          _status: {
+            equals: 'published'
+          }
+        },
+        depth: 2
+      })
+
+      // For now, use recent posts as popular posts (in production, you'd track views)
+      const popularPosts = await payload.find({
+        collection: 'posts',
+        draft,
+        limit: 5,
+        sort: '-publishedAt',
+        where: {
+          _status: {
+            equals: 'published'
+          }
+        },
+        depth: 2
+      })
+
+      // Fetch categories and count posts for each
+      const categories = await payload.find({
+        collection: 'categories',
+        draft,
+        limit: 100,
+        depth: 0
+      })
+
+      // Get post counts for each category
+      const categoriesWithCounts = await Promise.all(
+        categories.docs.map(async (category) => {
+          const postCount = await payload.count({
+            collection: 'posts',
+            where: {
+              categories: {
+                contains: category.id
+              },
+              _status: {
+                equals: 'published'
+              }
+            }
+          })
+
+          return {
+            ...category,
+            postCount: postCount.totalDocs
+          }
+        })
+      )
+
+      return (
+        <>
+          <PageClient />
+          <PayloadRedirects disableNotFound url={url} />
+          {draft && <LivePreviewListener />}
+
+          <ModernHomepage
+            featuredPosts={featuredPosts.docs as Post[]}
+            recentPosts={recentPosts.docs as Post[]}
+            popularPosts={popularPosts.docs as Post[]}
+            categories={categoriesWithCounts}
+          />
+        </>
+      )
+    }
+
+    // For other pages, use the original logic
     let page: RequiredDataFromCollectionSlug<'pages'> | null
 
     page = await queryPageBySlug({
       slug,
     })
 
-  // Static fallbacks for pages not in database
-  if (!page) {
-    if (slug === 'home') {
-      page = homeStatic
-    } else if (slug === 'about-us') {
-      page = aboutStatic
-    } else {
-      return <PayloadRedirects url={url} />
+    // Static fallbacks for pages not in database
+    if (!page) {
+      if (slug === 'about-us') {
+        page = aboutStatic
+      } else {
+        return <PayloadRedirects url={url} />
+      }
     }
-  }
 
-  const { hero, layout } = page
+    const { hero, layout } = page
 
-  return (
-    <article className="pb-24">
-      <PageClient />
-      {/* Allows redirects for valid pages too */}
-      <PayloadRedirects disableNotFound url={url} />
+    return (
+      <article className="pb-24">
+        <PageClient />
+        {/* Allows redirects for valid pages too */}
+        <PayloadRedirects disableNotFound url={url} />
 
-      {draft && <LivePreviewListener />}
+        {draft && <LivePreviewListener />}
 
-      {/* Use slideshow hero for homepage, regular hero for other pages */}
-      {slug === 'home' ? (
-        <HeroWithSlideshow hero={hero} />
-      ) : (
         <RenderHero {...hero} />
-      )}
 
-      <RenderBlocks blocks={layout} />
-    </article>
-  )
+        <RenderBlocks blocks={layout} />
+      </article>
+    )
   } catch (error) {
     console.error('Error loading page:', error)
     console.error('DATABASE_URI:', process.env.DATABASE_URI?.substring(0, 30) + '...')

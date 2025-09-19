@@ -42,6 +42,10 @@ export default buildConfig({
           Component: '@/views/AffiliateLinks',
           path: '/affiliate-links',
         },
+        ContentImport: {
+          Component: '@/views/ContentImport',
+          path: '/content-import',
+        },
       },
     },
     importMap: {

@@ -366,3 +366,267 @@ body {
 .dark .border-gray-100 {
   @apply border-gray-800;
 }
+
+/* Modern Homepage Animations and Styles */
+
+/* Smooth Fade In Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Slide In Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+/* Card Hover Effects */
+.card-hover-lift {
+  @apply transition-all duration-500 ease-out;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient Text Animation */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-text {
+  background: linear-gradient(90deg, #FFC857, #FF8C42, #FFC857);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+/* Glow Effect */
+.glow-effect {
+  @apply transition-all duration-300;
+}
+
+.glow-effect:hover {
+  box-shadow:
+    0 0 20px rgba(255, 200, 87, 0.5),
+    0 0 40px rgba(255, 200, 87, 0.3),
+    0 0 60px rgba(255, 200, 87, 0.1);
+}
+
+/* Modern Card Styles for Homepage */
+.homepage-card {
+  @apply relative overflow-hidden bg-white rounded-2xl shadow-lg transition-all duration-500;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+}
+
+.homepage-card:hover {
+  @apply shadow-2xl;
+  transform: translateY(-4px) scale(1.01);
+}
+
+.homepage-card::before {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+  background: linear-gradient(135deg, rgba(255, 200, 87, 0.1) 0%, rgba(255, 140, 66, 0.1) 100%);
+}
+
+.homepage-card:hover::before {
+  @apply opacity-100;
+}
+
+/* Category Badge Styles */
+.category-badge {
+  @apply relative overflow-hidden;
+}
+
+.category-badge::after {
+  content: '';
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-100%);
+}
+
+.category-badge:hover::after {
+  animation: shimmer 0.5s;
+}
+
+/* Bird Category Icons Animation */
+.bird-icon-bounce {
+  @apply transition-transform duration-500;
+}
+
+.bird-icon-bounce:hover {
+  animation: bounce 0.6s ease-in-out;
+}
+
+/* Loading Skeleton */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Smooth Scroll Behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced Focus States */
+.focus-ring {
+  @apply focus:outline-none focus:ring-4 focus:ring-amber-500/30 focus:border-amber-500;
+}
+
+/* Modern Button Transitions */
+.btn-modern {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-modern::before {
+  content: '';
+  @apply absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full transition-transform duration-500;
+}
+
+.btn-modern:hover::before {
+  @apply translate-x-full;
+}
+
+/* Article Card Date Badge */
+.date-badge {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 200, 87, 0.2);
+}
+
+/* Glassmorphism Effects */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-effect {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch optimizations */
+.touch-manipulation {
+  touch-action: manipulation;
+}

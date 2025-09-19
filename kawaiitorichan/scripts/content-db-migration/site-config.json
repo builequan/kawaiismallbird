@@ -1,27 +1,45 @@
 {
   "sites": {
     "15": {
-      "name": "Website 15",
-      "description": "Mixed language content site",
+      "name": "Mixed Content Site",
+      "description": "English and Japanese mixed content (211 articles)",
       "primaryLanguage": "mixed",
       "url": ""
     },
     "17": {
-      "name": "Website 17",
-      "description": "Small content site",
-      "primaryLanguage": "mixed",
+      "name": "Small Blog",
+      "description": "Minimal content site (2 articles)",
+      "primaryLanguage": "en",
       "url": ""
     },
     "18": {
-      "name": "Website 18",
-      "description": "Main content site",
+      "name": "Main Content Hub",
+      "description": "Primary content site with mixed languages (460 articles)",
       "primaryLanguage": "mixed",
       "url": ""
     },
     "19": {
-      "name": "Website 19",
-      "description": "Japanese content site",
+      "name": "Japanese Blog",
+      "description": "Japanese-focused content (94 articles)",
       "primaryLanguage": "ja",
+      "url": ""
+    },
+    "20": {
+      "name": "Bilingual Site",
+      "description": "Equal EN/JA content (32 articles)",
+      "primaryLanguage": "mixed",
+      "url": ""
+    },
+    "21": {
+      "name": "Large Content Portal",
+      "description": "High volume mixed language site (458 articles)",
+      "primaryLanguage": "mixed",
+      "url": ""
+    },
+    "22": {
+      "name": "Golf Content Site",
+      "description": "Golf-focused articles in both languages (224 articles)",
+      "primaryLanguage": "mixed",
       "url": ""
     }
   },

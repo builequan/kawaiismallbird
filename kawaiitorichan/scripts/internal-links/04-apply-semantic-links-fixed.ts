@@ -10,6 +10,55 @@ import fs from 'fs/promises'
 import path from 'path'
 import crypto from 'crypto'
 
+/**
+ * Common Japanese verb endings for proper phrase completion
+ */
+const VERB_ENDINGS = [
+  'する', 'した', 'して', 'すれば', 'しよう', 'します', 'しない', 'しました',
+  'くる', 'きた', 'きて', 'くれば', 'こよう', 'きます', 'こない', 'きました',
+  'いる', 'いた', 'いて', 'いれば', 'いよう', 'います', 'いない', 'いました',
+  'ある', 'あった', 'あって', 'あれば', 'あろう', 'あります', 'ない', 'ありました',
+  'できる', 'できた', 'できて', 'できれば', 'できよう', 'できます', 'できない', 'できました',
+  'なる', 'なった', 'なって', 'なれば', 'なろう', 'なります', 'ならない', 'なりました',
+  'れる', 'られる', 'せる', 'させる', 'れた', 'られた', 'せた', 'させた'
+]
+
+/**
+ * Check if a phrase ends with a broken verb stem
+ */
+function isBrokenVerb(phrase: string): boolean {
+  const brokenPatterns = [
+    /[^で][すく]$/, // ends with す or く (but not です)
+    /[いう]$/, // ends with い or う (could be incomplete)
+    /[つむぶぬぐずじ]$/ // other incomplete verb stems
+  ]
+
+  return brokenPatterns.some(pattern => pattern.test(phrase))
+}
+
+/**
+ * Attempt to complete a broken verb phrase
+ */
+function completeVerb(phrase: string, fullText: string): string {
+  // Look for the complete verb in the surrounding text
+  for (const ending of VERB_ENDINGS) {
+    const possibleComplete = phrase + ending.substring(phrase.length > 0 ? phrase[phrase.length - 1] === ending[0] ? 1 : 0 : 0)
+    if (fullText.includes(possibleComplete)) {
+      return possibleComplete
+    }
+  }
+
+  // If no complete version found, try common completions
+  if (phrase.endsWith('す') && !phrase.endsWith('です')) {
+    return phrase + 'る'
+  }
+  if (phrase.endsWith('く')) {
+    return phrase + 'る'
+  }
+
+  return phrase // Return as-is if can't complete
+}
+
 interface PostIndex {
   id: string
   slug: string
@@ -110,51 +159,101 @@ function extractTextFromLexical(content: any): string {
   return text
 }
 
+/**
+ * Universal metadata filter patterns (same as in index builder)
+ */
+const METADATA_PATTERNS = [
+  // UI/Structure elements
+  'ヒーロー画像', 'アイキャッチ', 'サムネイル', 'イメージ画像',
+  '出典', '参考文献', 'リンク:', '画像:', 'ソース:',
+  'コメント', 'シェア', 'いいね', 'フォロー',
+
+  // Navigation/UI
+  '次へ', '前へ', 'トップ', 'ホーム', 'メニュー', 'ページ',
+  'クリック', 'タップ', 'スクロール', 'ズーム',
+
+  // Time/Date patterns
+  /^\d{4}年\d{1,2}月/, /^\d{1,2}月\d{1,2}日/, /^今週/, /^先週/, /^来週/,
+
+  // Common unrelated terms (any domain)
+  /^(州|市|町|村)(議会|長|役所|政府)/, // Political terms
+  /^(動画|ビデオ|写真|図|表|グラフ|チャート)/, // Media/visualization labels
+  /^\[.*\]/, // Bracketed content (often metadata)
+
+  // Reference/citation patterns
+  /リンク$/, /ページ$/, /サイト$/,
+]
+
+/**
+ * Check if a phrase is metadata/structural content
+ */
+function isMetadataPhrase(phrase: string): boolean {
+  return METADATA_PATTERNS.some(pattern =>
+    typeof pattern === 'string'
+      ? phrase.includes(pattern)
+      : pattern.test(phrase)
+  )
+}
+
+/**
+ * Calculate relevance score for an anchor phrase
+ */
+function calculateRelevanceScore(
+  phrase: string,
+  sourceText: string,
+  targetPost: PostIndex
+): number {
+  let score = 0
+
+  // Base score from phrase length (longer = more specific)
+  score += phrase.length * 0.5
+
+  // Bonus if phrase appears in target title
+  if (targetPost.title.includes(phrase)) {
+    score += 10
+  }
+
+  // Bonus if phrase appears multiple times in source
+  const occurrences = (sourceText.match(new RegExp(phrase, 'g')) || []).length
+  score += Math.min(occurrences * 2, 6) // Cap bonus at 3 occurrences
+
+  // Penalty for very generic single words
+  if (phrase.length <= 2) {
+    score -= 5
+  }
+
+  // Penalty for metadata phrases
+  if (isMetadataPhrase(phrase)) {
+    score -= 20
+  }
+
+  return score
+}
+
 function findBestAnchorPhrases(
-  text: string, 
+  text: string,
   targetPost: PostIndex
 ): string[] {
-  const candidates: string[] = []
-  
-  // Priority 1: Try to find meaningful golf terms
-  const golfTerms = [
-    'スイング', 'グリップ', 'スタンス', 'ドライバー', 'アイアン',
-    'パット', 'バックスイング', 'フォロースルー', 'アプローチ',
-    'ティーショット', 'フェアウェイ', 'グリーン', 'バンカー',
-    'ショートゲーム', 'ロングゲーム', 'パター', 'ウェッジ',
-    'ハンディキャップ', 'スコア', 'ボール', 'クラブ'
-  ]
-  
-  // Find golf terms that exist in both the text and target's anchor phrases
-  for (const term of golfTerms) {
-    if (text.includes(term)) {
-      // Check if this term is relevant to the target post
-      const isRelevant = targetPost.anchorPhrases.some(p => p.includes(term)) ||
-                        targetPost.title.includes(term)
-      if (isRelevant) {
-        candidates.push(term)
-      }
-    }
-  }
-  
-  // Priority 2: Try to find meaningful phrases from target's anchor phrases
+  const candidates: Array<{phrase: string, score: number}> = []
+
+  // Find phrases from target's anchor phrases that exist in source text
   const meaningfulPhrases = targetPost.anchorPhrases
     .filter(phrase => {
       if (phrase.length < 3) return false
-      if (phrase === 'ゴルフ') return false // Too generic
+      if (isMetadataPhrase(phrase)) return false
       return text.includes(phrase)
     })
-    .sort((a, b) => {
-      // Prefer longer, more specific phrases
-      const scoreA = a.length + (golfTerms.includes(a) ? 10 : 0)
-      const scoreB = b.length + (golfTerms.includes(b) ? 10 : 0)
-      return scoreB - scoreA
-    })
-  
-  candidates.push(...meaningfulPhrases.slice(0, 3))
-  
-  // Remove duplicates and limit
-  return [...new Set(candidates)].slice(0, 5)
+    .map(phrase => ({
+      phrase,
+      score: calculateRelevanceScore(phrase, text, targetPost)
+    }))
+    .sort((a, b) => b.score - a.score)
+
+  candidates.push(...meaningfulPhrases)
+
+  // Return top candidates, removing duplicates
+  const uniquePhrases = [...new Set(candidates.map(c => c.phrase))]
+  return uniquePhrases.slice(0, 5)
 }
 
 function selectDiverseLinks(

@@ -8,7 +8,8 @@ export const getServerSideURL = () => {
   }
 
   if (!url) {
-    url = 'http://localhost:3000'
+    const port = process.env.PORT || '3000'
+    url = `http://localhost:${port}`
   }
 
   return url
@@ -32,5 +33,6 @@ export const getClientSideURL = () => {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   }
 
-  return 'http://localhost:3000'
+  const port = process.env.PORT || '3000'
+  return `http://localhost:${port}`
 }
