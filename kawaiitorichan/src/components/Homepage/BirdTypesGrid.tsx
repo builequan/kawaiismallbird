@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -20,14 +20,28 @@ const birdSpeciesData = [
 ]
 
 export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
-  const [selectedBird, setSelectedBird] = useState<string | null>(null)
 
   // Get post count for each bird species
   const getBirdCount = (birdName: string) => {
     const category = categories.find(cat =>
       cat.title === birdName || cat.title.includes(birdName.replace('インコ', ''))
     )
-    return category?.postCount || Math.floor(Math.random() * 20) + 1 // Use random for demo if no match
+
+    // Use deterministic fallback values to avoid hydration errors
+    if (!category?.postCount) {
+      const defaultCounts: { [key: string]: number } = {
+        'セキセイインコ': 5,
+        'オカメインコ': 9,
+        '文鳥': 19,
+        'カナリア': 15,
+        'コザクラインコ': 7,
+        'フィンチ': 9,
+        'その他の鳥': 5,
+      }
+      return defaultCounts[birdName] || 3
+    }
+
+    return category.postCount
   }
 
   return (
@@ -42,25 +56,15 @@ export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 md:gap-6">
           {birdSpeciesData.map((bird, index) => {
             const count = getBirdCount(bird.name)
-            const isSelected = selectedBird === bird.name
 
             return (
               <Link
                 key={index}
                 href={`/birds/${bird.slug}`}
-                className={`
-                  group relative flex flex-col items-center justify-center
-                  p-5 md:p-6 rounded-2xl transition-all duration-300
-                  ${isSelected
-                    ? `bg-gradient-to-br ${bird.color} shadow-xl scale-105 border-2 border-amber-400`
-                    : `bg-gradient-to-br ${bird.color} hover:shadow-xl border-2 border-gray-200 hover:border-amber-300`
-                  }
-                `}
+                className={`group relative flex flex-col items-center justify-center p-5 md:p-6 rounded-2xl transition-all duration-300 bg-gradient-to-br ${bird.color} hover:shadow-xl border-2 border-gray-200 hover:border-amber-300`}
               >
                 {/* Bird Icon */}
-                <div className={`relative w-20 h-20 md:w-24 md:h-24 mb-3 transition-transform duration-300 ${
-                  isSelected ? 'scale-110' : 'group-hover:scale-110'
-                }`}>
+                <div className="relative w-20 h-20 md:w-24 md:h-24 mb-3 transition-transform duration-300 group-hover:scale-110">
                   <Image
                     src={bird.iconPath}
                     alt={bird.name}
@@ -71,25 +75,15 @@ export const BirdTypesGrid: React.FC<BirdTypesGridProps> = ({ categories }) => {
                 </div>
 
                 {/* Bird Name */}
-                <span className={`text-sm md:text-base font-bold text-center ${
-                  isSelected ? 'text-gray-900' : 'text-gray-800 group-hover:text-amber-600'
-                }`}>
+                <span className="text-sm md:text-base font-bold text-center text-gray-800 group-hover:text-amber-600">
                   {bird.name}
                 </span>
 
                 {/* Article Count */}
-                <span className={`
-                  mt-2 px-3 py-1 rounded-full text-xs font-bold
-                  ${isSelected
-                    ? 'bg-amber-200 text-amber-800'
-                    : 'bg-amber-100 text-amber-700 group-hover:bg-amber-200'
-                  }
-                `}>
+                <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 group-hover:bg-amber-200">
                   {count}記事
                 </span>
 
-                {/* Hover Effect Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-amber-400/0 to-amber-400/0 group-hover:from-amber-400/10 group-hover:to-transparent rounded-2xl transition-all duration-300 pointer-events-none" />
               </Link>
             )
           })}

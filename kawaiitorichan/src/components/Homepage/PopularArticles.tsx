@@ -117,17 +117,17 @@ export const PopularArticles: React.FC<PopularArticlesProps> = ({ posts }) => {
                 href={`/posts/${post.slug}`}
                 className="group"
               >
-                <article className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-                  <div className="flex gap-0">
+                <article className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
+                  <div className="flex">
                     {/* Ranking Number */}
-                    <div className="flex-shrink-0 w-14 bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center">
+                    <div className="flex-shrink-0 w-14 bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center rounded-l-2xl">
                       <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
                         #{index + 2}
                       </span>
                     </div>
 
                     {/* Image */}
-                    <div className="relative w-40 h-32 flex-shrink-0">
+                    <div className="relative w-40 h-32 flex-shrink-0 overflow-hidden">
                       <Image
                         src={heroImageUrl}
                         alt={post.heroImageAlt || post.title}
