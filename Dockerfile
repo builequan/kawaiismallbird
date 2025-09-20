@@ -9,6 +9,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY kawaiitorichan/ .
+# Ensure production SQL files are in builder
+RUN echo "Checking for production SQL files..." && \
+    ls -la production*.sql* 2>&1 || echo "No production SQL files found"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -34,6 +37,9 @@ RUN ls -la quick-import.sql || echo "quick-import.sql not found in builder"
 # Build the application (using special Docker build that skips static generation)
 # The build:docker command already skips static generation
 RUN corepack enable pnpm && pnpm run build:docker
+
+# List files to debug what's available for copying
+RUN echo "Files in /app:" && ls -la /app/*.sql* || echo "No SQL files in /app"
 
 FROM node:20-alpine AS runner
 WORKDIR /app
