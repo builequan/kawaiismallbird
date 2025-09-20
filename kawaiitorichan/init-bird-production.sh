@@ -15,8 +15,24 @@ if [ -n "$DATABASE_URI" ]; then
   echo "   Host: $PGHOST"
   echo "   Database: $PGDATABASE"
 
-  # TRY QUICK IMPORT FIRST FOR CLEAN SETUP WITH SAMPLE DATA
-  if [ -f quick-import.sql ]; then
+  # TRY FULL PRODUCTION IMPORT FIRST
+  if [ -f production-all-posts.sql ]; then
+    echo "🚀 RUNNING FULL PRODUCTION IMPORT - Creating tables with all 115 posts..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f production-all-posts.sql 2>&1
+
+    # Check if it worked
+    POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
+    CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+    MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
+
+    if [ "$POST_COUNT" -gt "0" ]; then
+      echo "✅ FULL PRODUCTION IMPORT SUCCESS: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media items!"
+      echo "🌐 Kawaii Bird production initialization complete!"
+      exit 0
+    else
+      echo "⚠️ Full import didn't create posts, falling back to quick import..."
+    fi
+  elif [ -f quick-import.sql ]; then
     echo "🚀 RUNNING QUICK IMPORT - Creating tables and sample posts..."
     psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f quick-import.sql 2>&1
 
