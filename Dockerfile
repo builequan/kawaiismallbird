@@ -29,7 +29,8 @@ ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_char
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
 # Build the application (using special Docker build that skips static generation)
-RUN corepack enable pnpm && pnpm run build:docker
+# Skip postbuild to avoid sitemap generation issues
+RUN corepack enable pnpm && pnpm run build:docker --ignore-scripts
 
 FROM node:20-alpine AS runner
 WORKDIR /app
