@@ -28,6 +28,9 @@ ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
+# Verify quick-import.sql is present before build
+RUN ls -la quick-import.sql || echo "quick-import.sql not found in builder"
+
 # Build the application (using special Docker build that skips static generation)
 # The build:docker command already skips static generation
 RUN corepack enable pnpm && pnpm run build:docker
@@ -83,6 +86,8 @@ USER root
 RUN apk add --no-cache postgresql-client npm
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh ./import-production-data.sh || true
 RUN chmod 644 ./quick-import.sql || true
+# Verify all SQL files are present
+RUN echo "SQL files in container:" && ls -la *.sql
 
 # Switch to non-root user
 USER nextjs

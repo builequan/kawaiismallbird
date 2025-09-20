@@ -32,8 +32,110 @@ if [ -n "$DATABASE_URI" ]; then
       echo "⚠️ Quick import didn't create posts, falling back to regular initialization..."
     fi
   else
-    echo "📁 Current directory files:"
-    ls -la *.sql 2>&1 || echo "No SQL files found"
+    echo "⚠️ quick-import.sql not found, creating it inline..."
+
+    # Create quick-import.sql inline if it doesn't exist
+    cat > quick-import.sql <<'EOF'
+-- Quick import script for Dokploy deployment
+DROP TABLE IF EXISTS posts_rels CASCADE;
+DROP TABLE IF EXISTS posts CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS header CASCADE;
+DROP TABLE IF EXISTS footer CASCADE;
+
+CREATE TABLE users (
+  id serial PRIMARY KEY,
+  email varchar NOT NULL,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE categories (
+  id serial PRIMARY KEY,
+  title varchar NOT NULL,
+  slug varchar NOT NULL UNIQUE,
+  parent_id integer,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE media (
+  id serial PRIMARY KEY,
+  filename varchar,
+  url varchar,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE posts (
+  id serial PRIMARY KEY,
+  title varchar NOT NULL,
+  slug varchar NOT NULL UNIQUE,
+  content jsonb,
+  status varchar DEFAULT 'published',
+  published_at timestamp DEFAULT now(),
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE posts_rels (
+  id serial PRIMARY KEY,
+  parent_id integer,
+  path varchar,
+  category_id integer
+);
+
+CREATE TABLE header (
+  id serial PRIMARY KEY,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE footer (
+  id serial PRIMARY KEY,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+INSERT INTO users (email) VALUES ('admin@example.com');
+
+INSERT INTO categories (title, slug) VALUES
+  ('セキセイインコ', 'budgerigar'),
+  ('コザクラインコ', 'lovebird'),
+  ('オカメインコ', 'cockatiel');
+
+INSERT INTO posts (title, slug, content, status, published_at) VALUES
+  ('セキセイインコの飼い方入門', 'budgerigar-care-guide',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"セキセイインコは初心者でも飼いやすい小鳥です。"}]}]}}',
+   'published', now()),
+  ('コザクラインコの特徴', 'lovebird-characteristics',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"コザクラインコは愛情深い小鳥として知られています。"}]}]}}',
+   'published', now()),
+  ('オカメインコのケア', 'cockatiel-care',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"オカメインコは頬の赤い模様が特徴的です。"}]}]}}',
+   'published', now());
+
+INSERT INTO posts_rels (parent_id, path, category_id) VALUES
+  (1, 'categories', 1),
+  (2, 'categories', 2),
+  (3, 'categories', 3);
+
+INSERT INTO header (id) VALUES (1);
+INSERT INTO footer (id) VALUES (1);
+EOF
+
+    echo "✅ Created quick-import.sql inline, now executing..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f quick-import.sql 2>&1
+
+    # Check results
+    POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
+    CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+
+    echo "✅ INLINE QUICK IMPORT COMPLETE: $POST_COUNT posts, $CAT_COUNT categories"
+    echo "🌐 Kawaii Bird production initialization complete!"
+    exit 0
   fi
 
   # Run SQL script - try full content first, fallback to basic
