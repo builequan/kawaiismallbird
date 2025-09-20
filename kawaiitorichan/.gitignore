@@ -7,7 +7,7 @@ node_modules
 .vercel
 
 # Payload default media upload directory
-public/media/
+# public/media/  # Commented out to allow media in Git
 
 public/robots.txt
 public/sitemap*.xml
