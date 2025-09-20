@@ -68,18 +68,27 @@ export NODE_ENV
 export PORT
 export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# FORCE schema initialization - no conditions!
-echo "🔧 FORCING database schema initialization..." >&2
+# QUICK IMPORT - Drop everything and recreate from scratch
+echo "🚀 RUNNING QUICK IMPORT - FULL DATABASE RESET" >&2
 
-# Try multiple schema files
-if [ -f init-database-schema.sql ]; then
-  echo "✅ Running init-database-schema.sql" >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || true
-elif [ -f schema.sql ]; then
-  echo "✅ Running schema.sql as fallback" >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f schema.sql 2>&1 || true
+if [ -f quick-import.sql ]; then
+  echo "📦 Executing quick-import.sql to create schema and sample data..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1
+  echo "✅ Quick import executed" >&2
+
+  # Verify tables were created
+  TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>&1)
+  echo "📊 Database now has $TABLE_COUNT tables" >&2
+
+  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>&1)
+  echo "📝 Database now has $POST_COUNT posts" >&2
 else
-  echo "❌ NO SCHEMA FILES FOUND!" >&2
+  echo "❌ quick-import.sql NOT FOUND!" >&2
+  # Fallback to old method
+  if [ -f init-database-schema.sql ]; then
+    echo "📋 Falling back to init-database-schema.sql" >&2
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || true
+  fi
 fi
 
 # Verify tables and import data immediately
@@ -111,51 +120,7 @@ echo "Starting Next.js server on port ${PORT:-3000}..."
 echo "========================================="
 echo ""
 
-# Function to import data after tables are created
-import_data_if_needed() {
-  echo "🔍 Checking if data import is needed..."
-
-  # Check if posts table exists using simpler method
-  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT 1 FROM posts LIMIT 1;" 2>/dev/null && echo "t" || echo "f")
-
-  if [ "$TABLE_EXISTS" = "t" ]; then
-    POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-    POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
-
-    if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
-      echo "📝 No posts found. Importing production data..."
-
-      if [ -f import-production-data.sh ]; then
-        chmod +x import-production-data.sh
-        sh import-production-data.sh
-
-        NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-        echo "✅ Imported $NEW_COUNT posts"
-      fi
-    else
-      echo "✅ Found $POST_COUNT posts in database"
-    fi
-  else
-    echo "⏳ Posts table not ready yet"
-    return 1
-  fi
-}
-
-# Start the import checker in background
-(
-  echo "⏳ Waiting for tables to be created..."
-  sleep 15  # Give the app time to start and create tables
-
-  # Try to import data up to 10 times with 5 second intervals
-  for i in 1 2 3 4 5 6 7 8 9 10; do
-    if import_data_if_needed; then
-      echo "✅ Data import check complete"
-      break
-    fi
-    echo "⏳ Attempt $i/10: Waiting for tables..."
-    sleep 5
-  done
-) &
+# No longer need background check - everything is done upfront by quick-import.sql
 
 # Initialize bird theme content if requested
 if [ "$INIT_BIRD_THEME" = "true" ]; then
