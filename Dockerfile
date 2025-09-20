@@ -73,9 +73,8 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/force-import.sh ./
-# Copy the SQL files (they were renamed in builder stage)
-COPY --from=builder /app/quick-import.sql ./quick-import.sql
-COPY --from=builder /app/production-all-posts.sql.gz ./production-all-posts.sql.gz
+# Copy all SQL files that might exist
+COPY --from=builder /app/*.sql* ./
 
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
