@@ -9,9 +9,6 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY kawaiitorichan/ .
-# Explicitly copy the SQL files we need
-COPY kawaiitorichan/quick-import.sql ./quick-import.sql
-COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -31,12 +28,12 @@ ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-# Build the application (using special Docker build that skips static generation)
-# The build:docker command already skips static generation
-RUN corepack enable pnpm && pnpm run build:docker
+# Verify SQL files are present BEFORE build
+RUN echo "Checking for SQL files in builder stage:" && \
+    ls -la quick-import.sql production-all-posts.sql.gz 2>&1 || echo "SQL files missing!"
 
-# Verify SQL files exist after build
-RUN echo "SQL files in builder:" && ls -la *.sql* 2>&1 || echo "No SQL files found"
+# Build the application (using special Docker build that skips static generation)
+RUN corepack enable pnpm && pnpm run build:docker
 
 
 FROM node:20-alpine AS runner
@@ -81,9 +78,11 @@ COPY --from=builder /app/server-wrapper.js ./
 USER root
 RUN apk add --no-cache postgresql-client npm
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
-RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
-# Verify the compressed file is present
-RUN ls -lh production-all-posts.sql.gz || echo "Warning: production SQL not found"
+
+# Verify SQL files are present in the final container
+RUN echo "Final container SQL files:" && \
+    ls -la quick-import.sql production-all-posts.sql.gz 2>&1 && \
+    echo "Total SQL files:" && ls -la *.sql* | wc -l
 
 # Switch to non-root user
 USER nextjs
