@@ -1,42 +1,49 @@
 #!/bin/sh
-# Force import script - runs inside the container
+# Simplified force import - uses quick-import.sql only
 
-echo "🚀 FORCING DATA IMPORT TO KAWAII BIRD DATABASE"
+echo "🚀 FORCE IMPORTING DATA TO KAWAII BIRD DATABASE"
 echo "=============================================="
 
 # Parse DATABASE_URI to get connection details
 if [ -n "$DATABASE_URI" ]; then
-  export DB_USER=$(echo $DATABASE_URI | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
-  export DB_PASSWORD=$(echo $DATABASE_URI | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
-  export DB_HOST=$(echo $DATABASE_URI | sed -n 's/.*@\([^:]*\):.*/\1/p')
-  export DB_PORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-  export DB_NAME=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
+  export PGUSER=$(echo $DATABASE_URI | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
+  export PGPASSWORD=$(echo $DATABASE_URI | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
+  export PGHOST=$(echo $DATABASE_URI | sed -n 's/.*@\([^:]*\):.*/\1/p')
+  export PGPORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+  export PGDATABASE=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
 
   echo "Database connection:"
-  echo "  Host: $DB_HOST"
-  echo "  Port: $DB_PORT"
-  echo "  Database: $DB_NAME"
-  echo "  User: $DB_USER"
+  echo "  Host: $PGHOST"
+  echo "  Port: $PGPORT"
+  echo "  Database: $PGDATABASE"
+  echo "  User: $PGUSER"
 else
   echo "❌ DATABASE_URI not set!"
   exit 1
 fi
 
-# Check if essential_data.sql exists
-if [ ! -f essential_data.sql ]; then
-  echo "❌ essential_data.sql not found!"
+# Use quick-import.sql as the primary import file
+if [ ! -f quick-import.sql ]; then
+  echo "⚠️ quick-import.sql not found!"
   echo "Files in current directory:"
   ls -la *.sql
-  exit 1
+
+  # Try essential_data.sql as fallback
+  if [ -f essential_data.sql ]; then
+    echo "Using essential_data.sql as fallback..."
+    cp essential_data.sql quick-import.sql
+  else
+    exit 1
+  fi
 fi
 
 echo ""
 echo "📥 IMPORTING DATA NOW..."
-echo "This will add all posts, categories, and media to your database"
+echo "This will add posts, categories, and media to your database"
 echo ""
 
-# Force import without checking if data exists
-PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f essential_data.sql
+# Force import using quick-import.sql
+psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f quick-import.sql 2>&1
 
 if [ $? -eq 0 ]; then
   echo ""
@@ -44,9 +51,9 @@ if [ $? -eq 0 ]; then
   echo ""
 
   # Count what was imported
-  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-  CAT_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM categories;" 2>/dev/null || echo "0")
-  MEDIA_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
+  POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts WHERE _status = 'published'" 2>/dev/null || echo "0")
+  CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+  MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
 
   echo "📊 Database now contains:"
   echo "   Posts: $POST_COUNT"
