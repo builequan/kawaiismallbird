@@ -92,16 +92,15 @@ if [ -n "$DATABASE_URI" ]; then
     if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
       echo "📝 No posts found in database. Initializing with production data..."
 
-      # First try to use production_data.json if available
-      if [ -f production_data.json ]; then
-        echo "📥 Found production_data.json, importing full content..."
-
-        # Run the direct import script
-        node import-production.js 2>&1 || echo "Import script completed"
+      # First try to use production data import script
+      if [ -f import-production-data.sh ]; then
+        echo "📥 Running production data import..."
+        chmod +x import-production-data.sh
+        sh import-production-data.sh || echo "Import completed or failed"
 
         # Verify import
         NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-        echo "✅ Imported $NEW_COUNT posts from production_data.json"
+        echo "✅ Database now has $NEW_COUNT posts"
 
       elif [ -f essential_data.sql ]; then
         echo "Importing essential data from SQL..."

@@ -57,9 +57,10 @@ COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/essential_data.sql ./
 COPY --from=builder /app/init-full-bird-content.sql ./
 
-# Copy production data and import script
+# Copy production data and import scripts
 COPY --from=builder /app/production_data.json ./
 COPY --from=builder /app/import-production.js ./
+COPY --from=builder /app/import-production-data.sh ./
 
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
