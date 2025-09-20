@@ -19,6 +19,22 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Available SQL files:"
   ls -la *.sql* 2>&1 || echo "No SQL files found"
 
+  # DOWNLOAD FILES FROM GITHUB IF NOT FOUND
+  if [ ! -f production-all-posts.sql.gz ]; then
+    echo "📥 Downloading production-all-posts.sql.gz from GitHub..."
+    wget -q https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/production-all-posts.sql.gz 2>&1 || \
+    curl -sL -o production-all-posts.sql.gz https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
+  fi
+
+  if [ ! -f quick-import.sql ]; then
+    echo "📥 Downloading quick-import.sql from GitHub..."
+    wget -q https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/quick-import.sql 2>&1 || \
+    curl -sL -o quick-import.sql https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/quick-import.sql 2>&1
+  fi
+
+  echo "📁 Files after download attempt:"
+  ls -la *.sql* 2>&1
+
   # TRY FULL PRODUCTION IMPORT FIRST
   if [ -f production-all-posts.sql.gz ]; then
     echo "🚀 DECOMPRESSING AND RUNNING FULL PRODUCTION IMPORT - 115 posts..."

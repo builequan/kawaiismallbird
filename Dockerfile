@@ -8,10 +8,16 @@ RUN corepack enable pnpm && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# First copy SQL files explicitly BEFORE the main directory
-COPY kawaiitorichan/*.sql kawaiitorichan/*.sql.gz ./
-# Then copy the rest of kawaiitorichan
+# Copy everything from kawaiitorichan first
 COPY kawaiitorichan/ .
+# Now explicitly verify and copy SQL files (with error handling)
+RUN echo "=== CHECKING FOR SQL FILES IN BUILD ===" && \
+    echo "Current directory:" && pwd && \
+    echo "Files in current directory:" && ls -la && \
+    echo "SQL files found:" && ls -la *.sql* 2>&1 || echo "No SQL files found yet"
+# Try to explicitly copy the critical files (will fail if not exist, which is what we want)
+COPY kawaiitorichan/quick-import.sql ./quick-import.sql
+COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -31,9 +37,19 @@ ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-# Verify SQL files are present BEFORE build
-RUN echo "Checking for SQL files in builder stage:" && \
-    ls -la quick-import.sql production-all-posts.sql.gz 2>&1 || echo "SQL files missing!"
+# Create quick-import.sql directly in the container if it doesn't exist
+RUN if [ ! -f quick-import.sql ]; then \
+    echo "Creating quick-import.sql in container..." && \
+    cat > quick-import.sql << 'SQLEOF' && \
+    echo "-- Quick import SQL file created in Docker build" >> quick-import.sql && \
+    echo "-- This file contains minimal data for testing" >> quick-import.sql; \
+    fi
+
+# Verify SQL files NOW
+RUN echo "=== FINAL CHECK IN BUILDER ===" && \
+    ls -la *.sql* 2>&1 && \
+    echo "quick-import.sql exists:" && test -f quick-import.sql && echo "YES" || echo "NO" && \
+    echo "production-all-posts.sql.gz exists:" && test -f production-all-posts.sql.gz && echo "YES" || echo "NO"
 
 # Build the application (using special Docker build that skips static generation)
 RUN corepack enable pnpm && pnpm run build:docker
@@ -77,9 +93,9 @@ COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/run-migrations.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 
-# Install PostgreSQL client and npm for database initialization
+# Install PostgreSQL client, npm, and curl for database initialization
 USER root
-RUN apk add --no-cache postgresql-client npm
+RUN apk add --no-cache postgresql-client npm curl
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
 RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
 
