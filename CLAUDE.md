@@ -209,56 +209,64 @@ This repository contains two distinct projects:
 **Required Environment Variables:**
 ```env
 DATABASE_URI=postgresql://postgres:password@database-service-name:5432/database-name
-PAYLOAD_SECRET=your-secret-key-here
-NEXT_PUBLIC_SERVER_URL=http://your-domain.traefik.me
+PAYLOAD_SECRET=your-secret-key-here  # Minimum 32 characters
+NEXT_PUBLIC_SERVER_URL=https://your-domain.traefik.me
 NODE_ENV=production
 PORT=3000
 HOSTNAME=0.0.0.0
-
-# For first deployment only
-FORCE_DB_INIT=true
 ```
 
 ### Database Initialization
 
-**First Deployment:**
-1. Set `FORCE_DB_INIT=true` to create all tables
-2. Deploy the application
-3. After successful deployment, remove `FORCE_DB_INIT` or set to `false`
+**Automatic Deployment:**
+1. Database tables are created automatically on first deployment
+2. Imports 115 posts, 12 categories, and 346 media records
+3. Downloads all 347 media files from GitHub automatically
+4. No user intervention needed - fully automated
 
-**Database Schema:**
-- Schema exported from local `golfer` database
-- Contains all Payload CMS tables (posts, pages, users, footer, header, etc.)
-- Automatically applied via `init-db.sh` on container startup
+**Database Content:**
+- Schema includes all Payload CMS tables
+- Pre-populated with 115 Japanese golf articles
+- 12 hierarchical categories with Japanese titles
+- 346 media records with automatic image download
+- No pre-created admin users - registration screen appears on first visit
 
 ### Troubleshooting
 
-**Bad Gateway Error:**
-- Check if environment variables are set correctly
-- Verify database connection string
-- Check container logs for specific errors
+**Media Not Displaying:**
+- Media files download automatically during deployment (~5 minutes)
+- Check container logs for download progress
+- Files are downloaded from GitHub to `/app/public/media`
+- 347 verified files in `media-files-list.txt`
 
-**Database Tables Missing:**
-- Set `FORCE_DB_INIT=true` and redeploy
-- This will drop and recreate all tables
+**Admin Access:**
+- No pre-created admin users
+- Visit `/admin` to see registration screen
+- Create your own admin account on first visit
 
-**ES Module Errors:**
-- Application uses ES modules (`type: "module"`)
-- Use `.cjs` extension for CommonJS files
-- Main server runs via `node server.js` directly
+**Database Issues:**
+- Tables are created automatically from `production-data-115-posts.sql.gz`
+- Schema includes all necessary columns and relationships
+- Users table is kept empty for proper registration flow
+
+**Build Cache Issues:**
+- Dockerfile includes `REBUILD_TIMESTAMP` for cache-busting
+- Change timestamp to force complete rebuild
+- Located at line ~20 in Dockerfile
 
 ### Key Deployment Files
 
-- `kawaiitorichan/Dockerfile` - Production Docker configuration
-- `kawaiitorichan/docker-entrypoint.sh` - Startup script with DB initialization
-- `kawaiitorichan/schema.sql` - Complete database schema
-- `kawaiitorichan/init-db.sh` - Checks and initializes database
-- `kawaiitorichan/force-init-db.sh` - Force recreates all tables
+- `kawaiitorichan/Dockerfile` - Production Docker configuration with cache-busting
+- `kawaiitorichan/docker-entrypoint.sh` - Startup script with automatic initialization
+- `kawaiitorichan/init-bird-production.sh` - Imports data and downloads media
+- `kawaiitorichan/production-data-115-posts.sql.gz` - Compressed database dump (1MB)
+- `kawaiitorichan/media-files-list.txt` - Verified list of 347 media files
+- `kawaiitorichan/quick-import-data.sql` - Fallback import with sample data
 
 ### Local Development vs Production
 
 **Local Databases:**
-- `golfer` - Payload CMS with 88 imported posts
+- `golfer` - Payload CMS with 115 imported posts
 - `content_creation_db` - 1372 articles from content system
 
 **Production:**
