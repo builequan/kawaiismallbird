@@ -184,6 +184,35 @@ EOF
       echo "📋 Sample media files in database:"
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT filename FROM media WHERE filename IS NOT NULL LIMIT 5" 2>/dev/null || true
 
+      # Download media files from GitHub
+      echo ""
+      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
+      cd /app/public/media
+
+      # Download ALL images from database
+      echo "Starting download of all media files..."
+      SUCCESS=0
+      FAILED=0
+
+      # Get all filenames and download them
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT DISTINCT filename FROM media WHERE filename IS NOT NULL ORDER BY filename" | while read filename; do
+        if [ -n "$filename" ]; then
+          # Try to download the file
+          if wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null; then
+            SUCCESS=$((SUCCESS + 1))
+            echo "✓ Downloaded: $filename"
+          else
+            FAILED=$((FAILED + 1))
+            echo "✗ Failed: $filename"
+          fi
+        fi
+      done
+
+      # Count downloaded files
+      DOWNLOADED=$(ls -1 *.jpg *.png 2>/dev/null | wc -l)
+      echo ""
+      echo "✅ Downloaded $DOWNLOADED media files to /app/public/media"
+
       echo "🌐 Kawaii Bird production initialization complete!"
       exit 0
     else
