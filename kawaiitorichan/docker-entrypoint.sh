@@ -79,46 +79,51 @@ if [ -n "$DATABASE_URI" ]; then
     sh init-db.sh || echo "Database init failed or not needed, continuing..."
   fi
 
-  # Always check if posts table is empty and initialize if needed
-  echo "Checking if posts data exists..."
+  # Function to import data after tables are created
+  import_data_if_needed() {
+    echo "🔍 Checking if data import is needed..."
 
-  # First check if posts table exists
-  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
+    # Check if posts table exists and count posts
+    TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
 
-  if [ "$TABLE_EXISTS" = "t" ]; then
-    POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-    POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
+    if [ "$TABLE_EXISTS" = "t" ]; then
+      POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+      POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
 
-    if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
-      echo "📝 No posts found in database. Initializing with production data..."
+      if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
+        echo "📝 No posts found. Importing production data..."
 
-      # First try to use production data import script
-      if [ -f import-production-data.sh ]; then
-        echo "📥 Running production data import..."
-        chmod +x import-production-data.sh
-        sh import-production-data.sh || echo "Import completed or failed"
+        if [ -f import-production-data.sh ]; then
+          chmod +x import-production-data.sh
+          sh import-production-data.sh
 
-        # Verify import
-        NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-        echo "✅ Database now has $NEW_COUNT posts"
-
-      elif [ -f essential_data.sql ]; then
-        echo "Importing essential data from SQL..."
-        PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f essential_data.sql 2>&1
-        echo "✅ Essential data import completed!"
-
-        # Verify import
-        NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-        echo "✅ Imported $NEW_COUNT posts"
+          NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+          echo "✅ Imported $NEW_COUNT posts"
+        fi
       else
-        echo "⚠️ No data files found, starting with empty database"
+        echo "✅ Found $POST_COUNT posts in database"
       fi
     else
-      echo "✅ Found $POST_COUNT posts in database"
+      echo "⏳ Posts table not ready yet"
+      return 1
     fi
-  else
-    echo "⚠️ Posts table doesn't exist yet. It will be created when the app starts."
-  fi
+  }
+
+  # Start the import checker in background
+  (
+    echo "⏳ Waiting for tables to be created..."
+    sleep 15  # Give the app time to start and create tables
+
+    # Try to import data up to 10 times with 5 second intervals
+    for i in 1 2 3 4 5 6 7 8 9 10; do
+      if import_data_if_needed; then
+        echo "✅ Data import check complete"
+        break
+      fi
+      echo "⏳ Attempt $i/10: Waiting for tables..."
+      sleep 5
+    done
+  ) &
 
   # Initialize bird theme content if requested
   if [ "$INIT_BIRD_THEME" = "true" ]; then

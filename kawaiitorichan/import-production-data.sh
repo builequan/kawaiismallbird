@@ -24,22 +24,34 @@ BEGIN
   END IF;
 END $$;
 
--- Import categories with proper handling
-INSERT INTO categories (title, slug, "createdAt", "updatedAt")
-VALUES
-  ('セキセイインコ', 'budgerigar', NOW(), NOW()),
-  ('オカメインコ', 'cockatiel', NOW(), NOW()),
-  ('文鳥', 'java-sparrow', NOW(), NOW()),
-  ('コザクラインコ', 'lovebird', NOW(), NOW()),
-  ('ボタンインコ', 'button-parakeet', NOW(), NOW()),
-  ('マメルリハ', 'pacific-parrotlet', NOW(), NOW()),
-  ('コガネメキシコインコ', 'sun-conure', NOW(), NOW()),
-  ('ウロコインコ', 'green-cheeked-conure', NOW(), NOW()),
-  ('オキナインコ', 'monk-parakeet', NOW(), NOW()),
-  ('ヨウム', 'african-grey-parrot', NOW(), NOW()),
-  ('飼い方・お世話', 'care-guides', NOW(), NOW()),
-  ('健康・病気', 'health', NOW(), NOW())
-ON CONFLICT (slug) DO NOTHING;
+-- Import categories (handle case where unique constraint might not exist)
+DO $$
+BEGIN
+  -- Try to insert categories, ignore if they already exist
+  INSERT INTO categories (title, slug, "createdAt", "updatedAt")
+  SELECT * FROM (VALUES
+    ('セキセイインコ', 'budgerigar', NOW(), NOW()),
+    ('オカメインコ', 'cockatiel', NOW(), NOW()),
+    ('文鳥', 'java-sparrow', NOW(), NOW()),
+    ('コザクラインコ', 'lovebird', NOW(), NOW()),
+    ('ボタンインコ', 'button-parakeet', NOW(), NOW()),
+    ('マメルリハ', 'pacific-parrotlet', NOW(), NOW()),
+    ('コガネメキシコインコ', 'sun-conure', NOW(), NOW()),
+    ('ウロコインコ', 'green-cheeked-conure', NOW(), NOW()),
+    ('オキナインコ', 'monk-parakeet', NOW(), NOW()),
+    ('ヨウム', 'african-grey-parrot', NOW(), NOW()),
+    ('飼い方・お世話', 'care-guides', NOW(), NOW()),
+    ('健康・病気', 'health', NOW(), NOW())
+  ) AS t(title, slug, "createdAt", "updatedAt")
+  WHERE NOT EXISTS (
+    SELECT 1 FROM categories c WHERE c.slug = t.slug
+  );
+
+  RAISE NOTICE '✅ Categories imported or already exist';
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Category import warning: %', SQLERRM;
+END $$;
 
 -- Import sample posts if posts table is empty
 DO $$
@@ -49,29 +61,32 @@ BEGIN
   SELECT COUNT(*) INTO post_count FROM posts;
 
   IF post_count = 0 THEN
-    -- Import some essential posts
+    -- Import some essential posts (avoid conflict errors)
     INSERT INTO posts (title, slug, content, status, "publishedAt", "createdAt", "updatedAt")
-    VALUES
+    SELECT * FROM (VALUES
       ('セキセイインコの飼い方完全ガイド', 'budgerigar-care-guide',
-       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"セキセイインコは小型で人懐っこい鳥として、世界中で愛されています。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}',
+       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"セキセイインコは小型で人懐っこい鳥として、世界中で愛されています。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
        'published', NOW(), NOW(), NOW()),
 
       ('オカメインコの特徴と魅力', 'cockatiel-features',
-       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"オカメインコは冠羽が特徴的な中型インコです。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}',
+       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"オカメインコは冠羽が特徴的な中型インコです。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
        'published', NOW(), NOW(), NOW()),
 
       ('文鳥の鳴き声と習性', 'java-sparrow-behavior',
-       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"文鳥は美しい鳴き声と愛らしい仕草で人気の小鳥です。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}',
+       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"文鳥は美しい鳴き声と愛らしい仕草で人気の小鳥です。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
        'published', NOW(), NOW(), NOW()),
 
       ('コザクラインコの飼育環境', 'lovebird-environment',
-       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"コザクラインコは活発で遊び好きな小型インコです。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}',
+       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"コザクラインコは活発で遊び好きな小型インコです。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
        'published', NOW(), NOW(), NOW()),
 
       ('小鳥の健康管理と病気の予防', 'bird-health-management',
-       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"小鳥の健康を維持するために重要なポイントをご紹介します。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}',
+       '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"小鳥の健康を維持するために重要なポイントをご紹介します。","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
        'published', NOW(), NOW(), NOW())
-    ON CONFLICT (slug) DO NOTHING;
+    ) AS t(title, slug, content, status, "publishedAt", "createdAt", "updatedAt")
+    WHERE NOT EXISTS (
+      SELECT 1 FROM posts p WHERE p.slug = t.slug
+    );
 
     -- Link posts to categories
     INSERT INTO posts_rels (parent_id, path, category_id)
