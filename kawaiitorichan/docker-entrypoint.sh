@@ -68,11 +68,15 @@ export NODE_ENV
 export PORT
 export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# QUICK IMPORT - Drop everything and recreate from scratch
-echo "🚀 RUNNING QUICK IMPORT - FULL DATABASE RESET" >&2
+# List files to debug
+echo "🔍 Current directory contents:" >&2
+ls -la >&2
 
+# QUICK IMPORT - Drop everything and recreate from scratch
+echo "🚀 ATTEMPTING QUICK IMPORT..." >&2
+echo "🔍 Checking for quick-import.sql..." >&2
 if [ -f quick-import.sql ]; then
-  echo "📦 Executing quick-import.sql to create schema and sample data..." >&2
+  echo "✅ Found quick-import.sql! Executing..." >&2
   PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1
   echo "✅ Quick import executed" >&2
 
@@ -83,11 +87,17 @@ if [ -f quick-import.sql ]; then
   POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>&1)
   echo "📝 Database now has $POST_COUNT posts" >&2
 else
-  echo "❌ quick-import.sql NOT FOUND!" >&2
+  echo "❌ quick-import.sql NOT FOUND in current directory!" >&2
+  echo "📂 Files in current directory:" >&2
+  ls -la *.sql 2>&1 >&2 || echo "No .sql files found" >&2
+
   # Fallback to old method
   if [ -f init-database-schema.sql ]; then
-    echo "📋 Falling back to init-database-schema.sql" >&2
-    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || true
+    echo "📋 Found init-database-schema.sql, using as fallback..." >&2
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1
+    echo "📋 Schema initialization complete" >&2
+  else
+    echo "❌ No SQL files found at all!" >&2
   fi
 fi
 
