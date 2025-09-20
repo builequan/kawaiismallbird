@@ -13,18 +13,26 @@ COPY kawaiitorichan/ .
 # Ensure runtime scripts are in the builder stage
 RUN test -f docker-entrypoint.sh || echo "ERROR: docker-entrypoint.sh not found"
 RUN test -f server-wrapper.js || echo "ERROR: server-wrapper.js not found"
+RUN test -f build.sh || echo "ERROR: build.sh not found"
 
 # Build-time environment variables (will be replaced at runtime)
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_BUILD_STATIC_GENERATION=true
 ENV NODE_ENV=production
+ENV PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
 # These MUST be dummy values for build - real values come from runtime
-ENV DATABASE_URI=postgres://build:build@localhost:5432/build
-ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime
+# Using a fake but valid PostgreSQL URI format to satisfy Payload during build
+ENV DATABASE_URI=postgresql://postgres:postgres@db:5432/payload
+ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-RUN corepack enable pnpm && pnpm build
+# Skip database operations during build
+ENV SKIP_DB_PUSH=true
+ENV SKIP_DB_SEED=true
+
+# Use our build script that handles database issues
+RUN corepack enable pnpm && chmod +x build.sh && ./build.sh
 
 FROM node:20-alpine AS runner
 WORKDIR /app
