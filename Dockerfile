@@ -9,6 +9,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY kawaiitorichan/ .
+# Cache bust - force rebuild by adding timestamp comment
+# Updated: 2025-09-20 19:10:00
+# Force Docker to recognize these specific files (bypass cache)
+COPY kawaiitorichan/quick-import.sql ./quick-import.sql
+COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -78,11 +83,12 @@ COPY --from=builder /app/server-wrapper.js ./
 USER root
 RUN apk add --no-cache postgresql-client npm
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
+RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
 
 # Verify SQL files are present in the final container
 RUN echo "Final container SQL files:" && \
-    ls -la quick-import.sql production-all-posts.sql.gz 2>&1 && \
-    echo "Total SQL files:" && ls -la *.sql* | wc -l
+    ls -la quick-import.sql production-all-posts.sql.gz && \
+    echo "All SQL files in container:" && ls -la *.sql*
 
 # Switch to non-root user
 USER nextjs
