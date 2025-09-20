@@ -22,6 +22,8 @@ if [ -n "$DATABASE_URI" ]; then
   # DOWNLOAD FILES FROM GITHUB IF NOT FOUND (using wget which is available in Alpine)
   if [ ! -f production-all-posts.sql.gz ]; then
     echo "📥 Downloading production data (115 posts) from GitHub..."
+    # For private repos, you'd need a token (but it's not secure to hardcode it)
+    # Better solution: make repo public or ensure files are in Docker image
     if command -v wget > /dev/null 2>&1; then
       wget -q -O production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-115-posts.sql.gz 2>&1
     elif command -v curl > /dev/null 2>&1; then
