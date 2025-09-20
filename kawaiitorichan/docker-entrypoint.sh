@@ -74,6 +74,19 @@ if [ -n "$DB_PASSWORD" ] && [ -f init-database-schema.sql ]; then
   # Verify tables were created
   TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
   echo "✅ Database has $TABLE_CHECK tables"
+
+  # Check specifically for posts table
+  POSTS_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT to_regclass('public.posts') IS NOT NULL;" 2>/dev/null || echo "f")
+  echo "📊 Posts table exists: $POSTS_EXISTS"
+
+  # If posts table exists, import data immediately
+  if [ "$POSTS_EXISTS" = "t" ]; then
+    echo "📝 Posts table ready, importing data now..."
+    if [ -f import-production-data.sh ]; then
+      chmod +x import-production-data.sh
+      sh import-production-data.sh
+    fi
+  fi
 fi
 
 echo ""
@@ -97,8 +110,8 @@ fi
 import_data_if_needed() {
   echo "🔍 Checking if data import is needed..."
 
-  # Check if posts table exists and count posts
-  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
+  # Check if posts table exists using simpler method
+  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT 1 FROM posts LIMIT 1;" 2>/dev/null && echo "t" || echo "f")
 
   if [ "$TABLE_EXISTS" = "t" ]; then
     POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
