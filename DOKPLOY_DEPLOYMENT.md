@@ -58,7 +58,7 @@ NODE_ENV=production
 PORT=3000
 HOSTNAME=0.0.0.0
 
-# For first deployment only (remove after initial setup)
+# For first deployment to initialize database with posts
 FORCE_DB_INIT=true
 
 # Optional: Email (Resend)
@@ -69,6 +69,10 @@ CONTACT_EMAIL_TO=your-email@example.com
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_site_key
 RECAPTCHA_SECRET_KEY=your_secret_key
 ```
+
+**IMPORTANT**: After first successful deployment with posts imported:
+1. Remove `FORCE_DB_INIT` or set it to `false`
+2. The container will auto-import posts if database is empty
 
 ## Step 3: Deploy with Docker Compose (Alternative Method)
 
@@ -171,10 +175,31 @@ git push origin master
 ### No Posts or Empty Database
 **Problem**: Website shows but no posts appear
 **Solution**:
+
+**Method 1 - Automatic Import (Recommended)**:
 1. Set `FORCE_DB_INIT=true` in environment variables
 2. Redeploy the application
-3. Check logs for "Essential data imported successfully!"
-4. Remove `FORCE_DB_INIT` after successful import
+3. Check logs for:
+   - "Importing essential data..."
+   - "✅ Imported XX posts"
+4. Visit your site - posts should appear
+5. Remove `FORCE_DB_INIT` after successful import
+
+**Method 2 - Manual Import**:
+1. Access the container:
+   ```bash
+   docker exec -it [container-name] sh
+   ```
+2. Import data manually:
+   ```bash
+   PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f essential_data.sql
+   ```
+3. Restart the container
+
+**Method 3 - Create Admin User**:
+1. Access `/admin` on your site
+2. Create an admin user if prompted
+3. Use the admin panel to create posts manually
 
 ### Different UI/Missing Styles
 **Problem**: Website looks different from local development

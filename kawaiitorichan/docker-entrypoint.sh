@@ -81,18 +81,32 @@ if [ -n "$DATABASE_URI" ]; then
 
   # Always check if posts table is empty and initialize if needed
   echo "Checking if posts data exists..."
-  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
 
-  if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
-    echo "📝 No posts found in database. Initializing with essential data..."
-    if [ -f essential_data.sql ]; then
-      PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f essential_data.sql
-      echo "✅ Essential data imported successfully!"
+  # First check if posts table exists
+  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
+
+  if [ "$TABLE_EXISTS" = "t" ]; then
+    POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+    POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
+
+    if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
+      echo "📝 No posts found in database. Initializing with essential data..."
+      if [ -f essential_data.sql ]; then
+        echo "Importing essential data..."
+        PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f essential_data.sql 2>&1
+        echo "✅ Essential data import completed!"
+
+        # Verify import
+        NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+        echo "✅ Imported $NEW_COUNT posts"
+      else
+        echo "⚠️ essential_data.sql not found, skipping data import"
+      fi
     else
-      echo "⚠️ essential_data.sql not found, skipping data import"
+      echo "✅ Found $POST_COUNT posts in database"
     fi
   else
-    echo "✅ Found $POST_COUNT posts in database"
+    echo "⚠️ Posts table doesn't exist yet. It will be created when the app starts."
   fi
 
   # Initialize bird theme content if requested
