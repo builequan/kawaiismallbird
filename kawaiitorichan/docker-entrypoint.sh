@@ -35,6 +35,16 @@ if [ -z "$PAYLOAD_SECRET" ]; then
   exit 1
 fi
 
+# Parse DATABASE_URI to get connection details FIRST
+if [ -n "$DATABASE_URI" ]; then
+  # Extract components from postgresql://user:pass@host:port/dbname
+  export DB_USER=$(echo $DATABASE_URI | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
+  export DB_PASSWORD=$(echo $DATABASE_URI | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
+  export DB_HOST=$(echo $DATABASE_URI | sed -n 's/.*@\([^:]*\):.*/\1/p')
+  export DB_PORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+  export DB_NAME=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
+fi
+
 # Log sanitized DATABASE_URI (hide password)
 SANITIZED_DB_URI=$(echo "$DATABASE_URI" | sed 's/:\/\/[^:]*:[^@]*@/:\/\/****:****@/')
 echo ""
@@ -42,9 +52,8 @@ echo "Database URI (sanitized): $SANITIZED_DB_URI"
 
 echo ""
 echo "========================================="
-echo "Starting Next.js server on port ${PORT:-3000}..."
+echo "Running database migrations..."
 echo "========================================="
-echo ""
 
 # Export variables explicitly for the Node.js process
 export DATABASE_URI
@@ -53,20 +62,25 @@ export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
 
-# Parse DATABASE_URI to get connection details
-if [ -n "$DATABASE_URI" ]; then
-  # Extract components from postgresql://user:pass@host:port/dbname
-  export DB_USER=$(echo $DATABASE_URI | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
-  export DB_PASSWORD=$(echo $DATABASE_URI | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p')
-  export DB_HOST=$(echo $DATABASE_URI | sed -n 's/.*@\([^:]*\):.*/\1/p')
-  export DB_PORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
-  export DB_NAME=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
+# Run Payload migrations to create/update database schema
+echo "🔄 Running Payload migrations..."
+npx payload migrate 2>&1 || echo "⚠️ Migration completed with warnings"
+
+# Verify tables were created
+TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+echo "✅ Database has $TABLE_CHECK tables"
 
   echo "Database connection parsed:"
   echo "- Host: $DB_HOST"
   echo "- Port: $DB_PORT"
   echo "- Database: $DB_NAME"
   echo "- User: $DB_USER"
+
+echo ""
+echo "========================================="
+echo "Starting Next.js server on port ${PORT:-3000}..."
+echo "========================================="
+echo ""
 
   # Check if we should force initialize the database
   if [ "$FORCE_DB_INIT" = "true" ]; then

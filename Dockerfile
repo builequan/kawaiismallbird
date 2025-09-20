@@ -48,6 +48,15 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy migrations and Payload config (required for Payload CMS v3)
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/src/migrations ./src/migrations
+COPY --from=builder /app/src/payload.config.ts ./src/payload.config.ts
+
+# Copy package.json and node_modules for payload CLI
+COPY --from=builder /app/package.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
 # Copy database initialization files
 COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
