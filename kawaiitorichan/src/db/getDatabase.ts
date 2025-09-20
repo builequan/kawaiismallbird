@@ -16,18 +16,27 @@ export function getDatabaseAdapter() {
 
   if (isBuildPhase) {
     console.log('Build phase detected - using dummy database configuration')
-    // Return a valid adapter that won't attempt connections during build
-    // Use a non-existent host to ensure no connection attempts
-    return postgresAdapter({
-      pool: {
-        connectionString: connectionString || 'postgresql://build:build@dummy-db-host:5432/build',
-        // Disable actual connections during build
-        max: 0,
-        min: 0,
-        idleTimeoutMillis: 1,
+    // For build phase, use a mock adapter that never connects
+    const mockAdapter = {
+      ...postgresAdapter({
+        pool: {
+          connectionString: 'postgresql://noconnect:noconnect@noconnect:5432/noconnect',
+          max: 0,
+          min: 0,
+        },
+        push: false,
+      }),
+      // Override connect method to prevent any connection attempts
+      connect: async () => {
+        console.log('Skipping database connection during build')
+        return Promise.resolve()
       },
-      push: false, // Don't push schema during build
-    })
+      init: async () => {
+        console.log('Skipping database init during build')
+        return Promise.resolve()
+      },
+    }
+    return mockAdapter as any
   }
 
   if (!connectionString) {

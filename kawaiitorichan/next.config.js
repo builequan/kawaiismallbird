@@ -12,6 +12,9 @@ const nextConfig = {
   experimental: {
     // Skip static generation during build - generate at runtime instead
     isrMemoryCacheSize: 0,
+    // Disable static optimization during build
+    workerThreads: false,
+    cpus: 1,
   },
   // Ensure public directory assets are included
   publicRuntimeConfig: {
