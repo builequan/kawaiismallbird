@@ -1,0 +1,43 @@
+# URGENT: Run these commands in your Dokploy container to fix the issues
+
+# 1. SSH into your Dokploy container (from Dokploy dashboard, click Terminal or SSH)
+
+# 2. Once inside the container, run these commands:
+
+# Fix the users table
+psql $DATABASE_URI <<EOF
+ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expiration TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS salt VARCHAR;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS hash VARCHAR;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS login_attempts INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS lock_until TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS users_sessions (
+    id SERIAL PRIMARY KEY,
+    _parent_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    _order INTEGER,
+    created_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP
+);
+EOF
+
+# Fix media URLs
+psql $DATABASE_URI <<EOF
+UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
+UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '';
+EOF
+
+# Create a default admin user with a known password
+# This will create admin@example.com with password: admin123
+psql $DATABASE_URI <<EOF
+DELETE FROM users WHERE email = 'admin@example.com';
+INSERT INTO users (email, name, created_at, updated_at)
+VALUES ('admin@example.com', 'Admin User', NOW(), NOW());
+EOF
+
+# 3. After running these, you can login with:
+#    Email: admin@example.com
+#    Password: You'll need to reset it through the "Forgot Password" link
+#    OR use the Payload CLI to set a password
