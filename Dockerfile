@@ -9,6 +9,9 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY kawaiitorichan/ .
+# Explicitly copy the SQL files we need
+COPY kawaiitorichan/quick-import.sql ./quick-import.sql
+COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -28,12 +31,12 @@ ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-# Ensure quick-import.sql is available
-RUN if [ -f quick-import.sql ]; then echo "✅ quick-import.sql found"; else echo "⚠️ quick-import.sql not found (will use fallback in production)"; fi
-
 # Build the application (using special Docker build that skips static generation)
 # The build:docker command already skips static generation
 RUN corepack enable pnpm && pnpm run build:docker
+
+# Verify SQL files exist after build
+RUN echo "SQL files in builder:" && ls -la *.sql* 2>&1 || echo "No SQL files found"
 
 
 FROM node:20-alpine AS runner
