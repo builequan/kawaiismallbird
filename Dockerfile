@@ -42,10 +42,22 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy database initialization files
+COPY --from=builder /app/init-db.sh ./
+COPY --from=builder /app/force-init-db.sh ./
+COPY --from=builder /app/init-bird-production.sh ./
+COPY --from=builder /app/schema.sql ./
+COPY --from=builder /app/essential_data.sql ./
+COPY --from=builder /app/init-full-bird-content.sql ./
+
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/server-wrapper.js ./
-RUN chmod +x ./docker-entrypoint.sh
+
+# Install PostgreSQL client for database initialization
+USER root
+RUN apk add --no-cache postgresql-client
+RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh || true
 
 # Switch to non-root user
 USER nextjs

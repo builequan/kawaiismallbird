@@ -126,6 +126,10 @@ This repository contains two distinct projects:
 - **Image Processing Pipeline** - Handles both block-level and inline image syntax
 - **Verification Scripts** - Comprehensive tools for validating image rendering correctness
 - **Upload Node Structure** - Proper media collection relationships with alt text support
+- **Media URL Fix** - fixMediaUrl utility transforms `/api/media/file/` paths to `/media/`
+- **Image Extraction Logic** - Hierarchical extraction: hero field → content upload nodes → fallback defaults
+- **Category Page Images** - All category pages extract and display images from Lexical content structure
+- **Debug Scripts** - `scripts/debug-post-images.ts` to inspect image structure in posts
 
 **WordPress Import System:**
 - **Folder-based Import** - Select and import entire WordPress export folders

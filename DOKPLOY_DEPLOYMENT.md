@@ -35,48 +35,39 @@ In Dokploy, create a PostgreSQL service:
 ### 2.2 Build Configuration
 Set these build settings in Dokploy:
 
-- **Build Command**:
-  ```bash
-  cd kawaiitorichan && pnpm install && pnpm build
-  ```
+**IMPORTANT: Use Docker deployment method for best results**
 
-- **Start Command**:
-  ```bash
-  cd kawaiitorichan && pnpm start
-  ```
-
+- **Build Type**: Docker
+- **Dockerfile Path**: `./Dockerfile` (at repository root)
+- **Docker Context**: `.` (repository root)
 - **Port**: 3000
-
-- **Dockerfile Path** (if using Docker):
-  ```
-  ./kawaiitorichan/Dockerfile
-  ```
 
 ### 2.3 Environment Variables
 Add these environment variables in Dokploy's environment settings:
 
 ```env
-# Database - Use Dokploy's internal network
+# Database - Use Dokploy's internal network service name
 DATABASE_URI=postgres://postgres:YOUR_SECURE_PASSWORD@kawaii-bird-db:5432/kawaii_bird
 
-# Required Secrets (generate new ones!)
-PAYLOAD_SECRET=generate_32_char_string_here
-PREVIEW_SECRET=generate_random_string_here
-CRON_SECRET=generate_cron_secret_here
-
-# Your domain
+# Required Secrets (MUST have these!)
+PAYLOAD_SECRET=your-secret-key-here-at-least-32-characters-long
 NEXT_PUBLIC_SERVER_URL=https://your-domain.com
-
-# Email (Resend)
-RESEND_API_KEY=re_your_resend_key
-CONTACT_EMAIL_TO=your-email@example.com
-
-# reCAPTCHA
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_site_key
-RECAPTCHA_SECRET_KEY=your_secret_key
 
 # Production mode
 NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+
+# For first deployment only (remove after initial setup)
+FORCE_DB_INIT=true
+
+# Optional: Email (Resend)
+RESEND_API_KEY=re_your_resend_key
+CONTACT_EMAIL_TO=your-email@example.com
+
+# Optional: reCAPTCHA
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your_site_key
+RECAPTCHA_SECRET_KEY=your_secret_key
 ```
 
 ## Step 3: Deploy with Docker Compose (Alternative Method)
@@ -90,21 +81,27 @@ If you prefer using docker-compose:
    - Set up the network
    - Link services together
 
-## Step 4: Database Migration
+## Step 4: Deployment Process
 
-After first deployment, initialize the database:
+### 4.1 Initial Deployment
+1. Push your code to GitHub
+2. In Dokploy, click "Deploy" button
+3. The Docker build will:
+   - Install dependencies
+   - Build the Next.js application
+   - Copy all necessary files including database initialization scripts
+4. On first run, the container will:
+   - Check if database tables exist
+   - Initialize schema if needed
+   - Import essential data (posts, categories, media)
+   - Start the application
 
-1. Access your application container:
-   ```bash
-   docker exec -it kawaii-bird-app sh
-   ```
-
-2. Run database setup (if needed):
-   ```bash
-   cd kawaiitorichan
-   pnpm payload migrate:create
-   pnpm payload migrate
-   ```
+### 4.2 Verify Deployment
+After deployment completes:
+1. Check application logs for any errors
+2. Visit your domain to see the site
+3. Check `/admin` to access Payload CMS admin panel
+4. Verify posts are displayed on the homepage
 
 ## Step 5: Domain & SSL Configuration
 
@@ -171,15 +168,33 @@ git push origin master
 
 ## Troubleshooting
 
+### No Posts or Empty Database
+**Problem**: Website shows but no posts appear
+**Solution**:
+1. Set `FORCE_DB_INIT=true` in environment variables
+2. Redeploy the application
+3. Check logs for "Essential data imported successfully!"
+4. Remove `FORCE_DB_INIT` after successful import
+
+### Different UI/Missing Styles
+**Problem**: Website looks different from local development
+**Solution**:
+1. Ensure `NEXT_PUBLIC_SERVER_URL` matches your actual domain
+2. Check that Docker build includes `.next/static` folder
+3. Verify public folder is copied correctly
+4. Clear browser cache and hard refresh
+
 ### Database Connection Issues
 - Ensure PostgreSQL service is running
-- Check DATABASE_URI uses internal Docker network name
+- Check DATABASE_URI uses internal Docker network name (e.g., `kawaii-bird-db`)
 - Verify password matches PostgreSQL service config
+- Test connection: `docker exec -it [container] psql $DATABASE_URI -c "\dt"`
 
 ### Build Failures
-- Check Node.js version compatibility (requires 18+)
-- Ensure all environment variables are set
-- Review build logs in Dokploy
+- Check Node.js version compatibility (requires 20)
+- Ensure all required environment variables are set
+- Review build logs in Dokploy for specific errors
+- Verify pnpm is enabled with corepack
 
 ### SSL/Domain Issues
 - Verify DNS points to Dokploy server

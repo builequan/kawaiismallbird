@@ -79,6 +79,22 @@ if [ -n "$DATABASE_URI" ]; then
     sh init-db.sh || echo "Database init failed or not needed, continuing..."
   fi
 
+  # Always check if posts table is empty and initialize if needed
+  echo "Checking if posts data exists..."
+  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+
+  if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
+    echo "📝 No posts found in database. Initializing with essential data..."
+    if [ -f essential_data.sql ]; then
+      PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f essential_data.sql
+      echo "✅ Essential data imported successfully!"
+    else
+      echo "⚠️ essential_data.sql not found, skipping data import"
+    fi
+  else
+    echo "✅ Found $POST_COUNT posts in database"
+  fi
+
   # Initialize bird theme content if requested
   if [ "$INIT_BIRD_THEME" = "true" ]; then
     echo ""
