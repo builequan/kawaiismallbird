@@ -17,9 +17,10 @@ export function getDatabaseAdapter() {
   if (isBuildPhase) {
     console.log('Build phase detected - using dummy database configuration')
     // Return a valid adapter that won't attempt connections during build
+    // Use a non-existent host to ensure no connection attempts
     return postgresAdapter({
       pool: {
-        connectionString: connectionString || 'postgresql://build:build@localhost:5432/build',
+        connectionString: connectionString || 'postgresql://build:build@dummy-db-host:5432/build',
         // Disable actual connections during build
         max: 0,
         min: 0,
@@ -35,7 +36,7 @@ export function getDatabaseAdapter() {
     console.error('WARNING: Using dummy database connection - app may not work fully')
     return postgresAdapter({
       pool: {
-        connectionString: 'postgres://dummy:dummy@localhost:5432/dummy',
+        connectionString: 'postgres://dummy:dummy@dummy-db-host:5432/dummy',
       },
     })
   }

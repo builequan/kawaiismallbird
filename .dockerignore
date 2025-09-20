@@ -1,0 +1,41 @@
+# Ignore local environment files
+kawaiitorichan/.env
+kawaiitorichan/.env.local
+kawaiitorichan/.env.production.local
+
+# Keep build env file
+!kawaiitorichan/.env.build
+
+# Node modules
+kawaiitorichan/node_modules
+node_modules
+
+# Next.js build output
+kawaiitorichan/.next
+kawaiitorichan/out
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+kawaiitorichan/coverage
+kawaiitorichan/.nyc_output
+
+# Misc
+kawaiitorichan/.turbo
+kawaiitorichan/dist
