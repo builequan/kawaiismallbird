@@ -154,20 +154,35 @@ CREATE TABLE IF NOT EXISTS users_sessions (
 EOF
       echo "✅ Users table fixed!"
 
-      # Fix media URLs
+      # Fix media URLs and ensure they point to correct location
       echo "🔧 Fixing media URLs..."
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+-- Fix main URL
 UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
-UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '';
-UPDATE media SET sizes_thumbnail_url = REPLACE(sizes_thumbnail_url, '/api/media/file/', '/media/') WHERE sizes_thumbnail_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_square_url = REPLACE(sizes_square_url, '/api/media/file/', '/media/') WHERE sizes_square_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_small_url = REPLACE(sizes_small_url, '/api/media/file/', '/media/') WHERE sizes_small_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_medium_url = REPLACE(sizes_medium_url, '/api/media/file/', '/media/') WHERE sizes_medium_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_large_url = REPLACE(sizes_large_url, '/api/media/file/', '/media/') WHERE sizes_large_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_xlarge_url = REPLACE(sizes_xlarge_url, '/api/media/file/', '/media/') WHERE sizes_xlarge_url LIKE '/api/media/file/%';
-UPDATE media SET sizes_og_url = REPLACE(sizes_og_url, '/api/media/file/', '/media/') WHERE sizes_og_url LIKE '/api/media/file/%';
+UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
+
+-- Fix all size variations
+UPDATE media SET sizes_thumbnail_url = CONCAT('/media/', sizes_thumbnail_filename) WHERE sizes_thumbnail_filename IS NOT NULL;
+UPDATE media SET sizes_square_url = CONCAT('/media/', sizes_square_filename) WHERE sizes_square_filename IS NOT NULL;
+UPDATE media SET sizes_small_url = CONCAT('/media/', sizes_small_filename) WHERE sizes_small_filename IS NOT NULL;
+UPDATE media SET sizes_medium_url = CONCAT('/media/', sizes_medium_filename) WHERE sizes_medium_filename IS NOT NULL;
+UPDATE media SET sizes_large_url = CONCAT('/media/', sizes_large_filename) WHERE sizes_large_filename IS NOT NULL;
+UPDATE media SET sizes_xlarge_url = CONCAT('/media/', sizes_xlarge_filename) WHERE sizes_xlarge_filename IS NOT NULL;
+UPDATE media SET sizes_og_url = CONCAT('/media/', sizes_og_filename) WHERE sizes_og_filename IS NOT NULL;
 EOF
       echo "✅ Media URLs fixed!"
+
+      # Create media directory if it doesn't exist
+      mkdir -p public/media
+      echo "📁 Created media directory: public/media"
+
+      # Show media stats
+      UNIQUE_FILES=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(DISTINCT filename) FROM media WHERE filename IS NOT NULL" 2>/dev/null || echo "0")
+      echo "📸 Database has $UNIQUE_FILES unique media files"
+
+      # List first few media files for verification
+      echo "📋 Sample media files in database:"
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT filename FROM media WHERE filename IS NOT NULL LIMIT 5" 2>/dev/null || true
 
       echo "🌐 Kawaii Bird production initialization complete!"
       exit 0

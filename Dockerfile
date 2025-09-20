@@ -16,9 +16,9 @@ COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-data-115-posts
 COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 
-# Cache bust - Force rebuild at 2025-09-20 21:45
+# Cache bust - Force rebuild at 2025-09-20 22:15
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-20-21:45:00"
+ENV REBUILD_TIMESTAMP="2025-09-20-22:15:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -60,10 +60,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy built application and media files
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Create media directory structure
+RUN mkdir -p public/media && chown -R nextjs:nodejs public/media
 
 # Copy migrations and Payload config (required for Payload CMS v3)
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist

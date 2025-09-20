@@ -132,13 +132,11 @@ echo ""
 
 # No longer need background check - everything is done upfront by quick-import.sql
 
-# Initialize bird theme content if requested
-if [ "$INIT_BIRD_THEME" = "true" ]; then
-  echo ""
-  echo "🦜 Initializing Kawaii Bird theme content..."
-  if [ -f init-bird-production.sh ]; then
-    sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
-  fi
+# Initialize bird theme content (always run to ensure data is present)
+echo ""
+echo "🦜 Initializing Kawaii Bird theme content..."
+if [ -f init-bird-production.sh ]; then
+  sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
 fi
 
 # Check if we need to use the simple server or the full app
