@@ -19,11 +19,18 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Available SQL files:"
   ls -la *.sql* 2>&1 || echo "No SQL files found"
 
-  # DOWNLOAD FILES FROM GITHUB IF NOT FOUND
+  # DOWNLOAD FILES FROM GITHUB IF NOT FOUND (using wget which is available in Alpine)
   if [ ! -f production-all-posts.sql.gz ]; then
     echo "📥 Downloading production data (115 posts) from GitHub..."
-    curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-115-posts.sql.gz 2>&1
-    if [ $? -eq 0 ]; then
+    if command -v wget > /dev/null 2>&1; then
+      wget -q -O production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-115-posts.sql.gz 2>&1
+    elif command -v curl > /dev/null 2>&1; then
+      curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-115-posts.sql.gz 2>&1
+    else
+      echo "⚠️ Neither wget nor curl available for download"
+    fi
+
+    if [ -f production-all-posts.sql.gz ]; then
       echo "✅ Downloaded production-all-posts.sql.gz successfully"
     else
       echo "⚠️ Failed to download production data"
@@ -32,8 +39,15 @@ if [ -n "$DATABASE_URI" ]; then
 
   if [ ! -f quick-import.sql ]; then
     echo "📥 Downloading quick-import.sql from GitHub..."
-    curl -sL -o quick-import.sql https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/quick-import-data.sql 2>&1
-    if [ $? -eq 0 ]; then
+    if command -v wget > /dev/null 2>&1; then
+      wget -q -O quick-import.sql https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/quick-import-data.sql 2>&1
+    elif command -v curl > /dev/null 2>&1; then
+      curl -sL -o quick-import.sql https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/quick-import-data.sql 2>&1
+    else
+      echo "⚠️ Neither wget nor curl available for download"
+    fi
+
+    if [ -f quick-import.sql ]; then
       echo "✅ Downloaded quick-import.sql successfully"
     else
       echo "⚠️ Failed to download quick import"

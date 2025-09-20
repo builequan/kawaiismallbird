@@ -73,17 +73,18 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/force-import.sh ./
-COPY --from=builder /app/quick-import.sql ./
-COPY --from=builder /app/production-all-posts.sql.gz ./
+# Copy the SQL files (they were renamed in builder stage)
+COPY --from=builder /app/quick-import.sql ./quick-import.sql
+COPY --from=builder /app/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/run-migrations.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 
-# Install PostgreSQL client, npm, and curl for database initialization
+# Install PostgreSQL client, npm, wget and curl for database initialization
 USER root
-RUN apk add --no-cache postgresql-client npm curl
+RUN apk add --no-cache postgresql-client npm curl wget
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
 RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
 
