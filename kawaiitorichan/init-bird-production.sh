@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS posts_affiliate_links_metadata_links_added CASCADE;
 DROP TABLE IF EXISTS posts_populated_authors CASCADE;
 DROP TABLE IF EXISTS posts_rels CASCADE;
 DROP TABLE IF EXISTS posts CASCADE;
+DROP TABLE IF EXISTS categories_breadcrumbs CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS tags CASCADE;
 DROP TABLE IF EXISTS media CASCADE;
@@ -61,9 +62,22 @@ CREATE TABLE categories (
   id serial PRIMARY KEY,
   title varchar NOT NULL,
   slug varchar NOT NULL UNIQUE,
+  description text,
+  "order" integer DEFAULT 0,
+  slug_lock boolean DEFAULT true,
   parent_id integer,
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
+  created_at timestamp DEFAULT now() NOT NULL,
+  updated_at timestamp DEFAULT now() NOT NULL
+);
+
+-- Create categories breadcrumbs table
+CREATE TABLE categories_breadcrumbs (
+  id serial PRIMARY KEY,
+  _parent_id integer REFERENCES categories(id) ON DELETE CASCADE,
+  _order integer,
+  doc_id integer,
+  url varchar,
+  label varchar
 );
 
 CREATE TABLE tags (
@@ -176,10 +190,10 @@ CREATE TABLE footer (
 
 INSERT INTO users (email) VALUES ('admin@example.com');
 
-INSERT INTO categories (title, slug) VALUES
-  ('セキセイインコ', 'budgerigar'),
-  ('コザクラインコ', 'lovebird'),
-  ('オカメインコ', 'cockatiel');
+INSERT INTO categories (title, slug, description, "order") VALUES
+  ('セキセイインコ', 'budgerigar', '明るく社交的なセキセイインコに関する記事', 1),
+  ('コザクラインコ', 'lovebird', '愛情深いコザクラインコについての情報', 2),
+  ('オカメインコ', 'cockatiel', '優しいオカメインコのケア情報', 3);
 
 INSERT INTO posts (title, slug, excerpt, content, _status, published_at, meta_title, meta_description) VALUES
   ('セキセイインコの飼い方入門', 'budgerigar-care-guide',
