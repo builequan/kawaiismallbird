@@ -10,9 +10,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Copy everything from kawaiitorichan first
 COPY kawaiitorichan/ .
-# Also copy the renamed SQL files that ARE in git
+# Copy SQL files with proper names for init scripts
 COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-all-posts.sql.gz
+COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-data-115-posts.sql.gz
 COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
+COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
+
+# Cache bust - Force rebuild at 2025-09-20 21:30
+# Change this timestamp to force complete rebuild
+ENV REBUILD_TIMESTAMP="2025-09-20-21:30:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
