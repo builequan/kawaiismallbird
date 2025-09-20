@@ -132,6 +132,11 @@ EOF
 
       # Fix users table and sessions
       echo "🔧 Fixing users table..."
+
+      # IMPORTANT: Delete any imported users to allow registration screen
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
+      echo "✅ Cleared users table for fresh registration"
+
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
 ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_token VARCHAR;

@@ -91,8 +91,8 @@ CREATE TABLE footer (
   updated_at timestamp DEFAULT now()
 );
 
--- Insert admin user
-INSERT INTO users (email) VALUES ('admin@example.com');
+-- Don't insert any users - let Payload show registration screen
+-- INSERT INTO users (email) VALUES ('admin@example.com');
 
 -- Insert sample categories
 INSERT INTO categories (title, slug) VALUES
