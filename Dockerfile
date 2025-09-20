@@ -51,6 +51,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
+COPY --from=builder /app/force-import.sh ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/essential_data.sql ./
 COPY --from=builder /app/init-full-bird-content.sql ./
@@ -62,7 +63,7 @@ COPY --from=builder /app/server-wrapper.js ./
 # Install PostgreSQL client for database initialization
 USER root
 RUN apk add --no-cache postgresql-client
-RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh || true
+RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
 
 # Switch to non-root user
 USER nextjs
