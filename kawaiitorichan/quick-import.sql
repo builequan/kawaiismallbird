@@ -50,10 +50,12 @@ CREATE TABLE posts (
   title varchar NOT NULL,
   slug varchar NOT NULL UNIQUE,
   content jsonb,
-  status varchar DEFAULT 'published',
+  _status varchar DEFAULT 'published',
   published_at timestamp DEFAULT now(),
-  created_at timestamp DEFAULT now(),
-  updated_at timestamp DEFAULT now()
+  meta_title varchar,
+  meta_description varchar,
+  created_at timestamp DEFAULT now() NOT NULL,
+  updated_at timestamp DEFAULT now() NOT NULL
 );
 
 -- Create posts_rels table
@@ -87,7 +89,7 @@ INSERT INTO categories (title, slug) VALUES
   ('オカメインコ', 'cockatiel');
 
 -- Insert sample posts with simple Lexical content
-INSERT INTO posts (title, slug, content, status, published_at) VALUES
+INSERT INTO posts (title, slug, content, _status, published_at) VALUES
   ('セキセイインコの飼い方入門', 'budgerigar-care-guide',
    '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"セキセイインコは初心者でも飼いやすい小鳥です。"}]}]}}',
    'published', now()),
