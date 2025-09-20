@@ -65,13 +65,15 @@ export NODE_ENV
 export PORT
 export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# Run migrations in background after app starts
-if [ -f run-migrations.sh ]; then
-  chmod +x run-migrations.sh
-  (
-    echo "📦 Starting migration runner in background..."
-    ./run-migrations.sh 2>&1
-  ) &
+# Initialize database schema directly with SQL
+if [ -n "$DB_PASSWORD" ] && [ -f init-database-schema.sql ]; then
+  echo ""
+  echo "🔧 Initializing database schema..."
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || echo "⚠️ Schema already exists or partially applied"
+
+  # Verify tables were created
+  TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+  echo "✅ Database has $TABLE_CHECK tables"
 fi
 
 echo ""
