@@ -7,6 +7,9 @@ RUN corepack enable pnpm && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+# Cache busting - update timestamp to force rebuild
+ARG REBUILD_TIMESTAMP=2025-09-20-22:40
+
 # Copy all files from kawaiitorichan subdirectory
 COPY kawaiitorichan/ .
 
