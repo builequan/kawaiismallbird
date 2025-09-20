@@ -73,11 +73,23 @@ CREATE TABLE posts (
   id serial PRIMARY KEY,
   title varchar NOT NULL,
   slug varchar NOT NULL UNIQUE,
+  excerpt text,
+  language varchar,
+  hero_image_id integer,
+  hero_image_alt varchar,
   content jsonb,
+  meta_title varchar,
+  meta_image_id integer,
+  meta_description varchar,
+  meta_keywords varchar,
+  meta_focus_keyphrase varchar,
+  wordpress_metadata_original_author varchar,
+  wordpress_metadata_original_date timestamp,
+  wordpress_metadata_modified_date timestamp,
+  wordpress_metadata_status varchar,
+  wordpress_metadata_enable_comments boolean,
   _status varchar DEFAULT 'published',
   published_at timestamp DEFAULT now(),
-  meta_title varchar,
-  meta_description varchar,
   created_at timestamp DEFAULT now() NOT NULL,
   updated_at timestamp DEFAULT now() NOT NULL
 );
@@ -108,16 +120,25 @@ INSERT INTO categories (title, slug) VALUES
   ('コザクラインコ', 'lovebird'),
   ('オカメインコ', 'cockatiel');
 
-INSERT INTO posts (title, slug, content, _status, published_at) VALUES
+INSERT INTO posts (title, slug, excerpt, content, _status, published_at, meta_title, meta_description) VALUES
   ('セキセイインコの飼い方入門', 'budgerigar-care-guide',
-   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"セキセイインコは初心者でも飼いやすい小鳥です。"}]}]}}',
-   'published', now()),
+   'セキセイインコは初心者でも飼いやすい小鳥です。',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"セキセイインコは初心者でも飼いやすい小鳥です。明るく活発な性格で、飼い主とのコミュニケーションも楽しめます。"}]}]}}',
+   'published', now(),
+   'セキセイインコの飼い方入門 - かわいい小鳥ブログ',
+   'セキセイインコの基本的な飼い方を初心者向けに解説します。'),
   ('コザクラインコの特徴', 'lovebird-characteristics',
-   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"コザクラインコは愛情深い小鳥として知られています。"}]}]}}',
-   'published', now()),
+   'コザクラインコは愛情深い小鳥として知られています。',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"コザクラインコは愛情深い小鳥として知られています。パートナーへの愛情が深く、ラブバードとも呼ばれます。"}]}]}}',
+   'published', now(),
+   'コザクラインコの特徴 - かわいい小鳥ブログ',
+   'コザクラインコの性格や特徴について詳しく解説します。'),
   ('オカメインコのケア', 'cockatiel-care',
-   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"オカメインコは頬の赤い模様が特徴的です。"}]}]}}',
-   'published', now());
+   'オカメインコは頬の赤い模様が特徴的です。',
+   '{"root":{"type":"root","children":[{"type":"paragraph","children":[{"type":"text","text":"オカメインコは頬の赤い模様が特徴的です。優しい性格で初心者にもおすすめの鳥です。"}]}]}}',
+   'published', now(),
+   'オカメインコのケア方法 - かわいい小鳥ブログ',
+   'オカメインコの日常的なケア方法について説明します。');
 
 INSERT INTO posts_rels (parent_id, path, category_id) VALUES
   (1, 'categories', 1),
