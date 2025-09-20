@@ -82,6 +82,7 @@ COPY --from=builder /app/server-wrapper.js ./
 USER root
 RUN apk add --no-cache postgresql-client npm
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh ./import-production-data.sh || true
+RUN chmod 644 ./quick-import.sql || true
 
 # Switch to non-root user
 USER nextjs

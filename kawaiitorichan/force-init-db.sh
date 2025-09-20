@@ -2,7 +2,7 @@
 # Force initialize database - simpler approach
 
 echo "==================================="
-echo "FORCING DATABASE INITIALIZATION"
+echo "🚀 QUICK IMPORT DATABASE INITIALIZATION"
 echo "==================================="
 
 # Parse DATABASE_URI if not already parsed
@@ -13,6 +13,28 @@ if [ -z "$DB_HOST" ] && [ -n "$DATABASE_URI" ]; then
   export DB_PORT=$(echo $DATABASE_URI | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
   export DB_NAME=$(echo $DATABASE_URI | sed -n 's/.*\/\([^?]*\).*/\1/p')
 fi
+
+# List files to debug
+echo "📁 Current directory contents:"
+ls -la *.sql 2>&1 || echo "No SQL files visible"
+
+# TRY QUICK IMPORT FIRST!
+if [ -f quick-import.sql ]; then
+  echo "✅ Found quick-import.sql - Creating posts with sample data..."
+  PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -f quick-import.sql 2>&1
+
+  # Verify posts were created
+  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
+  CAT_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+
+  echo "✅ QUICK IMPORT COMPLETE: $POST_COUNT posts, $CAT_COUNT categories"
+  echo "==================================="
+  echo "DATABASE INITIALIZATION COMPLETE"
+  echo "==================================="
+  exit 0
+fi
+
+echo "⚠️ quick-import.sql not found, falling back to schema.sql..."
 
 echo "Database details:"
 echo "  Host: $DB_HOST"
