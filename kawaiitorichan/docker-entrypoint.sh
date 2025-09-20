@@ -1,13 +1,15 @@
 #!/bin/sh
-set -e
+# Removed set -e to prevent early exit on errors
 
-echo "========================================="
-echo "Docker Container Starting..."
-echo "========================================="
-echo "Node version: $(node --version)"
-echo "Current directory: $(pwd)"
+# Write to stderr to ensure visibility
+echo "=========================================" >&2
+echo "Docker Container Starting..." >&2
+echo "=========================================" >&2
+echo "DEBUG: Script has started running!" >&2
+echo "Node version: $(node --version 2>/dev/null || echo 'node not found')"
+echo "Current directory: $(pwd 2>/dev/null || echo 'pwd failed')"
 echo "Files in current directory:"
-ls -la
+ls -la 2>/dev/null || echo "ls failed"
 
 echo ""
 echo "Environment Variables Check:"
@@ -66,36 +68,29 @@ export NODE_ENV
 export PORT
 export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# Debug: Check if schema file exists
-echo "🔍 Checking for schema file..."
+# FORCE schema initialization - no conditions!
+echo "🔧 FORCING database schema initialization..." >&2
+
+# Try multiple schema files
 if [ -f init-database-schema.sql ]; then
-  echo "✅ init-database-schema.sql found"
+  echo "✅ Running init-database-schema.sql" >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || true
+elif [ -f schema.sql ]; then
+  echo "✅ Running schema.sql as fallback" >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f schema.sql 2>&1 || true
 else
-  echo "❌ init-database-schema.sql NOT FOUND!"
+  echo "❌ NO SCHEMA FILES FOUND!" >&2
 fi
 
-# Initialize database schema directly with SQL (removed DB_PASSWORD check)
-if [ -f init-database-schema.sql ] && [ -n "$DB_HOST" ]; then
-  echo ""
-  echo "🔧 Initializing database schema..."
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || echo "⚠️ Schema already exists or partially applied"
+# Verify tables and import data immediately
+TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+echo "✅ Database has $TABLE_CHECK tables" >&2
 
-  # Verify tables were created
-  TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-  echo "✅ Database has $TABLE_CHECK tables"
-
-  # Check specifically for posts table
-  POSTS_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT to_regclass('public.posts') IS NOT NULL;" 2>/dev/null || echo "f")
-  echo "📊 Posts table exists: $POSTS_EXISTS"
-
-  # If posts table exists, import data immediately
-  if [ "$POSTS_EXISTS" = "t" ]; then
-    echo "📝 Posts table ready, importing data now..."
-    if [ -f import-production-data.sh ]; then
-      chmod +x import-production-data.sh
-      sh import-production-data.sh
-    fi
-  fi
+# Force import data right now!
+echo "📝 FORCING data import..." >&2
+if [ -f import-production-data.sh ]; then
+  chmod +x import-production-data.sh
+  sh import-production-data.sh 2>&1 || true
 fi
 
 # Check if we should force initialize the database
