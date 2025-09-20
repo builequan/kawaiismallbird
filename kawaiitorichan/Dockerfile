@@ -40,6 +40,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Explicitly ensure all critical assets are included
 COPY --from=builder --chown=nextjs:nodejs /app/public/birdimage ./public/birdimage
+COPY --from=builder --chown=nextjs:nodejs /app/public/birdicons ./public/birdicons
 COPY --from=builder --chown=nextjs:nodejs /app/public/kawaii-bird-logo.svg ./public/kawaii-bird-logo.svg
 COPY --from=builder --chown=nextjs:nodejs /app/public/favicon.svg ./public/favicon.svg
 COPY --from=builder --chown=nextjs:nodejs /app/public/favicon.ico ./public/favicon.ico

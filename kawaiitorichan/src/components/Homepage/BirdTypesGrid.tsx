@@ -10,11 +10,11 @@ interface BirdTypesGridProps {
 
 // Define actual bird species with custom icons - 7 types only
 const birdSpeciesData = [
-  { name: 'セキセイインコ', iconPath: '/birdicons/セキセイインコ .webp', color: 'from-green-50 to-green-100', slug: 'budgerigar' },
+  { name: 'セキセイインコ', iconPath: '/birdicons/セキセイインコ.webp', color: 'from-green-50 to-green-100', slug: 'budgerigar' },
   { name: 'オカメインコ', iconPath: '/birdicons/オカメインコ.webp', color: 'from-yellow-50 to-orange-100', slug: 'cockatiel' },
   { name: '文鳥', iconPath: '/birdicons/文鳥.webp', color: 'from-gray-50 to-gray-100', slug: 'java-sparrow' },
   { name: 'カナリア', iconPath: '/birdicons/カナリア.webp', color: 'from-yellow-50 to-yellow-100', slug: 'canary' },
-  { name: 'コザクラインコ', iconPath: '/birdicons/コザクラインコ .webp', color: 'from-pink-50 to-rose-100', slug: 'lovebird' },
+  { name: 'コザクラインコ', iconPath: '/birdicons/コザクラインコ.webp', color: 'from-pink-50 to-rose-100', slug: 'lovebird' },
   { name: 'フィンチ', iconPath: '/birdicons/フィンチ.webp', color: 'from-amber-50 to-orange-100', slug: 'finch' },
   { name: 'その他の鳥', iconPath: '/birdicons/その他.webp', color: 'from-purple-50 to-indigo-100', slug: 'others' },
 ]

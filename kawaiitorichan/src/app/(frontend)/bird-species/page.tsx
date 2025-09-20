@@ -344,11 +344,11 @@ export default async function BirdSpeciesPage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {[
-              { name: 'セキセイインコ', icon: '/birdicons/セキセイインコ .webp', href: '/birds/budgerigar' },
+              { name: 'セキセイインコ', icon: '/birdicons/セキセイインコ.webp', href: '/birds/budgerigar' },
               { name: 'オカメインコ', icon: '/birdicons/オカメインコ.webp', href: '/birds/cockatiel' },
               { name: '文鳥', icon: '/birdicons/文鳥.webp', href: '/birds/java-sparrow' },
               { name: 'カナリア', icon: '/birdicons/カナリア.webp', href: '/birds/canary' },
-              { name: 'コザクラインコ', icon: '/birdicons/コザクラインコ .webp', href: '/birds/lovebird' },
+              { name: 'コザクラインコ', icon: '/birdicons/コザクラインコ.webp', href: '/birds/lovebird' },
               { name: 'フィンチ', icon: '/birdicons/フィンチ.webp', href: '/birds/finch' },
               { name: 'その他', icon: '/birdicons/その他.webp', href: '/birds/others' },
               { name: 'すべて', icon: '📚', href: '/birds/all' }
