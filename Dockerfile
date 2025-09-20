@@ -8,12 +8,10 @@ RUN corepack enable pnpm && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+# First copy SQL files explicitly BEFORE the main directory
+COPY kawaiitorichan/*.sql kawaiitorichan/*.sql.gz ./
+# Then copy the rest of kawaiitorichan
 COPY kawaiitorichan/ .
-# Cache bust - force rebuild by adding timestamp comment
-# Updated: 2025-09-20 19:10:00
-# Force Docker to recognize these specific files (bypass cache)
-COPY kawaiitorichan/quick-import.sql ./quick-import.sql
-COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local

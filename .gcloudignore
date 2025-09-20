@@ -1,0 +1,30 @@
+# Cloud build ignore file - prevents cloud services from ignoring important files
+# This overrides .gitignore for cloud builds
+
+# Include everything from .dockerignore
+#!include:.dockerignore
+
+# But explicitly NEVER ignore these critical files
+!kawaiitorichan/quick-import.sql
+!kawaiitorichan/production-all-posts.sql.gz
+!kawaiitorichan/*.sql
+!kawaiitorichan/*.sql.gz
+
+# Ignore git and IDE files
+.git
+.gitignore
+.vscode
+.idea
+
+# Node modules
+node_modules/
+kawaiitorichan/node_modules/
+
+# Build outputs
+kawaiitorichan/.next/
+kawaiitorichan/out/
+
+# Environment files (except build env)
+kawaiitorichan/.env
+kawaiitorichan/.env.local
+!kawaiitorichan/.env.build

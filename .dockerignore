@@ -39,3 +39,9 @@ kawaiitorichan/.nyc_output
 # Misc
 kawaiitorichan/.turbo
 kawaiitorichan/dist
+
+# CRITICAL: Explicitly include SQL files that must be in build
+!kawaiitorichan/quick-import.sql
+!kawaiitorichan/production-all-posts.sql.gz
+!kawaiitorichan/*.sql
+!kawaiitorichan/*.sql.gz
