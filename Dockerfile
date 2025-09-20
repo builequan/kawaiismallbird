@@ -10,14 +10,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Copy everything from kawaiitorichan first
 COPY kawaiitorichan/ .
-# Now explicitly verify and copy SQL files (with error handling)
-RUN echo "=== CHECKING FOR SQL FILES IN BUILD ===" && \
-    echo "Current directory:" && pwd && \
-    echo "Files in current directory:" && ls -la && \
-    echo "SQL files found:" && ls -la *.sql* 2>&1 || echo "No SQL files found yet"
-# Try to explicitly copy the critical files (will fail if not exist, which is what we want)
-COPY kawaiitorichan/quick-import.sql ./quick-import.sql
-COPY kawaiitorichan/production-all-posts.sql.gz ./production-all-posts.sql.gz
+# Also copy the renamed SQL files that ARE in git
+COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-all-posts.sql.gz
+COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -37,19 +32,12 @@ ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
 ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
-# Create quick-import.sql directly in the container if it doesn't exist
-RUN if [ ! -f quick-import.sql ]; then \
-    echo "Creating quick-import.sql in container..." && \
-    cat > quick-import.sql << 'SQLEOF' && \
-    echo "-- Quick import SQL file created in Docker build" >> quick-import.sql && \
-    echo "-- This file contains minimal data for testing" >> quick-import.sql; \
-    fi
-
-# Verify SQL files NOW
-RUN echo "=== FINAL CHECK IN BUILDER ===" && \
+# Verify SQL files are present
+RUN echo "=== VERIFYING SQL FILES IN BUILDER ===" && \
     ls -la *.sql* 2>&1 && \
-    echo "quick-import.sql exists:" && test -f quick-import.sql && echo "YES" || echo "NO" && \
-    echo "production-all-posts.sql.gz exists:" && test -f production-all-posts.sql.gz && echo "YES" || echo "NO"
+    echo "Checking critical files:" && \
+    test -f quick-import.sql && echo "✅ quick-import.sql found" || echo "❌ quick-import.sql missing" && \
+    test -f production-all-posts.sql.gz && echo "✅ production-all-posts.sql.gz found" || echo "❌ production-all-posts.sql.gz missing"
 
 # Build the application (using special Docker build that skips static generation)
 RUN corepack enable pnpm && pnpm run build:docker
