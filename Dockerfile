@@ -75,10 +75,10 @@ COPY --from=builder /app/import-production-data.sh ./
 COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 
-# Install PostgreSQL client for database initialization
+# Install PostgreSQL client and npm for database initialization
 USER root
-RUN apk add --no-cache postgresql-client
-RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
+RUN apk add --no-cache postgresql-client npm
+RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh ./import-production-data.sh || true
 
 # Switch to non-root user
 USER nextjs

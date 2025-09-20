@@ -64,11 +64,19 @@ export PORT
 
 # Run Payload migrations to create/update database schema
 echo "🔄 Running Payload migrations..."
-npx payload migrate 2>&1 || echo "⚠️ Migration completed with warnings"
+if [ -f "./node_modules/.bin/payload" ]; then
+  echo "Found payload CLI, running migrations..."
+  ./node_modules/.bin/payload migrate 2>&1 || echo "⚠️ Migration completed with warnings"
+else
+  echo "⚠️ Payload CLI not found, trying npx..."
+  npx payload migrate 2>&1 || echo "⚠️ Migration completed with warnings or not available"
+fi
 
 # Verify tables were created
-TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-echo "✅ Database has $TABLE_CHECK tables"
+if [ -n "$DB_PASSWORD" ]; then
+  TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+  echo "✅ Database has $TABLE_CHECK tables"
+fi
 
   echo "Database connection parsed:"
   echo "- Host: $DB_HOST"
@@ -82,70 +90,69 @@ echo "Starting Next.js server on port ${PORT:-3000}..."
 echo "========================================="
 echo ""
 
-  # Check if we should force initialize the database
-  if [ "$FORCE_DB_INIT" = "true" ]; then
-    echo "FORCE_DB_INIT is set, reinitializing database..."
-    if [ -f force-init-db.sh ]; then
-      sh force-init-db.sh || echo "Force init completed or failed"
-    fi
-  elif [ -f init-db.sh ]; then
-    echo "Running database initialization check..."
-    sh init-db.sh || echo "Database init failed or not needed, continuing..."
+# Check if we should force initialize the database
+if [ "$FORCE_DB_INIT" = "true" ]; then
+  echo "FORCE_DB_INIT is set, reinitializing database..."
+  if [ -f force-init-db.sh ]; then
+    sh force-init-db.sh || echo "Force init completed or failed"
   fi
+elif [ -f init-db.sh ]; then
+  echo "Running database initialization check..."
+  sh init-db.sh || echo "Database init failed or not needed, continuing..."
+fi
 
-  # Function to import data after tables are created
-  import_data_if_needed() {
-    echo "🔍 Checking if data import is needed..."
+# Function to import data after tables are created
+import_data_if_needed() {
+  echo "🔍 Checking if data import is needed..."
 
-    # Check if posts table exists and count posts
-    TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
+  # Check if posts table exists and count posts
+  TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'posts');" 2>/dev/null || echo "f")
 
-    if [ "$TABLE_EXISTS" = "t" ]; then
-      POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-      POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
+  if [ "$TABLE_EXISTS" = "t" ]; then
+    POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+    POST_COUNT=$(echo $POST_COUNT | tr -d ' ')
 
-      if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
-        echo "📝 No posts found. Importing production data..."
+    if [ "$POST_COUNT" = "0" ] || [ -z "$POST_COUNT" ]; then
+      echo "📝 No posts found. Importing production data..."
 
-        if [ -f import-production-data.sh ]; then
-          chmod +x import-production-data.sh
-          sh import-production-data.sh
+      if [ -f import-production-data.sh ]; then
+        chmod +x import-production-data.sh
+        sh import-production-data.sh
 
-          NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-          echo "✅ Imported $NEW_COUNT posts"
-        fi
-      else
-        echo "✅ Found $POST_COUNT posts in database"
+        NEW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+        echo "✅ Imported $NEW_COUNT posts"
       fi
     else
-      echo "⏳ Posts table not ready yet"
-      return 1
+      echo "✅ Found $POST_COUNT posts in database"
     fi
-  }
+  else
+    echo "⏳ Posts table not ready yet"
+    return 1
+  fi
+}
 
-  # Start the import checker in background
-  (
-    echo "⏳ Waiting for tables to be created..."
-    sleep 15  # Give the app time to start and create tables
+# Start the import checker in background
+(
+  echo "⏳ Waiting for tables to be created..."
+  sleep 15  # Give the app time to start and create tables
 
-    # Try to import data up to 10 times with 5 second intervals
-    for i in 1 2 3 4 5 6 7 8 9 10; do
-      if import_data_if_needed; then
-        echo "✅ Data import check complete"
-        break
-      fi
-      echo "⏳ Attempt $i/10: Waiting for tables..."
-      sleep 5
-    done
-  ) &
-
-  # Initialize bird theme content if requested
-  if [ "$INIT_BIRD_THEME" = "true" ]; then
-    echo ""
-    echo "🦜 Initializing Kawaii Bird theme content..."
-    if [ -f init-bird-production.sh ]; then
-      sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
+  # Try to import data up to 10 times with 5 second intervals
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    if import_data_if_needed; then
+      echo "✅ Data import check complete"
+      break
     fi
+    echo "⏳ Attempt $i/10: Waiting for tables..."
+    sleep 5
+  done
+) &
+
+# Initialize bird theme content if requested
+if [ "$INIT_BIRD_THEME" = "true" ]; then
+  echo ""
+  echo "🦜 Initializing Kawaii Bird theme content..."
+  if [ -f init-bird-production.sh ]; then
+    sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
   fi
 fi
 
