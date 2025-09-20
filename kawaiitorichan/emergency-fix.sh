@@ -40,10 +40,7 @@ UPDATE media SET sizes_small_url = REPLACE(sizes_small_url, '/api/media/file/', 
 UPDATE media SET sizes_medium_url = REPLACE(sizes_medium_url, '/api/media/file/', '/media/') WHERE sizes_medium_url LIKE '/api/media/file/%';
 UPDATE media SET sizes_large_url = REPLACE(sizes_large_url, '/api/media/file/', '/media/') WHERE sizes_large_url LIKE '/api/media/file/%';
 
--- Create admin user (if not exists)
-INSERT INTO users (email, name, created_at, updated_at)
-SELECT 'admin@kawaii.com', 'Admin', NOW(), NOW()
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@kawaii.com');
+-- Don't create admin user - let Payload show registration screen
 SQLFIX
 
 echo ""

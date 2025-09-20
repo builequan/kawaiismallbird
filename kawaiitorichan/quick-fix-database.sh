@@ -30,9 +30,7 @@ CREATE TABLE IF NOT EXISTS users_sessions (
     expires_at TIMESTAMP
 );
 
-INSERT INTO users (email, name, created_at, updated_at)
-SELECT 'admin@example.com', 'Admin User', NOW(), NOW()
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@example.com');
+-- Don't create admin user - let Payload show registration screen
 EOF
 
   echo "📊 Fixing media URLs..."
