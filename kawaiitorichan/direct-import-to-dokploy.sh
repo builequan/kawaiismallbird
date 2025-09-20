@@ -6,15 +6,15 @@ echo "================================================"
 # Local database (source)
 LOCAL_DB="golfer"
 LOCAL_USER="postgres"
-LOCAL_PASS="2801"
+LOCAL_PASS="${LOCAL_DB_PASSWORD:-your-local-password}"  # Set via environment variable
 LOCAL_HOST="127.0.0.1"
 LOCAL_PORT="5432"
 
 # Dokploy database (destination)
 DOKPLOY_DB="kawaii-bird-db"
 DOKPLOY_USER="postgres"
-DOKPLOY_PASS="2801"
-DOKPLOY_HOST="100.94.235.84"
+DOKPLOY_PASS="${DOKPLOY_DB_PASSWORD:-your-dokploy-password}"  # Set via environment variable
+DOKPLOY_HOST="${DOKPLOY_HOST:-your-dokploy-host}"  # Set via environment variable
 DOKPLOY_PORT="5432"
 
 echo "📊 Checking local database for content..."
