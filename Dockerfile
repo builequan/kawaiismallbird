@@ -70,7 +70,7 @@ COPY --from=builder /app/essential_data.sql ./
 COPY --from=builder /app/init-full-bird-content.sql ./
 COPY --from=builder /app/init-database-schema.sql ./
 COPY --from=builder /app/quick-import.sql ./
-COPY --from=builder /app/production-all-posts.sql ./
+COPY --from=builder /app/production-all-posts.sql.gz ./
 
 # Copy production data and import scripts
 COPY --from=builder /app/production_data.json ./
