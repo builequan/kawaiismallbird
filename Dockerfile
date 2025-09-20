@@ -73,6 +73,7 @@ COPY --from=builder /app/import-production-data.sh ./
 
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
+COPY --from=builder /app/run-migrations.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 
 # Install PostgreSQL client and npm for database initialization

@@ -51,9 +51,11 @@ echo ""
 echo "Database URI (sanitized): $SANITIZED_DB_URI"
 
 echo ""
-echo "========================================="
-echo "Running database migrations..."
-echo "========================================="
+echo "Database connection parsed:"
+echo "- Host: $DB_HOST"
+echo "- Port: $DB_PORT"
+echo "- Database: $DB_NAME"
+echo "- User: $DB_USER"
 
 # Export variables explicitly for the Node.js process
 export DATABASE_URI
@@ -61,28 +63,16 @@ export PAYLOAD_SECRET
 export NEXT_PUBLIC_SERVER_URL
 export NODE_ENV
 export PORT
+export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# Run Payload migrations to create/update database schema
-echo "🔄 Running Payload migrations..."
-if [ -f "./node_modules/.bin/payload" ]; then
-  echo "Found payload CLI, running migrations..."
-  ./node_modules/.bin/payload migrate 2>&1 || echo "⚠️ Migration completed with warnings"
-else
-  echo "⚠️ Payload CLI not found, trying npx..."
-  npx payload migrate 2>&1 || echo "⚠️ Migration completed with warnings or not available"
+# Run migrations in background after app starts
+if [ -f run-migrations.sh ]; then
+  chmod +x run-migrations.sh
+  (
+    echo "📦 Starting migration runner in background..."
+    ./run-migrations.sh 2>&1
+  ) &
 fi
-
-# Verify tables were created
-if [ -n "$DB_PASSWORD" ]; then
-  TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-  echo "✅ Database has $TABLE_CHECK tables"
-fi
-
-  echo "Database connection parsed:"
-  echo "- Host: $DB_HOST"
-  echo "- Port: $DB_PORT"
-  echo "- Database: $DB_NAME"
-  echo "- User: $DB_USER"
 
 echo ""
 echo "========================================="
