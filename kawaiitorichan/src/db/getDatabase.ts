@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { createMockAdapter } from './mock-adapter'
 
 /**
  * Get database configuration dynamically at runtime
@@ -15,28 +16,20 @@ export function getDatabaseAdapter() {
   const connectionString = process.env.DATABASE_URI
 
   if (isBuildPhase) {
-    console.log('Build phase detected - using dummy database configuration')
-    // For build phase, use a mock adapter that never connects
-    const mockAdapter = {
-      ...postgresAdapter({
-        pool: {
-          connectionString: 'postgresql://noconnect:noconnect@noconnect:5432/noconnect',
-          max: 0,
-          min: 0,
-        },
-        push: false,
-      }),
-      // Override connect method to prevent any connection attempts
-      connect: async () => {
-        console.log('Skipping database connection during build')
-        return Promise.resolve()
+    console.log('Build phase detected - using mock database configuration')
+
+    // Create base adapter
+    const baseAdapter = postgresAdapter({
+      pool: {
+        connectionString: 'postgresql://noconnect:noconnect@noconnect:5432/noconnect',
+        max: 0,
+        min: 0,
       },
-      init: async () => {
-        console.log('Skipping database init during build')
-        return Promise.resolve()
-      },
-    }
-    return mockAdapter as any
+      push: false,
+    })
+
+    // Use comprehensive mock adapter
+    return createMockAdapter(baseAdapter) as any
   }
 
   if (!connectionString) {
