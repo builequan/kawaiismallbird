@@ -56,6 +56,7 @@ echo "- Host: $DB_HOST"
 echo "- Port: $DB_PORT"
 echo "- Database: $DB_NAME"
 echo "- User: $DB_USER"
+echo "- Password exists: $([ -n "$DB_PASSWORD" ] && echo 'Yes' || echo 'No')"
 
 # Export variables explicitly for the Node.js process
 export DATABASE_URI
@@ -65,8 +66,16 @@ export NODE_ENV
 export PORT
 export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 
-# Initialize database schema directly with SQL
-if [ -n "$DB_PASSWORD" ] && [ -f init-database-schema.sql ]; then
+# Debug: Check if schema file exists
+echo "🔍 Checking for schema file..."
+if [ -f init-database-schema.sql ]; then
+  echo "✅ init-database-schema.sql found"
+else
+  echo "❌ init-database-schema.sql NOT FOUND!"
+fi
+
+# Initialize database schema directly with SQL (removed DB_PASSWORD check)
+if [ -f init-database-schema.sql ] && [ -n "$DB_HOST" ]; then
   echo ""
   echo "🔧 Initializing database schema..."
   PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1 || echo "⚠️ Schema already exists or partially applied"
@@ -89,13 +98,8 @@ if [ -n "$DB_PASSWORD" ] && [ -f init-database-schema.sql ]; then
   fi
 fi
 
-echo ""
-echo "========================================="
-echo "Starting Next.js server on port ${PORT:-3000}..."
-echo "========================================="
-echo ""
-
 # Check if we should force initialize the database
+# NOTE: This runs AFTER our schema initialization
 if [ "$FORCE_DB_INIT" = "true" ]; then
   echo "FORCE_DB_INIT is set, reinitializing database..."
   if [ -f force-init-db.sh ]; then
@@ -105,6 +109,12 @@ elif [ -f init-db.sh ]; then
   echo "Running database initialization check..."
   sh init-db.sh || echo "Database init failed or not needed, continuing..."
 fi
+
+echo ""
+echo "========================================="
+echo "Starting Next.js server on port ${PORT:-3000}..."
+echo "========================================="
+echo ""
 
 # Function to import data after tables are created
 import_data_if_needed() {
