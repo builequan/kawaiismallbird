@@ -15,10 +15,11 @@ COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-all-posts.sql.
 COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-data-115-posts.sql.gz
 COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
+COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-20 23:30
+# Cache bust - Force rebuild at 2025-09-21 00:00
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-20-23:30:00"
+ENV REBUILD_TIMESTAMP="2025-09-21-00:00:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -82,6 +83,7 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/force-import.sh ./
+COPY --from=builder /app/media-files-list.txt ./
 # Copy all SQL files that might exist
 COPY --from=builder /app/*.sql* ./
 

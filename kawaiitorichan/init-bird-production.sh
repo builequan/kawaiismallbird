@@ -194,29 +194,33 @@ EOF
       echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
       cd /app/public/media
 
-      # Download ALL images from database
-      echo "Starting download of all media files..."
-      SUCCESS=0
-      FAILED=0
+      # Use the verified media list file
+      if [ -f /app/media-files-list.txt ]; then
+        echo "Using verified media list (347 files)..."
+        COUNT=0
+        TOTAL=$(wc -l < /app/media-files-list.txt)
 
-      # Get all filenames and download them
-      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT DISTINCT filename FROM media WHERE filename IS NOT NULL ORDER BY filename" | while read filename; do
-        if [ -n "$filename" ]; then
-          # Try to download the file
-          if wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null; then
-            SUCCESS=$((SUCCESS + 1))
-            echo "✓ Downloaded: $filename"
-          else
-            FAILED=$((FAILED + 1))
-            echo "✗ Failed: $filename"
+        # Download each file from the list
+        while read filename; do
+          if [ -n "$filename" ]; then
+            COUNT=$((COUNT + 1))
+
+            # Show progress every 10 files
+            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
+              echo "Progress: $COUNT/$TOTAL files..."
+            fi
+
+            # Download silently
+            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
           fi
-        fi
-      done
+        done < /app/media-files-list.txt
 
-      # Count downloaded files
-      DOWNLOADED=$(ls -1 *.jpg *.png 2>/dev/null | wc -l)
-      echo ""
-      echo "✅ Downloaded $DOWNLOADED media files to /app/public/media"
+        echo ""
+        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
+        echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      else
+        echo "⚠️ Media list file not found, skipping media download"
+      fi
 
       echo "🌐 Kawaii Bird production initialization complete!"
       exit 0
