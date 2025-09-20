@@ -37,9 +37,14 @@ if [ -n "$DATABASE_URI" ]; then
     # Create complete-schema.sql inline if it doesn't exist
     cat > complete-schema.sql <<'EOF'
 -- Complete schema for Dokploy deployment with ALL required fields
+-- Drop all tables to ensure clean state
+DROP TABLE IF EXISTS posts_internal_links_metadata_links_added CASCADE;
+DROP TABLE IF EXISTS posts_affiliate_links_metadata_links_added CASCADE;
+DROP TABLE IF EXISTS posts_populated_authors CASCADE;
 DROP TABLE IF EXISTS posts_rels CASCADE;
 DROP TABLE IF EXISTS posts CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS tags CASCADE;
 DROP TABLE IF EXISTS media CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS header CASCADE;
@@ -57,6 +62,14 @@ CREATE TABLE categories (
   title varchar NOT NULL,
   slug varchar NOT NULL UNIQUE,
   parent_id integer,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+CREATE TABLE tags (
+  id serial PRIMARY KEY,
+  title varchar NOT NULL,
+  slug varchar NOT NULL UNIQUE,
   created_at timestamp DEFAULT now(),
   updated_at timestamp DEFAULT now()
 );
@@ -99,17 +112,54 @@ CREATE TABLE posts (
   affiliate_links_metadata_version integer DEFAULT 0,
   affiliate_links_metadata_last_processed timestamp,
   affiliate_links_metadata_link_count integer DEFAULT 0,
+  affiliate_links_metadata_content_hash varchar,
+  affiliate_links_metadata_exclude_from_affiliates boolean DEFAULT false,
+  slug_lock boolean DEFAULT true,
   _status varchar DEFAULT 'published',
   published_at timestamp DEFAULT now(),
   created_at timestamp DEFAULT now() NOT NULL,
   updated_at timestamp DEFAULT now() NOT NULL
 );
 
+-- Create related tables for internal links
+CREATE TABLE posts_internal_links_metadata_links_added (
+  id serial PRIMARY KEY,
+  _parent_id integer REFERENCES posts(id) ON DELETE CASCADE,
+  _order integer,
+  target_slug varchar,
+  anchor_text varchar,
+  position integer
+);
+
+-- Create related tables for affiliate links
+CREATE TABLE posts_affiliate_links_metadata_links_added (
+  id serial PRIMARY KEY,
+  _parent_id integer REFERENCES posts(id) ON DELETE CASCADE,
+  _order integer,
+  product_id integer,
+  product_name varchar,
+  anchor_text varchar,
+  position integer,
+  type varchar
+);
+
+-- Create related tables for authors
+CREATE TABLE posts_populated_authors (
+  id serial PRIMARY KEY,
+  _parent_id integer REFERENCES posts(id) ON DELETE CASCADE,
+  _order integer,
+  name varchar
+);
+
 CREATE TABLE posts_rels (
   id serial PRIMARY KEY,
-  parent_id integer,
+  parent_id integer REFERENCES posts(id) ON DELETE CASCADE,
+  "order" integer,
   path varchar,
-  category_id integer
+  categories_id integer,
+  tags_id integer,
+  posts_id integer,
+  users_id integer
 );
 
 CREATE TABLE header (
@@ -151,10 +201,10 @@ INSERT INTO posts (title, slug, excerpt, content, _status, published_at, meta_ti
    'オカメインコのケア方法 - かわいい小鳥ブログ',
    'オカメインコの日常的なケア方法について説明します。');
 
-INSERT INTO posts_rels (parent_id, path, category_id) VALUES
-  (1, 'categories', 1),
-  (2, 'categories', 2),
-  (3, 'categories', 3);
+INSERT INTO posts_rels (parent_id, "order", path, categories_id) VALUES
+  (1, 0, 'categories', 1),
+  (2, 0, 'categories', 2),
+  (3, 0, 'categories', 3);
 
 INSERT INTO header (id) VALUES (1);
 INSERT INTO footer (id) VALUES (1);
