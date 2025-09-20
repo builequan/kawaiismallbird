@@ -21,15 +21,23 @@ if [ -n "$DATABASE_URI" ]; then
 
   # DOWNLOAD FILES FROM GITHUB IF NOT FOUND
   if [ ! -f production-all-posts.sql.gz ]; then
-    echo "📥 Downloading production-all-posts.sql.gz from GitHub..."
-    wget -q https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/production-all-posts.sql.gz 2>&1 || \
-    curl -sL -o production-all-posts.sql.gz https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
+    echo "📥 Downloading production data (115 posts) from GitHub..."
+    curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-115-posts.sql.gz 2>&1
+    if [ $? -eq 0 ]; then
+      echo "✅ Downloaded production-all-posts.sql.gz successfully"
+    else
+      echo "⚠️ Failed to download production data"
+    fi
   fi
 
   if [ ! -f quick-import.sql ]; then
     echo "📥 Downloading quick-import.sql from GitHub..."
-    wget -q https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/quick-import.sql 2>&1 || \
-    curl -sL -o quick-import.sql https://github.com/builequan/kawaiismallbird/raw/master/kawaiitorichan/quick-import.sql 2>&1
+    curl -sL -o quick-import.sql https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/quick-import-data.sql 2>&1
+    if [ $? -eq 0 ]; then
+      echo "✅ Downloaded quick-import.sql successfully"
+    else
+      echo "⚠️ Failed to download quick import"
+    fi
   fi
 
   echo "📁 Files after download attempt:"
