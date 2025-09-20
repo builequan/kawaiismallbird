@@ -61,14 +61,13 @@ COPY --from=builder /app/src/payload.config.ts ./src/payload.config.ts
 COPY --from=builder /app/package.json ./
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy database initialization files (only the essentials)
+# Copy database initialization files
 COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/force-import.sh ./
 COPY --from=builder /app/quick-import.sql ./
-
-# Don't copy large production SQL files - we'll import directly from local
+COPY --from=builder /app/production-all-posts.sql.gz ./
 
 # Copy runtime scripts from kawaiitorichan directory
 COPY --from=builder /app/docker-entrypoint.sh ./
@@ -79,7 +78,9 @@ COPY --from=builder /app/server-wrapper.js ./
 USER root
 RUN apk add --no-cache postgresql-client npm
 RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh || true
-RUN chmod 644 ./quick-import.sql || true
+RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
+# Verify the compressed file is present
+RUN ls -lh production-all-posts.sql.gz || echo "Warning: production SQL not found"
 
 # Switch to non-root user
 USER nextjs

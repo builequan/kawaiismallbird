@@ -12,11 +12,11 @@ LOCAL_PASS="2801"
 LOCAL_HOST="127.0.0.1"
 LOCAL_PORT="5432"
 
-# Dokploy database credentials (you need to update these)
+# Dokploy database credentials
 DOKPLOY_DB="kawaii-bird-db"
 DOKPLOY_USER="postgres"
-DOKPLOY_PASS="your-dokploy-password"  # UPDATE THIS
-DOKPLOY_HOST="your-dokploy-host"  # UPDATE THIS with actual host
+DOKPLOY_PASS="2801"  # Your Dokploy PostgreSQL password
+DOKPLOY_HOST="100.94.235.84"  # Your Dokploy server IP
 DOKPLOY_PORT="5432"
 
 # Step 1: Clear existing data in Dokploy (optional, comment out if you want to keep existing data)

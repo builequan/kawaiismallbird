@@ -22,6 +22,7 @@ if [ -n "$DATABASE_URI" ]; then
   # TRY FULL PRODUCTION IMPORT FIRST
   if [ -f production-all-posts.sql.gz ]; then
     echo "🚀 DECOMPRESSING AND RUNNING FULL PRODUCTION IMPORT - 115 posts..."
+    echo "📦 File size: $(ls -lh production-all-posts.sql.gz | awk '{print $5}')"
     gunzip -c production-all-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
 
     # Check if it worked
