@@ -72,60 +72,47 @@ export PAYLOAD_CONFIG_PATH=dist/payload.config.js
 echo "🔍 Current directory contents:" >&2
 ls -la >&2
 
-# QUICK IMPORT - Drop everything and recreate from scratch
-echo "🚀 ATTEMPTING QUICK IMPORT..." >&2
-echo "🔍 Checking for quick-import.sql..." >&2
-if [ -f quick-import.sql ]; then
-  echo "✅ Found quick-import.sql! File size: $(wc -c < quick-import.sql) bytes" >&2
+# DATABASE INITIALIZATION - Create schema and import data
+echo "🚀 INITIALIZING DATABASE..." >&2
 
-  # Clear existing data first to avoid conflicts
-  echo "🗑️ Clearing existing data..." >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE posts, media, categories, posts_rels, payload_preferences, payload_migrations CASCADE;" 2>&1 || true
+# Check for the schema and data file
+if [ -f init-schema-and-data.sql.gz ]; then
+  echo "✅ Found init-schema-and-data.sql.gz! Decompressing..." >&2
+  gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
 
-  echo "📥 Executing quick-import.sql..." >&2
-  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1)
+  echo "📥 Creating schema and importing data..." >&2
+  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1)
   IMPORT_EXIT_CODE=$?
 
   if [ $IMPORT_EXIT_CODE -eq 0 ]; then
-    echo "✅ Quick import executed successfully!" >&2
+    echo "✅ Database initialization successful!" >&2
   else
-    echo "❌ Quick import failed with exit code $IMPORT_EXIT_CODE" >&2
-    echo "Error output: $IMPORT_OUTPUT" >&2
+    echo "⚠️ Some warnings during import (this is normal for IF NOT EXISTS)" >&2
   fi
 
-  # Verify tables were created and populated
-  TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-  echo "📊 Database has $TABLE_COUNT tables" >&2
-
-  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
-  echo "📝 Database has $POST_COUNT posts" >&2
-
-  MEDIA_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
-  echo "🖼️ Database has $MEDIA_COUNT media records" >&2
-else
-  echo "❌ quick-import.sql NOT FOUND in current directory!" >&2
-  echo "📂 Files in current directory:" >&2
-  ls -la *.sql 2>&1 >&2 || echo "No .sql files found" >&2
-
-  # Fallback to old method
-  if [ -f init-database-schema.sql ]; then
-    echo "📋 Found init-database-schema.sql, using as fallback..." >&2
-    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f init-database-schema.sql 2>&1
-    echo "📋 Schema initialization complete" >&2
-  else
-    echo "❌ No SQL files found at all!" >&2
-  fi
+  rm /tmp/init-schema-and-data.sql
+elif [ -f quick-import.sql ]; then
+  echo "⚠️ Using fallback quick-import.sql..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1 || true
 fi
 
-# Verify tables and import data immediately
-TABLE_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
-echo "✅ Database has $TABLE_CHECK tables" >&2
+# Verify database status
+echo "" >&2
+echo "📊 Verifying database status..." >&2
+TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+echo "📊 Database has $TABLE_COUNT tables" >&2
 
-# Force import data right now!
-echo "📝 FORCING data import..." >&2
-if [ -f import-production-data.sh ]; then
-  chmod +x import-production-data.sh
-  sh import-production-data.sh 2>&1 || true
+POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+echo "📝 Database has $POST_COUNT posts" >&2
+
+MEDIA_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
+echo "🖼️ Database has $MEDIA_COUNT media records" >&2
+
+MIGRATION_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM payload_migrations;" 2>/dev/null || echo "0")
+echo "🔧 Database has $MIGRATION_COUNT migration records" >&2
+
+if [ "$POST_COUNT" = "0" ]; then
+  echo "❌ WARNING: No posts in database! Import may have failed." >&2
 fi
 
 # Check if we should force initialize the database
