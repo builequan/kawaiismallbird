@@ -8,7 +8,12 @@ export async function GET(
 ) {
   try {
     // Get the full file path - check both possible locations
-    const fileName = params.path.join('/')
+    let fileName = params.path.join('/')
+
+    // Remove 'file/' prefix if it exists (legacy URL format)
+    if (fileName.startsWith('file/')) {
+      fileName = fileName.substring(5)
+    }
 
     // Try public/media first (development)
     let filePath = path.join(process.cwd(), 'public', 'media', fileName)

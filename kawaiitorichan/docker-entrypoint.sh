@@ -136,7 +136,14 @@ echo ""
 echo ""
 echo "🦜 Initializing Kawaii Bird theme content..."
 if [ -f init-bird-production.sh ]; then
-  sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
+  echo "Running init-bird-production.sh..."
+  sh init-bird-production.sh
+  INIT_EXIT_CODE=$?
+  if [ $INIT_EXIT_CODE -eq 0 ]; then
+    echo "✅ Bird theme initialization completed successfully!"
+  else
+    echo "⚠️ Bird theme initialization had issues but continuing..."
+  fi
 fi
 
 # Check if media files exist, if not download them
