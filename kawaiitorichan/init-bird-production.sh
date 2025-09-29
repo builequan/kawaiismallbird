@@ -62,6 +62,9 @@ if [ -n "$DATABASE_URI" ]; then
   # TRY COMPLETE GOLFER BACKUP FIRST (342 posts)
   if [ -f golfer_backup.sql ]; then
     echo "🚀 RUNNING COMPLETE GOLFER BACKUP IMPORT - 342 Japanese posts..."
+    echo "🧹 Dropping existing database first for clean import..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" 2>&1
+    echo "📥 Now importing complete backup..."
     psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f golfer_backup.sql 2>&1
 
     # Check if it worked
