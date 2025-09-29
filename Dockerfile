@@ -17,9 +17,9 @@ COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 13:00
+# Cache bust - Force rebuild at 2025-09-30 14:00
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-13:00:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-14:00:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
