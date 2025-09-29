@@ -46,6 +46,17 @@ export const AdminBar: React.FC<{
     setShow(Boolean(user?.id))
   }, [])
 
+  // FIX: Use actual browser URL instead of build-time environment variable
+  // This ensures the admin bar always uses the correct domain
+  const getCmsURL = () => {
+    if (typeof window !== 'undefined') {
+      // Use the current browser location
+      return `${window.location.protocol}//${window.location.host}`
+    }
+    // Fallback for SSR (shouldn't be used since this is a client component)
+    return getClientSideURL()
+  }
+
   return (
     <div
       className={cn(baseClass, 'py-2 bg-black text-white', {
@@ -62,7 +73,7 @@ export const AdminBar: React.FC<{
             logo: 'text-white',
             user: 'text-white',
           }}
-          cmsURL={getClientSideURL()}
+          cmsURL={getCmsURL()}
           collectionSlug={collection}
           collectionLabels={{
             plural: collectionLabels[collection]?.plural || 'Pages',
