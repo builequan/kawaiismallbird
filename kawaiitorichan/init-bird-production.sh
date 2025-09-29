@@ -59,8 +59,57 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Files after download attempt:"
   ls -la *.sql* 2>&1
 
-  # TRY ESSENTIAL DATA IMPORT FIRST (285 Japanese bird posts)
-  if [ -f essential_data.sql ]; then
+  # TRY COMPLETE DATA IMPORT FIRST (352 Japanese bird posts)
+  if [ -f current-complete-data-352-posts.sql ]; then
+    echo "🚀 RUNNING COMPLETE DATA IMPORT - 352 Japanese bird posts..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f current-complete-data-352-posts.sql 2>&1
+
+    # Check if it worked
+    POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
+    CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+    MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
+
+    if [ "$POST_COUNT" -gt "0" ]; then
+      echo "✅ COMPLETE DATA IMPORT SUCCESS: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media items!"
+
+      # Clear users table for fresh registration
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
+      echo "✅ Cleared users table for fresh registration"
+
+      # Fix media URLs
+      echo "🔧 Fixing media URLs..."
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
+UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
+EOF
+
+      # Download media files
+      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
+      cd /app/public/media
+      if [ -f /app/media-files-list.txt ]; then
+        echo "Using verified media list (347 files)..."
+        COUNT=0
+        TOTAL=$(wc -l < /app/media-files-list.txt)
+        while read filename; do
+          if [ -n "$filename" ]; then
+            COUNT=$((COUNT + 1))
+            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
+              echo "Progress: $COUNT/$TOTAL files..."
+            fi
+            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
+          fi
+        done < /app/media-files-list.txt
+        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
+        echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      fi
+
+      echo "🌐 Complete data import complete with $POST_COUNT Japanese bird posts!"
+      exit 0
+    else
+      echo "⚠️ Complete data import failed, trying essential data..."
+    fi
+  # FALLBACK: TRY ESSENTIAL DATA IMPORT (285 posts)
+  elif [ -f essential_data.sql ]; then
     echo "🚀 RUNNING ESSENTIAL DATA IMPORT - 285 posts + all media..."
     psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f essential_data.sql 2>&1
 
