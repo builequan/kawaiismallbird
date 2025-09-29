@@ -8,7 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-09-20-22:50
+ARG REBUILD_TIMESTAMP=2025-09-29-16:30
 
 # Copy all files from kawaiitorichan subdirectory
 COPY kawaiitorichan/ .
@@ -57,10 +57,13 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/schema.sql ./
 
-# Copy bird theme SQL initialization
+# Copy bird theme SQL initialization and ALL data files
 COPY --from=builder /app/init-bird-content.sql ./
 COPY --from=builder /app/init-full-bird-content.sql ./
 COPY --from=builder /app/init-bird-production.sh ./
+COPY --from=builder /app/production-data-115-posts.sql.gz ./
+COPY --from=builder /app/quick-import-data.sql ./
+COPY --from=builder /app/media-files-list.txt ./
 RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh
 
 # Change ownership of all files to nextjs user
