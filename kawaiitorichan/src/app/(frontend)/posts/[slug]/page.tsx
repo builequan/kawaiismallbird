@@ -13,6 +13,7 @@ import AffiliateLinksEnhanced from '@/components/AffiliateLinksEnhanced'
 import ContentWithAffiliateLinksOptimized from '@/components/ContentWithAffiliateLinksOptimized'
 import SemanticRelatedPosts from '@/components/SemanticRelatedPosts'
 import PostReferences from '@/components/PostReferences'
+import TableOfContents from '@/components/TableOfContents'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -126,6 +127,9 @@ export default async function Post({ params: paramsPromise }: Args) {
       <div className="flex flex-col items-center gap-4 pt-8 text-gray-900">
         <div className="container lg:grid lg:grid-cols-[1fr_48rem_1fr]">
           <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-8 pb-8 text-gray-900">
+            {/* Table of Contents */}
+            <TableOfContents content={post.content} className="mb-8" />
+
             {/* Wrap content to add inline affiliate links */}
             <ContentWithAffiliateLinksOptimized postId={String(post.id)} products={affiliateProducts}>
               {/* Display content without references section */}
@@ -136,7 +140,7 @@ export default async function Post({ params: paramsPromise }: Args) {
             <PostReferences content={post.content} defaultOpen={false} />
 
             {/* Display enhanced affiliate product recommendations with products from the article */}
-            <AffiliateLinksEnhanced postId={post.id} content={post.content} />
+            <AffiliateLinksEnhanced postId={String(post.id)} content={post.content} />
           </div>
         </div>
         

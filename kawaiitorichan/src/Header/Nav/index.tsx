@@ -56,7 +56,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
     }
   }, [isMobileMenuOpen])
 
-  // Static Japanese navigation items for bird site
+  // Updated Japanese navigation items based on new category structure
   const japaneseNavItems = [
     { label: '私たちについて', href: '/about-us' },
     {
@@ -66,61 +66,82 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       hasNestedDropdown: true,
       dropdownItems: [
         {
-          label: '🏠 鳥の飼い方',
-          href: '/bird-care',
+          label: '🦜 鳥の種類',
+          href: '/categories/bird-species',
           submenu: [
-            { label: '飼育環境・ケージ設定', href: '/bird-care#cage-setup' },
-            { label: '健康・獣医ケア', href: '/bird-care#health-care' },
-            { label: '栄養・餌やり', href: '/bird-care#feeding' },
-            { label: '行動・トレーニング', href: '/bird-care#behavior-training' },
-            { label: '法律・倫理・飼育の考慮', href: '/bird-care#legal-ethics' },
+            { label: 'セキセイインコ', href: '/categories/budgerigar' },
+            { label: 'オカメインコ', href: '/categories/cockatiel' },
+            { label: 'ラブバード', href: '/categories/lovebird' },
+            { label: 'ゼブラフィンチ', href: '/categories/zebra-finch' },
+            { label: '文鳥', href: '/categories/society-finch' },
+            { label: 'ゴシキキンカン', href: '/categories/gouldian-finch' },
+            { label: 'カナリア', href: '/categories/canary' },
+            { label: 'マメルリハ', href: '/categories/parrotlet' },
+            { label: 'ジュウシマツ', href: '/categories/munias' }
+          ]
+        },
+        {
+          label: '🏠 鳥の飼い方',
+          href: '/categories/bird-care',
+          submenu: [
+            { label: 'ケージと飼育環境', href: '/categories/housing-enclosures' },
+            { label: 'ケージサイズと設置', href: '/categories/cage-setup' },
+            { label: '止まり木と設備', href: '/categories/perches-accessories' },
+            { label: '温度と湿度管理', href: '/categories/temperature-humidity' },
+            { label: '照明設備', href: '/categories/lighting' },
+            { label: '清掃と衛生管理', href: '/categories/cleaning-hygiene' }
           ]
         },
         {
           label: '💊 鳥の健康',
           href: '/categories/bird-health',
           submenu: [
-            { label: '定期健康診断', href: '/categories/bird-health' },
-            { label: '一般的な呼吸器疾患', href: '/categories/bird-health' },
-            { label: '羽の抜け替わり管理', href: '/categories/bird-health' },
-            { label: '爪とくちばしのケア', href: '/categories/bird-health' },
-            { label: '寄生虫予防', href: '/categories/bird-health' },
-            { label: '緊急時の応急処置', href: '/categories/bird-health' },
-          ]
-        },
-        {
-          label: '🦜 鳥の種類',
-          href: '/bird-species',
-          submenu: [
-            { label: 'インコ・オウム類', href: '/bird-species#parrots' },
-            { label: 'フィンチ類', href: '/bird-species#finches' },
-            { label: '文鳥・カナリア', href: '/bird-species#java-canary' },
-            { label: '野鳥の種類', href: '/bird-species#wild-birds' },
-            { label: '希少種・保護種', href: '/bird-species#rare-species' },
+            { label: '日常の健康管理', href: '/categories/daily-health-care' },
+            { label: '病気の症状と対処', href: '/categories/illness-treatment' },
+            { label: '応急処置', href: '/categories/emergency-care' },
+            { label: '獣医師の診察', href: '/categories/veterinary-care' },
+            { label: '換羽期のケア', href: '/categories/molting-care' },
+            { label: '繁殖と産卵', href: '/categories/breeding-care' }
           ]
         },
         {
           label: '🌿 鳥の生態',
-          href: '/categories/bird-ecology',
+          href: '/categories/bird-behavior',
           submenu: [
-            { label: '自然な行動パターン', href: '/categories/bird-ecology' },
-            { label: '繁殖と子育て', href: '/categories/bird-ecology' },
-            { label: '渡り鳥の生態', href: '/categories/bird-ecology' },
-            { label: '生息地と環境', href: '/categories/bird-ecology' },
-            { label: '進化と適応', href: '/categories/bird-ecology' },
+            { label: '鳴き声と意思疎通', href: '/categories/vocalizations' },
+            { label: '行動パターン', href: '/categories/behavior-patterns' },
+            { label: 'しつけと訓練', href: '/categories/training' },
+            { label: 'ストレス管理', href: '/categories/stress-management' },
+            { label: '社会性と多頭飼い', href: '/categories/social-behavior' },
+            { label: '遊びと運動', href: '/categories/play-exercise' }
           ]
         },
         {
           label: '🔭 野鳥観察',
-          href: '/categories/wild-birds',
+          href: '/categories/bird-watching',
           submenu: [
-            { label: '観察の基本', href: '/categories/wild-birds' },
-            { label: 'おすすめスポット', href: '/categories/wild-birds' },
-            { label: '種類の識別', href: '/categories/wild-birds' },
-            { label: '季節の野鳥', href: '/categories/wild-birds' },
-            { label: '観察記録', href: '/categories/wild-birds' },
+            { label: '観察の基本', href: '/categories/observation-basics' },
+            { label: '観察場所', href: '/categories/observation-locations' },
+            { label: '観察用具', href: '/categories/observation-equipment' },
+            { label: '季節別観察', href: '/categories/seasonal-observation' },
+            { label: '記録と写真', href: '/categories/recording-photography' },
+            { label: '保護と環境', href: '/categories/conservation' }
           ]
         },
+        {
+          label: '🥗 餌と栄養',
+          href: '/categories/nutrition-feeding',
+          submenu: [
+            { label: '基本的な餌', href: '/categories/basic-diet' },
+            { label: '新鮮な野菜と果物', href: '/categories/fresh-foods' },
+            { label: 'タンパク質源', href: '/categories/protein-sources' },
+            { label: 'サプリメント', href: '/categories/supplements' },
+            { label: '危険な食べ物', href: '/categories/toxic-foods' },
+            { label: '給餌スケジュール', href: '/categories/feeding-schedule' },
+            { label: '水分補給', href: '/categories/hydration' },
+            { label: '季節別の栄養', href: '/categories/seasonal-nutrition' }
+          ]
+        }
       ]
     },
     { label: 'お問い合わせ', href: '/contact' },
