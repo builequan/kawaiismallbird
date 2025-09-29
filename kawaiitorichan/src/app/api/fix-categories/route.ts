@@ -74,38 +74,134 @@ export async function GET() {
     // Check current category count
     const currentCount = await payload.count({ collection: 'categories' })
 
-    if (currentCount.totalDocs > 0) {
-      return NextResponse.json({
-        success: true,
-        message: `Categories already exist (${currentCount.totalDocs} found). Skipping insertion.`,
-        categoriesCount: currentCount.totalDocs,
-      })
-    }
-
     const results = []
     let successCount = 0
     let errorCount = 0
+    let skippedCount = 0
 
-    // Insert categories one by one
-    for (const cat of categories) {
+    // Map to store old ID -> new ID mappings for parent relationships
+    const idMap = new Map<number, number>()
+
+    // Separate main categories and subcategories
+    const mainCategories = categories.filter(c => c.parent === null)
+    const subCategories = categories.filter(c => c.parent !== null)
+
+    // Insert main categories first (without specifying ID)
+    for (const cat of mainCategories) {
       try {
-        await payload.create({
+        // Check if category with this slug already exists
+        const existing = await payload.find({
+          collection: 'categories',
+          where: { slug: { equals: cat.slug } },
+          limit: 1,
+        })
+
+        if (existing.docs.length > 0) {
+          idMap.set(cat.id, existing.docs[0].id)
+          skippedCount++
+          results.push({
+            oldId: cat.id,
+            newId: existing.docs[0].id,
+            title: cat.title,
+            status: 'already_exists'
+          })
+          continue
+        }
+
+        const created = await payload.create({
           collection: 'categories',
           data: {
-            id: cat.id,
             title: cat.title,
             slug: cat.slug,
             description: cat.description,
             order: cat.order,
             slugLock: true,
-            parent: cat.parent,
           },
         })
+
+        // Store the mapping of old ID to new ID
+        idMap.set(cat.id, created.id)
         successCount++
-        results.push({ id: cat.id, title: cat.title, status: 'created' })
+        results.push({
+          oldId: cat.id,
+          newId: created.id,
+          title: cat.title,
+          status: 'created'
+        })
       } catch (error: any) {
         errorCount++
-        results.push({ id: cat.id, title: cat.title, status: 'error', error: error.message })
+        results.push({
+          oldId: cat.id,
+          title: cat.title,
+          status: 'error',
+          error: error.message
+        })
+      }
+    }
+
+    // Now insert subcategories with proper parent references
+    for (const cat of subCategories) {
+      try {
+        // Check if category with this slug already exists
+        const existing = await payload.find({
+          collection: 'categories',
+          where: { slug: { equals: cat.slug } },
+          limit: 1,
+        })
+
+        if (existing.docs.length > 0) {
+          skippedCount++
+          results.push({
+            oldId: cat.id,
+            newId: existing.docs[0].id,
+            title: cat.title,
+            status: 'already_exists'
+          })
+          continue
+        }
+
+        // Get the new parent ID from the map
+        const newParentId = cat.parent ? idMap.get(cat.parent) : null
+
+        if (cat.parent && !newParentId) {
+          errorCount++
+          results.push({
+            oldId: cat.id,
+            title: cat.title,
+            status: 'error',
+            error: `Parent category ${cat.parent} not found`
+          })
+          continue
+        }
+
+        const created = await payload.create({
+          collection: 'categories',
+          data: {
+            title: cat.title,
+            slug: cat.slug,
+            description: cat.description,
+            order: cat.order,
+            slugLock: true,
+            parent: newParentId,
+          },
+        })
+
+        successCount++
+        results.push({
+          oldId: cat.id,
+          newId: created.id,
+          title: cat.title,
+          status: 'created',
+          parentId: newParentId
+        })
+      } catch (error: any) {
+        errorCount++
+        results.push({
+          oldId: cat.id,
+          title: cat.title,
+          status: 'error',
+          error: error.message
+        })
       }
     }
 
@@ -114,8 +210,9 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      message: `Inserted ${successCount} categories successfully, ${errorCount} errors`,
+      message: `Inserted ${successCount} categories, ${skippedCount} already existed, ${errorCount} errors`,
       categoriesInserted: successCount,
+      skipped: skippedCount,
       errors: errorCount,
       finalCount: finalCount.totalDocs,
       results,
