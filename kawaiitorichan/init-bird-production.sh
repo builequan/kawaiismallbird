@@ -60,11 +60,16 @@ if [ -n "$DATABASE_URI" ]; then
   ls -la *.sql* 2>&1
 
   # TRY COMPLETE DATA IMPORT FIRST (352 Japanese bird posts)
-  if [ -f current-complete-data-352-posts.sql ]; then
+  if [ -f current-complete-data-352-posts.sql.gz ]; then
+    echo "🚀 RUNNING COMPLETE DATA IMPORT - 352 Japanese bird posts (compressed)..."
+    gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
+  elif [ -f current-complete-data-352-posts.sql ]; then
     echo "🚀 RUNNING COMPLETE DATA IMPORT - 352 Japanese bird posts..."
     psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f current-complete-data-352-posts.sql 2>&1
+  fi
 
-    # Check if it worked
+  # Check if complete data import worked
+  if [ -f current-complete-data-352-posts.sql.gz ] || [ -f current-complete-data-352-posts.sql ]; then
     POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
     CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
     MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
