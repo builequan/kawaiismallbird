@@ -125,35 +125,13 @@ AND jsonb_typeof(p.content) = 'object';
 EOF
       echo "✅ Hero images set from content"
 
-      # Download media files
-      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
-      mkdir -p /app/public/media
-      cd /app/public/media
-
-      # Download ALL media files directly from database
-      echo "Downloading media files based on database entries..."
-      COUNT=0
-      TOTAL=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA -c "SELECT COUNT(*) FROM media WHERE filename IS NOT NULL;")
-      echo "Found $TOTAL media files to download..."
-
-      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA -c "SELECT filename FROM media WHERE filename IS NOT NULL;" | while read filename; do
-        if [ -n "$filename" ]; then
-          COUNT=$((COUNT + 1))
-          if [ $((COUNT % 50)) -eq 0 ] || [ $COUNT -eq 1 ]; then
-            echo "Progress: $COUNT/$TOTAL files..."
-          fi
-          # Download using wget or curl
-          if command -v wget > /dev/null 2>&1; then
-            wget -q -O "$filename" "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null || true
-          elif command -v curl > /dev/null 2>&1; then
-            curl -sL -o "$filename" "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null || true
-          fi
-        fi
-      done
-
-      DOWNLOADED=$(ls -1 2>/dev/null | wc -l)
-      echo "✅ Downloaded $DOWNLOADED media files successfully!"
-      cd /app
+      # Use smart media sync
+      echo "📥 Running smart media sync..."
+      if [ -f /app/smart-media-sync.sh ]; then
+        sh /app/smart-media-sync.sh
+      else
+        echo "⚠️ smart-media-sync.sh not found"
+      fi
 
       echo "🌐 Complete data import complete with $POST_COUNT Japanese bird posts!"
       exit 0
@@ -264,24 +242,12 @@ AND jsonb_typeof(p.content) = 'object';
 EOF
       echo "✅ Hero images set from content"
 
-      # Download media files (same as existing code)
-      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
-      cd /app/public/media
-      if [ -f /app/media-files-list.txt ]; then
-        echo "Using verified media list (347 files)..."
-        COUNT=0
-        TOTAL=$(wc -l < /app/media-files-list.txt)
-        while read filename; do
-          if [ -n "$filename" ]; then
-            COUNT=$((COUNT + 1))
-            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
-              echo "Progress: $COUNT/$TOTAL files..."
-            fi
-            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
-          fi
-        done < /app/media-files-list.txt
-        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
-        echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      # Use smart media sync
+      echo "📥 Running smart media sync..."
+      if [ -f /app/smart-media-sync.sh ]; then
+        sh /app/smart-media-sync.sh
+      else
+        echo "⚠️ smart-media-sync.sh not found"
       fi
 
       echo "🌐 Essential data initialization complete with $POST_COUNT posts!"
@@ -419,37 +385,13 @@ EOF
       echo "📋 Sample media files in database:"
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT filename FROM media WHERE filename IS NOT NULL LIMIT 5" 2>/dev/null || true
 
-      # Download media files from GitHub
+      # Use smart media sync
       echo ""
-      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
-      cd /app/public/media
-
-      # Use the verified media list file
-      if [ -f /app/media-files-list.txt ]; then
-        echo "Using verified media list (347 files)..."
-        COUNT=0
-        TOTAL=$(wc -l < /app/media-files-list.txt)
-
-        # Download each file from the list
-        while read filename; do
-          if [ -n "$filename" ]; then
-            COUNT=$((COUNT + 1))
-
-            # Show progress every 10 files
-            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
-              echo "Progress: $COUNT/$TOTAL files..."
-            fi
-
-            # Download silently
-            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
-          fi
-        done < /app/media-files-list.txt
-
-        echo ""
-        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
-        echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      echo "📥 Running smart media sync..."
+      if [ -f /app/smart-media-sync.sh ]; then
+        sh /app/smart-media-sync.sh
       else
-        echo "⚠️ Media list file not found, skipping media download"
+        echo "⚠️ smart-media-sync.sh not found"
       fi
 
       echo "🌐 Kawaii Bird production initialization complete!"

@@ -294,17 +294,14 @@ if [ -f init-bird-production.sh ]; then
   fi
 fi
 
-# Check if media files exist, if not download them
+# Smart media sync - downloads only missing files
 echo ""
-echo "🖼️ Checking media files..."
-MEDIA_COUNT=$(find /app/public/media -type f 2>/dev/null | wc -l || echo "0")
-if [ "$MEDIA_COUNT" -lt "100" ]; then
-  echo "⚠️ Media files missing (found only $MEDIA_COUNT files), downloading..."
-  if [ -f download-media.sh ]; then
-    sh download-media.sh || echo "Media download completed or failed"
-  fi
+echo "🖼️ Running smart media sync..."
+if [ -f smart-media-sync.sh ]; then
+  chmod +x smart-media-sync.sh
+  sh smart-media-sync.sh || echo "⚠️ Media sync had issues but continuing..."
 else
-  echo "✅ Media files found: $MEDIA_COUNT files"
+  echo "⚠️ smart-media-sync.sh not found, skipping media sync"
 fi
 
 # FINAL VALIDATION before starting app
