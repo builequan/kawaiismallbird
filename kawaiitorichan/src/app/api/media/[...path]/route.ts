@@ -7,11 +7,25 @@ export async function GET(
   { params }: { params: { path: string[] } }
 ) {
   try {
-    // Get the full file path
-    const filePath = path.join(process.cwd(), 'public', 'media', ...params.path)
+    // Get the full file path - check both possible locations
+    const fileName = params.path.join('/')
+
+    // Try public/media first (development)
+    let filePath = path.join(process.cwd(), 'public', 'media', fileName)
+
+    // In production/standalone, files might be in different location
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(process.cwd(), '.next', 'static', 'media', fileName)
+    }
+
+    // Also check the app directory itself
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join('/app', 'public', 'media', fileName)
+    }
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
+      console.error(`Media file not found: ${filePath}`)
       return new NextResponse('File not found', { status: 404 })
     }
 

@@ -49,6 +49,15 @@ const nextConfig = {
   },
   reactStrictMode: true,
   redirects,
+  // Rewrite media URLs to serve from public directory
+  async rewrites() {
+    return [
+      {
+        source: '/media/:path*',
+        destination: '/api/media/:path*',
+      },
+    ]
+  },
   // Allow cross-origin requests from the generated domain
   async headers() {
     return [
