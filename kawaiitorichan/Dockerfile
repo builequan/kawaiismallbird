@@ -52,6 +52,8 @@ COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/reset-and-init-db.sh ./
+COPY --from=builder /app/ensure-status-column.sh ./
+COPY --from=builder /app/simple-status-fix.sql ./
 COPY --from=builder /app/download-media.sh ./
 
 # Copy bird theme SQL initialization and ALL data files
@@ -66,7 +68,7 @@ COPY --from=builder /app/quick-import.sql ./
 COPY --from=builder /app/init-schema-and-data.sql.gz ./
 COPY --from=builder /app/final-import.sql.gz ./
 COPY --from=builder /app/media-files-list.txt ./
-RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./reset-and-init-db.sh ./init-bird-production.sh ./download-media.sh
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./reset-and-init-db.sh ./init-bird-production.sh ./download-media.sh ./ensure-status-column.sh
 
 # Change ownership of all files to nextjs user
 RUN chown -R nextjs:nodejs /app

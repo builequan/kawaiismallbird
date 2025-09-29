@@ -75,14 +75,14 @@ ls -la >&2
 # DATABASE INITIALIZATION - Create schema and import data
 echo "🚀 INITIALIZING DATABASE..." >&2
 
-# First, reset and create proper schema
+# First, try to create schema using reset script
 if [ -f reset-and-init-db.sh ]; then
   echo "🔄 Running database reset to ensure proper schema..." >&2
   chmod +x reset-and-init-db.sh
-  sh reset-and-init-db.sh
+  sh reset-and-init-db.sh 2>&1 | head -50 >&2
 fi
 
-# Then import only the data (schema already created)
+# Then import data
 if [ -f quick-import.sql ]; then
   echo "📥 Importing data into database..." >&2
 
@@ -104,11 +104,54 @@ if [ -f quick-import.sql ]; then
 elif [ -f init-schema-and-data.sql.gz ]; then
   echo "⚠️ Using fallback init-schema-and-data.sql.gz..." >&2
   gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1 || true
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1 | head -50 >&2
   rm /tmp/init-schema-and-data.sql
-elif [ -f quick-import.sql ]; then
-  echo "⚠️ Using fallback quick-import.sql..." >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1 || true
+fi
+
+# CRITICAL: Run failsafe to ensure _status column exists
+echo "" >&2
+echo "🔧 Running failsafe column check..." >&2
+if [ -f ensure-status-column.sh ]; then
+  chmod +x ensure-status-column.sh
+  sh ensure-status-column.sh 2>&1
+elif [ -f simple-status-fix.sql ]; then
+  echo "⚠️ Using simple-status-fix.sql..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f simple-status-fix.sql 2>&1 | head -20 >&2
+else
+  echo "⚠️ Scripts not found, trying inline fix..." >&2
+
+  # Inline failsafe - use VARCHAR instead of ENUM for maximum compatibility
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOF' 2>&1 | head -20 >&2
+-- Emergency inline fix using VARCHAR (most compatible)
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS _status VARCHAR DEFAULT 'published' NOT NULL;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'ja' NOT NULL;
+
+-- Update any NULL values
+UPDATE posts SET _status = 'published' WHERE _status IS NULL OR _status = '';
+UPDATE posts SET language = 'ja' WHERE language IS NULL OR language = '';
+
+-- Add constraints
+DO $$ BEGIN
+  ALTER TABLE posts ADD CONSTRAINT posts_status_check CHECK (_status IN ('draft', 'published'));
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE posts ADD CONSTRAINT posts_language_check CHECK (language IN ('ja', 'en'));
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- Add indexes
+CREATE INDEX IF NOT EXISTS posts__status_idx ON posts (_status);
+CREATE INDEX IF NOT EXISTS posts_language_idx ON posts (language);
+EOF
+fi
+
+# Double-check that _status column exists
+echo "🔍 Final _status column verification..." >&2
+STATUS_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'posts' AND column_name = '_status';" 2>/dev/null)
+if [ -n "$STATUS_CHECK" ]; then
+  echo "✅ _status column verified: $STATUS_CHECK" >&2
+else
+  echo "❌ CRITICAL: _status column still missing!" >&2
 fi
 
 # Verify database status
