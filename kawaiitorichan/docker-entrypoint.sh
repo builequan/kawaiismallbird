@@ -142,6 +142,13 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 -- Add indexes
 CREATE INDEX IF NOT EXISTS posts__status_idx ON posts (_status);
 CREATE INDEX IF NOT EXISTS posts_language_idx ON posts (language);
+
+-- Fix media table columns (common Payload CMS issue)
+ALTER TABLE media ADD COLUMN IF NOT EXISTS prefix VARCHAR DEFAULT 'media';
+ALTER TABLE media ADD COLUMN IF NOT EXISTS _key VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_x NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_y NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS thumbnail_u_r_l VARCHAR;
 EOF
 fi
 

@@ -37,3 +37,10 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS meta_focus_keyphrase VARCHAR;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS excerpt JSONB;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS internal_links_metadata_version VARCHAR;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS affiliate_links_metadata_version VARCHAR;
+
+-- Fix media table columns (common Payload CMS issue)
+ALTER TABLE media ADD COLUMN IF NOT EXISTS prefix VARCHAR DEFAULT 'media';
+ALTER TABLE media ADD COLUMN IF NOT EXISTS _key VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_x NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_y NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS thumbnail_u_r_l VARCHAR;

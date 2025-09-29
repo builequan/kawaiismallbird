@@ -102,6 +102,36 @@ else
   echo "❌ Posts table doesn't exist - need to create schema first" >&2
 fi
 
+# Check media table for prefix column (common issue with Payload CMS)
+echo "" >&2
+echo "🖼️ Checking media table..." >&2
+MEDIA_TABLE_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'media');" 2>/dev/null | tr -d ' ')
+
+if [ "$MEDIA_TABLE_EXISTS" = "t" ]; then
+  echo "✅ Media table exists" >&2
+
+  # Check if prefix column exists (common Payload CMS issue)
+  PREFIX_EXISTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'media' AND column_name = 'prefix');" 2>/dev/null | tr -d ' ')
+
+  if [ "$PREFIX_EXISTS" = "f" ] || [ -z "$PREFIX_EXISTS" ]; then
+    echo "⚠️ prefix column is MISSING in media table! Adding it now..." >&2
+
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOF' 2>&1 | head -20
+-- Add prefix column to media table (required by Payload CMS)
+ALTER TABLE media ADD COLUMN IF NOT EXISTS prefix VARCHAR DEFAULT 'media';
+
+-- Add other commonly missing media columns
+ALTER TABLE media ADD COLUMN IF NOT EXISTS _key VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_x NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_y NUMERIC;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS thumbnail_u_r_l VARCHAR;
+EOF
+    echo "✅ prefix column added to media table!" >&2
+  else
+    echo "✅ prefix column already exists in media table" >&2
+  fi
+fi
+
 # Final status report
 echo "" >&2
 echo "📊 Database column status:" >&2
