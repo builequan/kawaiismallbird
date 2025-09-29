@@ -161,6 +161,79 @@ else
   echo "❌ CRITICAL: _status column still missing!" >&2
 fi
 
+# COMPREHENSIVE FIX: Run complete schema fix for all metadata columns and tables
+echo "" >&2
+echo "🔧 Running comprehensive schema fix..." >&2
+if [ -f comprehensive-schema-fix.sql ]; then
+  echo "Applying comprehensive schema fixes..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f comprehensive-schema-fix.sql 2>&1 | head -50 >&2
+else
+  echo "⚠️ comprehensive-schema-fix.sql not found, applying inline fixes..." >&2
+
+  # Inline comprehensive fixes
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOF' 2>&1 | head -50 >&2
+-- Emergency inline comprehensive fix
+-- Add all WordPress metadata columns
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_original_author VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_original_date TIMESTAMP(3) WITH TIME ZONE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_modified_date TIMESTAMP(3) WITH TIME ZONE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_status VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_enable_comments BOOLEAN DEFAULT true;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS wordpress_metadata_enable_toc BOOLEAN DEFAULT true;
+
+-- Add internal links metadata columns
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS internal_links_metadata_version VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS internal_links_metadata_last_processed TIMESTAMP(3) WITH TIME ZONE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS internal_links_metadata_content_hash VARCHAR;
+
+-- Add affiliate links metadata columns
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS affiliate_links_metadata_version VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS affiliate_links_metadata_last_processed TIMESTAMP(3) WITH TIME ZONE;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS affiliate_links_metadata_content_hash VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS affiliate_links_metadata_exclude_from_affiliates BOOLEAN DEFAULT false;
+
+-- Add content DB metadata columns
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS content_db_meta_original_id VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS content_db_meta_website_id NUMERIC;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS content_db_meta_language VARCHAR;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS content_db_meta_imported_at TIMESTAMP(3) WITH TIME ZONE;
+
+-- Create missing relationship tables
+CREATE TABLE IF NOT EXISTS posts_internal_links_metadata_links_added (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    target_slug VARCHAR,
+    anchor_text TEXT,
+    position INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS posts_affiliate_links_metadata_links_added (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    product_id VARCHAR,
+    product_name VARCHAR,
+    anchor_text TEXT,
+    position INTEGER,
+    type VARCHAR
+);
+
+CREATE TABLE IF NOT EXISTS posts_populated_authors (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    name VARCHAR
+);
+
+-- Fix posts_rels columns
+ALTER TABLE posts_rels ADD COLUMN IF NOT EXISTS "order" INTEGER DEFAULT 0;
+ALTER TABLE posts_rels ADD COLUMN IF NOT EXISTS parent_id INTEGER;
+ALTER TABLE posts_rels ADD COLUMN IF NOT EXISTS posts_id INTEGER;
+ALTER TABLE posts_rels ADD COLUMN IF NOT EXISTS users_id INTEGER;
+EOF
+fi
+
 # Verify database status
 echo "" >&2
 echo "📊 Verifying database status..." >&2

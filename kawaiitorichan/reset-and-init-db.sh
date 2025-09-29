@@ -97,7 +97,7 @@ CREATE TABLE media (
     CONSTRAINT media_pkey PRIMARY KEY (id)
 );
 
--- Create posts table WITH _status column
+-- Create posts table WITH all columns
 CREATE TABLE posts (
     id integer NOT NULL DEFAULT nextval('posts_id_seq'::regclass),
     title character varying,
@@ -120,7 +120,7 @@ CREATE TABLE posts (
     wordpress_metadata_original_author character varying,
     wordpress_metadata_original_date timestamp(3) with time zone,
     wordpress_metadata_modified_date timestamp(3) with time zone,
-    wordpress_metadata_status enum_posts_wordpress_metadata_status,
+    wordpress_metadata_status character varying,  -- Changed from ENUM to VARCHAR for compatibility
     wordpress_metadata_enable_comments boolean DEFAULT true,
     wordpress_metadata_enable_toc boolean DEFAULT true,
     internal_links_metadata_version character varying,
@@ -129,7 +129,7 @@ CREATE TABLE posts (
     affiliate_links_metadata_version character varying,
     affiliate_links_metadata_last_processed timestamp(3) with time zone,
     affiliate_links_metadata_content_hash character varying,
-    affiliate_links_metadata_exclude_from_affiliates boolean,
+    affiliate_links_metadata_exclude_from_affiliates boolean DEFAULT false,
     content_db_meta_original_id character varying,
     content_db_meta_website_id numeric,
     content_db_meta_language character varying,
@@ -137,19 +137,26 @@ CREATE TABLE posts (
     CONSTRAINT posts_pkey PRIMARY KEY (id)
 );
 
--- Create posts_rels table
+-- Create posts_rels table with all required columns
 CREATE TABLE posts_rels (
     id integer NOT NULL DEFAULT nextval('posts_rels_id_seq'::regclass),
     parent_id integer NOT NULL,
     path character varying NOT NULL,
+    "order" integer DEFAULT 0,
     categories_id integer REFERENCES categories(id),
     tags_id integer,
+    posts_id integer REFERENCES posts(id),
+    users_id integer,
     populated_authors_id integer,
     affiliate_links_metadata_links_added_id integer,
     internal_links_metadata_links_added_id integer,
     media_id integer REFERENCES media(id),
     CONSTRAINT posts_rels_pkey PRIMARY KEY (id)
 );
+
+-- Create index for posts_rels
+CREATE INDEX posts_rels_parent_idx ON posts_rels (parent_id);
+CREATE INDEX posts_rels_order_idx ON posts_rels ("order");
 
 -- Create other required tables
 CREATE TABLE users (
@@ -245,12 +252,49 @@ CREATE TABLE payload_locked_documents_rels (
     users_id integer REFERENCES users(id)
 );
 
+-- Create relationship tables for metadata
+CREATE TABLE posts_internal_links_metadata_links_added (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER NOT NULL DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    target_slug character varying,
+    anchor_text text,
+    position integer,
+    created_at timestamp(3) with time zone DEFAULT now(),
+    updated_at timestamp(3) with time zone DEFAULT now()
+);
+
+CREATE TABLE posts_affiliate_links_metadata_links_added (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER NOT NULL DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    product_id character varying,
+    product_name character varying,
+    anchor_text text,
+    position integer,
+    type character varying,
+    created_at timestamp(3) with time zone DEFAULT now(),
+    updated_at timestamp(3) with time zone DEFAULT now()
+);
+
+CREATE TABLE posts_populated_authors (
+    id SERIAL PRIMARY KEY,
+    _order INTEGER NOT NULL DEFAULT 0,
+    _parent_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+    name character varying,
+    created_at timestamp(3) with time zone DEFAULT now(),
+    updated_at timestamp(3) with time zone DEFAULT now()
+);
+
 -- Create indexes
 CREATE INDEX posts_created_at_idx ON posts (created_at);
 CREATE INDEX posts_updated_at_idx ON posts (updated_at);
 CREATE INDEX posts_slug_idx ON posts (slug);
 CREATE INDEX posts__status_idx ON posts (_status);
 CREATE INDEX posts_language_idx ON posts (language);
+CREATE INDEX idx_internal_links_parent ON posts_internal_links_metadata_links_added(_parent_id);
+CREATE INDEX idx_affiliate_links_parent ON posts_affiliate_links_metadata_links_added(_parent_id);
+CREATE INDEX idx_populated_authors_parent ON posts_populated_authors(_parent_id);
 
 -- Insert migration record
 INSERT INTO payload_migrations (name, batch, created_at, updated_at)
