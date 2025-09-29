@@ -250,6 +250,9 @@ echo "📊 Database has $TABLE_COUNT tables" >&2
 POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
 echo "📝 Database has $POST_COUNT posts" >&2
 
+CATEGORY_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM categories;" 2>/dev/null || echo "0")
+echo "📂 Database has $CATEGORY_COUNT categories" >&2
+
 MEDIA_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
 echo "🖼️ Database has $MEDIA_COUNT media records" >&2
 
@@ -258,6 +261,17 @@ echo "🔧 Database has $MIGRATION_COUNT migration records" >&2
 
 if [ "$POST_COUNT" = "0" ]; then
   echo "❌ WARNING: No posts in database! Import may have failed." >&2
+fi
+
+# FIX: Insert categories if missing
+if [ "$CATEGORY_COUNT" = "0" ] || [ "$CATEGORY_COUNT" = " 0" ]; then
+  echo "⚠️ No categories found, inserting default categories..." >&2
+  if [ -f insert-categories.sql ]; then
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f insert-categories.sql >&2
+    echo "✅ Categories inserted successfully!" >&2
+  else
+    echo "❌ insert-categories.sql not found!" >&2
+  fi
 fi
 
 # Check if we should force initialize the database

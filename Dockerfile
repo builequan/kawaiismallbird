@@ -88,6 +88,7 @@ COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/force-import.sh ./
 COPY --from=builder /app/media-files-list.txt ./
+COPY --from=builder /app/insert-categories.sql ./
 # Copy all SQL files that might exist
 COPY --from=builder /app/*.sql* ./
 
