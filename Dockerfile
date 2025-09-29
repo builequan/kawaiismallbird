@@ -17,15 +17,20 @@ COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 14:00
+# Cache bust - Force rebuild at 2025-09-30 15:00
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-14:00:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-15:00:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
 
 # Copy and use build environment file
 COPY kawaiitorichan/.env.build .env
+
+# Accept build-time argument for NEXT_PUBLIC_SERVER_URL from Dokploy
+ARG NEXT_PUBLIC_SERVER_URL
+# Set it as environment variable so Next.js can use it during build
+ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
 
 # Set all build-time environment variables explicitly
 ENV NODE_ENV=production
@@ -37,7 +42,6 @@ ENV PAYLOAD_CONFIG_PATH=dist/payload.config.js
 # Use a non-localhost database URL to prevent connection attempts
 ENV DATABASE_URI=postgresql://build:build@db:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime_minimum_32_chars
-ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
 
 # Verify SQL files are present
 RUN echo "=== VERIFYING SQL FILES IN BUILDER ===" && \
