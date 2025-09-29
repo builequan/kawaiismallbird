@@ -88,6 +88,30 @@ UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIK
 UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
 EOF
 
+      # Extract and set hero images from post content
+      echo "🖼️ Setting hero images from post content..."
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+-- Set hero_image_id from the first image found in post content
+UPDATE posts p
+SET hero_image_id = (
+    SELECT m.id
+    FROM media m
+    WHERE m.id IN (
+        SELECT DISTINCT (jsonb_array_elements(
+            jsonb_path_query_array(p.content, '$.root.children[*].children[*].value')
+        ))::text::int
+        FROM jsonb_path_query(p.content, '$.root.children[*].children[*]') AS node
+        WHERE node->>'type' = 'upload'
+        AND node->>'relationTo' = 'media'
+    )
+    LIMIT 1
+)
+WHERE p.hero_image_id IS NULL
+AND p.content IS NOT NULL
+AND jsonb_typeof(p.content) = 'object';
+EOF
+      echo "✅ Hero images set from content"
+
       # Download media files
       echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
       cd /app/public/media
@@ -192,6 +216,30 @@ EOF
 UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
 UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
 EOF
+
+      # Extract and set hero images from post content
+      echo "🖼️ Setting hero images from post content..."
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+-- Set hero_image_id from the first image found in post content
+UPDATE posts p
+SET hero_image_id = (
+    SELECT m.id
+    FROM media m
+    WHERE m.id IN (
+        SELECT DISTINCT (jsonb_array_elements(
+            jsonb_path_query_array(p.content, '$.root.children[*].children[*].value')
+        ))::text::int
+        FROM jsonb_path_query(p.content, '$.root.children[*].children[*]') AS node
+        WHERE node->>'type' = 'upload'
+        AND node->>'relationTo' = 'media'
+    )
+    LIMIT 1
+)
+WHERE p.hero_image_id IS NULL
+AND p.content IS NOT NULL
+AND jsonb_typeof(p.content) = 'object';
+EOF
+      echo "✅ Hero images set from content"
 
       # Download media files (same as existing code)
       echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
