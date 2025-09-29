@@ -59,8 +59,113 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Files after download attempt:"
   ls -la *.sql* 2>&1
 
-  # TRY FULL PRODUCTION IMPORT FIRST
-  if [ -f production-all-posts.sql.gz ]; then
+  # TRY ESSENTIAL DATA IMPORT FIRST (285 posts)
+  if [ -f essential_data.sql ]; then
+    echo "🚀 RUNNING ESSENTIAL DATA IMPORT - 285 posts + all media..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f essential_data.sql 2>&1
+
+    # Check if it worked
+    POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
+    CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
+    MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
+
+    if [ "$POST_COUNT" -gt "0" ]; then
+      echo "✅ ESSENTIAL DATA IMPORT SUCCESS: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media items!"
+
+      # Apply schema fixes
+      echo "🔧 Fixing media table schema..."
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+ALTER TABLE media ADD COLUMN IF NOT EXISTS caption TEXT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS alt TEXT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS thumbnail_u_r_l VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_x FLOAT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS focal_y FLOAT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_thumbnail_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_square_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_small_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_medium_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_large_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_xlarge_filename VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_url VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_width INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_height INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_mime_type VARCHAR;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_filesize INTEGER;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS sizes_og_filename VARCHAR;
+EOF
+
+      # Clear users table for fresh registration
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
+      echo "✅ Cleared users table for fresh registration"
+
+      # Fix media URLs
+      echo "🔧 Fixing media URLs..."
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
+UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
+EOF
+
+      # Download media files (same as existing code)
+      echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
+      cd /app/public/media
+      if [ -f /app/media-files-list.txt ]; then
+        echo "Using verified media list (347 files)..."
+        COUNT=0
+        TOTAL=$(wc -l < /app/media-files-list.txt)
+        while read filename; do
+          if [ -n "$filename" ]; then
+            COUNT=$((COUNT + 1))
+            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
+              echo "Progress: $COUNT/$TOTAL files..."
+            fi
+            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
+          fi
+        done < /app/media-files-list.txt
+        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
+        echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      fi
+
+      echo "🌐 Essential data initialization complete with $POST_COUNT posts!"
+      exit 0
+    else
+      echo "⚠️ Essential data import failed, trying compressed data..."
+    fi
+  # FALLBACK: TRY COMPRESSED PRODUCTION IMPORT
+  elif [ -f production-all-posts.sql.gz ]; then
     echo "🚀 DECOMPRESSING AND RUNNING FULL PRODUCTION IMPORT - 115 posts..."
     echo "📦 File size: $(ls -lh production-all-posts.sql.gz | awk '{print $5}')"
     gunzip -c production-all-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
