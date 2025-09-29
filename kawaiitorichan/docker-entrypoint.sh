@@ -75,21 +75,26 @@ ls -la >&2
 # DATABASE INITIALIZATION - Create schema and import data
 echo "🚀 INITIALIZING DATABASE..." >&2
 
-# Check for the schema and data file
-if [ -f init-schema-and-data.sql.gz ]; then
-  echo "✅ Found init-schema-and-data.sql.gz! Decompressing..." >&2
-  gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
+# Check for the final import file with complete schema and fixed data
+if [ -f final-import.sql.gz ]; then
+  echo "✅ Found final-import.sql.gz! Decompressing..." >&2
+  gunzip -c final-import.sql.gz > /tmp/final-import.sql
 
-  echo "📥 Creating schema and importing data..." >&2
-  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1)
+  echo "📥 Creating complete schema with ENUMs and importing data..." >&2
+  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/final-import.sql 2>&1)
   IMPORT_EXIT_CODE=$?
 
   if [ $IMPORT_EXIT_CODE -eq 0 ]; then
-    echo "✅ Database initialization successful!" >&2
+    echo "✅ Database initialization successful with ENUMs!" >&2
   else
     echo "⚠️ Some warnings during import (this is normal for IF NOT EXISTS)" >&2
   fi
 
+  rm /tmp/final-import.sql
+elif [ -f init-schema-and-data.sql.gz ]; then
+  echo "⚠️ Using fallback init-schema-and-data.sql.gz..." >&2
+  gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1 || true
   rm /tmp/init-schema-and-data.sql
 elif [ -f quick-import.sql ]; then
   echo "⚠️ Using fallback quick-import.sql..." >&2
