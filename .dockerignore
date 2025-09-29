@@ -40,6 +40,20 @@ kawaiitorichan/.nyc_output
 kawaiitorichan/.turbo
 kawaiitorichan/dist
 
+# Exclude media files during build (downloaded at runtime to save space)
+kawaiitorichan/public/media/**/*.jpg
+kawaiitorichan/public/media/**/*.jpeg
+kawaiitorichan/public/media/**/*.png
+kawaiitorichan/public/media/**/*.gif
+kawaiitorichan/public/media/**/*.webp
+
+# Keep essential icons and logos
+!kawaiitorichan/public/kawaii-bird-logo.svg
+!kawaiitorichan/public/favicon.svg
+!kawaiitorichan/public/favicon.ico
+!kawaiitorichan/public/birdicons/
+!kawaiitorichan/public/birdimage/
+
 # CRITICAL: Explicitly include SQL files that must be in build
 !kawaiitorichan/quick-import.sql
 !kawaiitorichan/production-all-posts.sql.gz

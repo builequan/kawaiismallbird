@@ -36,17 +36,12 @@ RUN apk add --no-cache postgresql-client
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy public directory with all static assets including bird images
+# Copy public directory (media files excluded via .dockerignore to save space)
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Explicitly ensure all critical assets are included
-COPY --from=builder --chown=nextjs:nodejs /app/public/birdimage ./public/birdimage
-COPY --from=builder --chown=nextjs:nodejs /app/public/birdicons ./public/birdicons
-COPY --from=builder --chown=nextjs:nodejs /app/public/kawaii-bird-logo.svg ./public/kawaii-bird-logo.svg
-COPY --from=builder --chown=nextjs:nodejs /app/public/favicon.svg ./public/favicon.svg
-COPY --from=builder --chown=nextjs:nodejs /app/public/favicon.ico ./public/favicon.ico
+# Media files will be downloaded at runtime to save build space
 
 # Copy runtime scripts from builder stage (they're now in /app after COPY kawaiitorichan/)
 COPY --from=builder /app/docker-entrypoint.sh ./
@@ -56,6 +51,7 @@ COPY --from=builder /app/simple-server.cjs ./
 COPY --from=builder /app/init-db.sh ./
 COPY --from=builder /app/force-init-db.sh ./
 COPY --from=builder /app/schema.sql ./
+COPY --from=builder /app/download-media.sh ./
 
 # Copy bird theme SQL initialization and ALL data files
 COPY --from=builder /app/init-bird-content.sql ./
@@ -66,7 +62,7 @@ COPY --from=builder /app/essential_data.sql ./
 COPY --from=builder /app/production-data-115-posts.sql.gz ./
 COPY --from=builder /app/quick-import-data.sql ./
 COPY --from=builder /app/media-files-list.txt ./
-RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./download-media.sh
 
 # Change ownership of all files to nextjs user
 RUN chown -R nextjs:nodejs /app
