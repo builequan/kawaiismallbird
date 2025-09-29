@@ -76,16 +76,32 @@ ls -la >&2
 echo "🚀 ATTEMPTING QUICK IMPORT..." >&2
 echo "🔍 Checking for quick-import.sql..." >&2
 if [ -f quick-import.sql ]; then
-  echo "✅ Found quick-import.sql! Executing..." >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1
-  echo "✅ Quick import executed" >&2
+  echo "✅ Found quick-import.sql! File size: $(wc -c < quick-import.sql) bytes" >&2
 
-  # Verify tables were created
-  TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>&1)
-  echo "📊 Database now has $TABLE_COUNT tables" >&2
+  # Clear existing data first to avoid conflicts
+  echo "🗑️ Clearing existing data..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "TRUNCATE TABLE posts, media, categories, posts_rels, payload_preferences, payload_migrations CASCADE;" 2>&1 || true
 
-  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>&1)
-  echo "📝 Database now has $POST_COUNT posts" >&2
+  echo "📥 Executing quick-import.sql..." >&2
+  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f quick-import.sql 2>&1)
+  IMPORT_EXIT_CODE=$?
+
+  if [ $IMPORT_EXIT_CODE -eq 0 ]; then
+    echo "✅ Quick import executed successfully!" >&2
+  else
+    echo "❌ Quick import failed with exit code $IMPORT_EXIT_CODE" >&2
+    echo "Error output: $IMPORT_OUTPUT" >&2
+  fi
+
+  # Verify tables were created and populated
+  TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" 2>/dev/null || echo "0")
+  echo "📊 Database has $TABLE_COUNT tables" >&2
+
+  POST_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+  echo "📝 Database has $POST_COUNT posts" >&2
+
+  MEDIA_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
+  echo "🖼️ Database has $MEDIA_COUNT media records" >&2
 else
   echo "❌ quick-import.sql NOT FOUND in current directory!" >&2
   echo "📂 Files in current directory:" >&2

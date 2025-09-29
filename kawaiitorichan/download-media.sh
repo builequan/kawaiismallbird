@@ -16,9 +16,10 @@ if [ -n "$DATABASE_URI" ]; then
   mkdir -p public/media
 
   # Get all media files from database
-  psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA <<EOF | while IFS='|' read -r filename url; do
-SELECT filename, url FROM media WHERE filename IS NOT NULL;
-EOF
+  echo "📂 Fetching media list from database..." >&2
+  MEDIA_LIST=$(PGPASSWORD=$PGPASSWORD psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA -c "SELECT filename FROM media WHERE filename IS NOT NULL;" 2>/dev/null)
+
+  echo "$MEDIA_LIST" | while read -r filename; do
     if [ -n "$filename" ]; then
       # Try to download from GitHub (where our source images are stored)
       GITHUB_URL="https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename"

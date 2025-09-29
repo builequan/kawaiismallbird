@@ -61,6 +61,7 @@ COPY --from=builder /app/current-complete-data-352-posts.sql.gz ./
 COPY --from=builder /app/essential_data.sql ./
 COPY --from=builder /app/production-data-115-posts.sql.gz ./
 COPY --from=builder /app/quick-import-data.sql ./
+COPY --from=builder /app/quick-import.sql ./
 COPY --from=builder /app/media-files-list.txt ./
 RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./download-media.sh
 
