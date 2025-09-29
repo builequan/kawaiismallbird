@@ -55,6 +55,8 @@ COPY --from=builder /app/reset-and-init-db.sh ./
 COPY --from=builder /app/ensure-status-column.sh ./
 COPY --from=builder /app/simple-status-fix.sql ./
 COPY --from=builder /app/comprehensive-schema-fix.sql ./
+COPY --from=builder /app/emergency-fix.sql ./
+COPY --from=builder /app/validate-schema.sh ./
 COPY --from=builder /app/download-media.sh ./
 
 # Copy bird theme SQL initialization and ALL data files

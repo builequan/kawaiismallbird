@@ -75,6 +75,13 @@ ls -la >&2
 # DATABASE INITIALIZATION - Create schema and import data
 echo "🚀 INITIALIZING DATABASE..." >&2
 
+# EMERGENCY FIX: Run this FIRST to ensure basic schema compatibility
+if [ -f emergency-fix.sql ]; then
+  echo "🚨 Running emergency schema fix FIRST..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f emergency-fix.sql 2>&1 | head -50 >&2
+  echo "✅ Emergency fix applied" >&2
+fi
+
 # First, try to create schema using reset script
 if [ -f reset-and-init-db.sh ]; then
   echo "🔄 Running database reset to ensure proper schema..." >&2
@@ -299,6 +306,24 @@ if [ "$MEDIA_COUNT" -lt "100" ]; then
 else
   echo "✅ Media files found: $MEDIA_COUNT files"
 fi
+
+# FINAL VALIDATION before starting app
+echo ""
+echo "🔍 Running final schema validation..."
+if [ -f validate-schema.sh ]; then
+  chmod +x validate-schema.sh
+  sh validate-schema.sh
+  VALIDATION_EXIT=$?
+  if [ $VALIDATION_EXIT -ne 0 ]; then
+    echo "⚠️ Schema validation failed, but continuing anyway..."
+  fi
+else
+  echo "⚠️ validate-schema.sh not found, skipping validation"
+fi
+
+# Add a small delay to ensure database is fully ready
+echo "⏳ Waiting 3 seconds for database to stabilize..."
+sleep 3
 
 # Check if we need to use the simple server or the full app
 if [ "$USE_SIMPLE_SERVER" = "true" ]; then
