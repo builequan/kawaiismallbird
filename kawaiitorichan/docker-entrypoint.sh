@@ -139,6 +139,19 @@ if [ -f init-bird-production.sh ]; then
   sh init-bird-production.sh || echo "Bird theme initialization completed or failed"
 fi
 
+# Check if media files exist, if not download them
+echo ""
+echo "🖼️ Checking media files..."
+MEDIA_COUNT=$(find /app/public/media -type f 2>/dev/null | wc -l || echo "0")
+if [ "$MEDIA_COUNT" -lt "100" ]; then
+  echo "⚠️ Media files missing (found only $MEDIA_COUNT files), downloading..."
+  if [ -f download-media.sh ]; then
+    sh download-media.sh || echo "Media download completed or failed"
+  fi
+else
+  echo "✅ Media files found: $MEDIA_COUNT files"
+fi
+
 # Check if we need to use the simple server or the full app
 if [ "$USE_SIMPLE_SERVER" = "true" ]; then
   echo "Using simple diagnostic server..."

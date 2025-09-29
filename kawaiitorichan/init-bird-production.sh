@@ -114,23 +114,33 @@ EOF
 
       # Download media files
       echo "📥 DOWNLOADING MEDIA FILES FROM GITHUB..."
+      mkdir -p /app/public/media
       cd /app/public/media
-      if [ -f /app/media-files-list.txt ]; then
-        echo "Using verified media list (347 files)..."
-        COUNT=0
-        TOTAL=$(wc -l < /app/media-files-list.txt)
-        while read filename; do
-          if [ -n "$filename" ]; then
-            COUNT=$((COUNT + 1))
-            if [ $((COUNT % 10)) -eq 0 ] || [ $COUNT -eq 1 ]; then
-              echo "Progress: $COUNT/$TOTAL files..."
-            fi
-            wget -q "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null
+
+      # Download ALL media files directly from database
+      echo "Downloading media files based on database entries..."
+      COUNT=0
+      TOTAL=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA -c "SELECT COUNT(*) FROM media WHERE filename IS NOT NULL;")
+      echo "Found $TOTAL media files to download..."
+
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tA -c "SELECT filename FROM media WHERE filename IS NOT NULL;" | while read filename; do
+        if [ -n "$filename" ]; then
+          COUNT=$((COUNT + 1))
+          if [ $((COUNT % 50)) -eq 0 ] || [ $COUNT -eq 1 ]; then
+            echo "Progress: $COUNT/$TOTAL files..."
           fi
-        done < /app/media-files-list.txt
-        DOWNLOADED=$(ls -1 *.jpg 2>/dev/null | wc -l)
-        echo "✅ Downloaded $DOWNLOADED media files successfully!"
-      fi
+          # Download using wget or curl
+          if command -v wget > /dev/null 2>&1; then
+            wget -q -O "$filename" "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null || true
+          elif command -v curl > /dev/null 2>&1; then
+            curl -sL -o "$filename" "https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/public/media/$filename" 2>/dev/null || true
+          fi
+        fi
+      done
+
+      DOWNLOADED=$(ls -1 2>/dev/null | wc -l)
+      echo "✅ Downloaded $DOWNLOADED media files successfully!"
+      cd /app
 
       echo "🌐 Complete data import complete with $POST_COUNT Japanese bird posts!"
       exit 0
