@@ -278,6 +278,12 @@ echo "Starting Next.js server on port ${PORT:-3000}..."
 echo "========================================="
 echo ""
 
+# Run runtime environment variable replacement BEFORE starting the server
+if [ -f runtime-env-replace.sh ]; then
+  chmod +x runtime-env-replace.sh
+  sh runtime-env-replace.sh
+fi
+
 # No longer need background check - everything is done upfront by quick-import.sql
 
 # Initialize bird theme content (always run to ensure data is present)

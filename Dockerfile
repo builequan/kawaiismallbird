@@ -17,9 +17,9 @@ COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 15:00
+# Cache bust - Force rebuild at 2025-09-30 16:00
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-15:00:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-16:00:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -96,11 +96,12 @@ COPY --from=builder /app/docker-entrypoint.sh ./
 COPY --from=builder /app/run-migrations.sh ./
 COPY --from=builder /app/server-wrapper.js ./
 COPY --from=builder /app/smart-media-sync.sh ./
+COPY --from=builder /app/runtime-env-replace.sh ./
 
 # Install PostgreSQL client, npm, wget and curl for database initialization
 USER root
 RUN apk add --no-cache postgresql-client npm curl wget
-RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh ./smart-media-sync.sh || true
+RUN chmod +x ./docker-entrypoint.sh ./init-db.sh ./force-init-db.sh ./init-bird-production.sh ./force-import.sh ./smart-media-sync.sh ./runtime-env-replace.sh || true
 RUN chmod 644 ./quick-import.sql ./production-all-posts.sql.gz || true
 
 # Verify SQL files are present in the final container
