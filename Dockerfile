@@ -58,8 +58,8 @@ RUN corepack enable pnpm && pnpm run build:docker
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Runtime environment setup - TEMPORARILY use development to see real errors
-ENV NODE_ENV=development
+# Runtime environment setup
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create user for security
