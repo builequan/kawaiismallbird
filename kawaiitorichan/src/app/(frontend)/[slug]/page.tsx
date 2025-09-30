@@ -62,23 +62,49 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { slug = 'home' } = await paramsPromise
+  try {
+    console.log('[Page] Starting page render...')
+    console.log('[Page] NODE_ENV:', process.env.NODE_ENV)
+    console.log('[Page] Params promise received')
 
-  // If it's the homepage, render the modern homepage
-  if (slug === 'home') {
-    console.log('[Homepage] Skipping all data fetching - returning static HTML immediately')
+    const { slug = 'home' } = await paramsPromise
+    console.log('[Page] Slug:', slug)
 
-    // Return static HTML WITHOUT any data fetching
+    // If it's the homepage, render the modern homepage
+    if (slug === 'home') {
+      console.log('[Homepage] Skipping all data fetching - returning static HTML immediately')
+
+      // Return static HTML WITHOUT any data fetching
+      return (
+        <div className="min-h-screen bg-white p-8">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-4xl font-bold mb-8">Kawaii Bird Blog - Static Test</h1>
+            <p>This page loads without any database queries.</p>
+            <p>If you see this, the website is working!</p>
+            <p>NODE_ENV: {process.env.NODE_ENV}</p>
+            <a href="/admin" className="text-blue-600 hover:underline">Admin Panel</a>
+          </div>
+        </div>
+      )
+    }
+  } catch (error) {
+    console.error('[Page] ERROR CAUGHT:', error)
+    console.error('[Page] Error stack:', (error as any)?.stack)
+    console.error('[Page] Error message:', (error as any)?.message)
+
+    // Return error page with details
     return (
       <div className="min-h-screen bg-white p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8">Kawaii Bird Blog - Static Test</h1>
-          <p>This page loads without any database queries.</p>
-          <p>If you see this, the website is working!</p>
-          <a href="/admin" className="text-blue-600 hover:underline">Admin Panel</a>
+          <h1 className="text-4xl font-bold mb-8 text-red-600">Error Page</h1>
+          <p>Error occurred: {String(error)}</p>
+          <pre className="mt-4 p-4 bg-gray-100 rounded text-xs">
+            {JSON.stringify(error, null, 2)}
+          </pre>
         </div>
       </div>
     )
+  }
 
       // SKIP ALL OF THIS:
       /*

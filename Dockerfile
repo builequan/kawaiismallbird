@@ -17,9 +17,9 @@ COPY kawaiitorichan/quick-import.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 23:30
+# Cache bust - Force rebuild at 2025-09-30 23:45
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-23:30:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-23:45:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -58,8 +58,8 @@ RUN corepack enable pnpm && pnpm run build:docker
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Runtime environment setup
-ENV NODE_ENV=production
+# Runtime environment setup - TEMPORARILY use development to see real errors
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create user for security
