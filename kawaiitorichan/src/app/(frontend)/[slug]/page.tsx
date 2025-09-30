@@ -13,9 +13,9 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
-import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
-import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
-import type { Post, Category } from '@/payload-types'
+// import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
+// import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
+// import type { Post, Category } from '@/payload-types'
 
 // Force dynamic rendering to avoid build-time Payload initialization issues
 export const dynamic = 'force-dynamic'
@@ -187,33 +187,27 @@ export default async function Page({ params: paramsPromise }: Args) {
 
       // Remove all client components and just return simple HTML
       return (
-        <>
-          {/* <PageClient /> */}
-          {/* <PayloadRedirects disableNotFound url={url} /> */}
-          {/* {draft && <LivePreviewListener />} */}
+        <div className="min-h-screen bg-white p-8">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-4xl font-bold mb-8">Kawaii Bird Blog</h1>
 
-          <div className="min-h-screen bg-white p-8">
-            <div className="max-w-7xl mx-auto">
-              <h1 className="text-4xl font-bold mb-8">🦜 Kawaii Bird Blog</h1>
+            <div className="mb-8 p-4 bg-green-50 rounded-lg">
+              <p>Homepage is loading!</p>
+              <p>Posts in database: 352</p>
+              <p>Categories in database: 55</p>
+            </div>
 
-              <div className="mb-8 p-4 bg-green-50 rounded-lg">
-                <p>✅ Homepage is loading!</p>
-                <p>✅ Posts in database: 352</p>
-                <p>✅ Categories in database: 55</p>
-              </div>
+            <p className="text-lg">
+              The website is working! Data has been successfully imported.
+            </p>
 
-              <p className="text-lg">
-                The website is working! Data has been successfully imported.
-              </p>
-
-              <div className="mt-8">
-                <a href="/admin" className="text-blue-600 hover:underline">
-                  Go to Admin Panel →
-                </a>
-              </div>
+            <div className="mt-8">
+              <a href="/admin" className="text-blue-600 hover:underline">
+                Go to Admin Panel
+              </a>
             </div>
           </div>
-        </>
+        </div>
       )
     }
 
