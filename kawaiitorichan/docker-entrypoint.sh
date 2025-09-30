@@ -630,6 +630,91 @@ else
   echo "✅ All versions have valid parent_id - admin panel should work!"
 fi
 
+# CRITICAL: Fix media URLs pointing to external domains instead of local paths
+echo ""
+echo "🖼️ Fixing media URLs..."
+
+# Check if any media records have external URLs
+EXTERNAL_URL_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media WHERE url LIKE 'https://%' OR url LIKE 'http://%';" 2>/dev/null || echo "0")
+echo "Found $EXTERNAL_URL_COUNT media records with external URLs"
+
+if [ "$EXTERNAL_URL_COUNT" != "0" ] && [ "$EXTERNAL_URL_COUNT" != " 0" ]; then
+  echo "⚠️ Media URLs pointing to external domains instead of local paths!"
+  echo "🔧 Converting external URLs to local /api/media/file/ paths..."
+
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOSQL' 2>&1
+-- Step 1: Update main image URL
+UPDATE media
+SET url = '/api/media/file/' || filename
+WHERE (url LIKE 'https://%' OR url LIKE 'http://%')
+  AND filename IS NOT NULL;
+
+-- Step 2: Update all thumbnail and size variant URLs
+UPDATE media
+SET
+  thumbnail_u_r_l = CASE
+    WHEN sizes_thumbnail_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_thumbnail_filename
+    ELSE NULL
+  END,
+  sizes_thumbnail_url = CASE
+    WHEN sizes_thumbnail_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_thumbnail_filename
+    ELSE NULL
+  END,
+  sizes_square_url = CASE
+    WHEN sizes_square_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_square_filename
+    ELSE NULL
+  END,
+  sizes_small_url = CASE
+    WHEN sizes_small_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_small_filename
+    ELSE NULL
+  END,
+  sizes_medium_url = CASE
+    WHEN sizes_medium_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_medium_filename
+    ELSE NULL
+  END,
+  sizes_large_url = CASE
+    WHEN sizes_large_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_large_filename
+    ELSE NULL
+  END,
+  sizes_xlarge_url = CASE
+    WHEN sizes_xlarge_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_xlarge_filename
+    ELSE NULL
+  END,
+  sizes_og_url = CASE
+    WHEN sizes_og_filename IS NOT NULL
+    THEN '/api/media/file/' || sizes_og_filename
+    ELSE NULL
+  END
+WHERE filename IS NOT NULL;
+EOSQL
+
+  echo "✅ Media URLs converted to local paths!"
+else
+  echo "✅ All media URLs already use local paths"
+fi
+
+# Verify the fix
+LOCAL_URL_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media WHERE url LIKE '/api/media/%';" 2>/dev/null || echo "0")
+TOTAL_MEDIA=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM media;" 2>/dev/null || echo "0")
+
+echo ""
+echo "📊 Media URL status:"
+echo "  - Total media: $TOTAL_MEDIA"
+echo "  - Local URLs: $LOCAL_URL_COUNT"
+
+if [ "$LOCAL_URL_COUNT" = "$TOTAL_MEDIA" ]; then
+  echo "✅ All media URLs are using local paths!"
+else
+  echo "⚠️ Some media URLs may still need fixing"
+fi
+
 # Smart media sync - downloads only missing files
 echo ""
 echo "🖼️ Running smart media sync..."
