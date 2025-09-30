@@ -17,9 +17,9 @@ COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 21:00
+# Cache bust - Force rebuild at 2025-09-30 21:15
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-21:00:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-21:15:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
@@ -50,7 +50,8 @@ RUN echo "=== VERIFYING SQL FILES IN BUILDER ===" && \
     test -f quick-import.sql && echo "✅ quick-import.sql found" || echo "❌ quick-import.sql missing" && \
     test -f production-all-posts.sql.gz && echo "✅ production-all-posts.sql.gz found" || echo "❌ production-all-posts.sql.gz missing"
 
-# Build the application (using special Docker build that skips static generation)
+# Clean any cached builds and build fresh
+RUN rm -rf .next || true
 RUN corepack enable pnpm && pnpm run build:docker
 
 

@@ -69,9 +69,12 @@ export default async function Page({ params: paramsPromise }: Args) {
 
     // If it's the homepage, render the modern homepage
     if (slug === 'home') {
+      console.log('[Homepage] Starting to fetch data...')
       const payload = await getPayload({ config: configPromise })
+      console.log('[Homepage] Payload instance obtained')
 
       // Fetch featured posts (most recent posts) - depth 0 to avoid category population errors
+      console.log('[Homepage] Fetching featured posts...')
       const featuredPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -84,8 +87,10 @@ export default async function Page({ params: paramsPromise }: Args) {
         },
         depth: 0
       })
+      console.log('[Homepage] Featured posts fetched:', featuredPosts.totalDocs)
 
       // Fetch recent posts - depth 0 to avoid category population errors
+      console.log('[Homepage] Fetching recent posts...')
       const recentPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -98,8 +103,10 @@ export default async function Page({ params: paramsPromise }: Args) {
         },
         depth: 0
       })
+      console.log('[Homepage] Recent posts fetched:', recentPosts.totalDocs)
 
       // For now, use recent posts as popular posts - depth 0 to avoid category population errors
+      console.log('[Homepage] Fetching popular posts...')
       const popularPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -112,44 +119,25 @@ export default async function Page({ params: paramsPromise }: Args) {
         },
         depth: 0
       })
+      console.log('[Homepage] Popular posts fetched:', popularPosts.totalDocs)
 
       // Fetch categories and count posts for each
+      console.log('[Homepage] Fetching categories...')
       const categories = await payload.find({
         collection: 'categories',
         draft,
         limit: 100,
         depth: 0
       })
+      console.log('[Homepage] Categories fetched:', categories.totalDocs)
 
-      // Get post counts for each category - wrapped in try-catch to handle missing relations
-      const categoriesWithCounts = await Promise.all(
-        categories.docs.map(async (category) => {
-          try {
-            const postCount = await payload.count({
-              collection: 'posts',
-              where: {
-                categories: {
-                  contains: category.id
-                },
-                _status: {
-                  equals: 'published'
-                }
-              }
-            })
-
-            return {
-              ...category,
-              postCount: postCount.totalDocs
-            }
-          } catch (error) {
-            // If counting fails (e.g., no category relationships), return 0
-            return {
-              ...category,
-              postCount: 0
-            }
-          }
-        })
-      )
+      // Since posts_rels table is empty, skip relationship queries and set postCount to 0
+      console.log('[Homepage] Adding postCount to categories (skipping relationship queries)...')
+      const categoriesWithCounts = categories.docs.map((category) => ({
+        ...category,
+        postCount: 0
+      }))
+      console.log('[Homepage] All data fetched successfully, rendering...')
 
       return (
         <>
