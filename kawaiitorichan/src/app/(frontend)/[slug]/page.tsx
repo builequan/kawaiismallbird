@@ -11,6 +11,7 @@ import { aboutStatic } from '@/endpoints/seed/about-static'
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
+import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { BirdSlideshow } from '@/components/BirdSlideshow'
@@ -221,7 +222,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                         {featuredPosts.docs[0].heroImage && typeof featuredPosts.docs[0].heroImage === 'object' && 'url' in featuredPosts.docs[0].heroImage && (
                           <div className="relative h-[400px] overflow-hidden">
                             <img
-                              src={featuredPosts.docs[0].heroImage.url}
+                              src={fixMediaUrl(featuredPosts.docs[0].heroImage.url)}
                               alt={featuredPosts.docs[0].heroImage.alt || featuredPosts.docs[0].title}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
@@ -266,7 +267,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                           {post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage && (
                             <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
                               <img
-                                src={post.heroImage.url}
+                                src={fixMediaUrl(post.heroImage.url)}
                                 alt={post.heroImage.alt || post.title}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                               />
@@ -301,7 +302,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                       {post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage && (
                         <div className="aspect-video bg-gray-200">
                           <img
-                            src={post.heroImage.url}
+                            src={fixMediaUrl(post.heroImage.url)}
                             alt={post.heroImage.alt || post.title}
                             className="w-full h-full object-cover"
                           />
