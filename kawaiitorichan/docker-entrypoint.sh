@@ -378,13 +378,37 @@ fi
 
 # No longer need background check - everything is done upfront by quick-import.sql
 
-# Initialize bird theme content (only if posts don't exist yet)
+# Initialize bird theme content (only if posts don't exist yet OR forced)
 echo ""
 echo "🦜 Checking if bird theme content needs initialization..."
 
-# Only run init if POST_COUNT is 0 (data not yet imported)
-if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
-  echo "No posts found - running initial data import..."
+# Check for force reimport flag
+FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
+
+# Run init if POST_COUNT is 0 OR if FORCE_REIMPORT is set
+if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ] || [ "$FORCE_REIMPORT" = "true" ]; then
+  if [ "$FORCE_REIMPORT" = "true" ]; then
+    echo "⚠️ FORCE_REIMPORT=true detected - will reimport data even though $POST_COUNT posts exist"
+    echo "🔄 Truncating existing posts to prepare for fresh import..."
+
+    # Clear all existing data
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOSQL'
+TRUNCATE TABLE posts_internal_links_metadata_links_added CASCADE;
+TRUNCATE TABLE posts_affiliate_links_metadata_links_added CASCADE;
+TRUNCATE TABLE posts_populated_authors CASCADE;
+TRUNCATE TABLE _posts_v_rels CASCADE;
+TRUNCATE TABLE _posts_v CASCADE;
+TRUNCATE TABLE posts_rels CASCADE;
+TRUNCATE TABLE posts CASCADE;
+TRUNCATE TABLE categories_breadcrumbs CASCADE;
+TRUNCATE TABLE categories CASCADE;
+TRUNCATE TABLE tags CASCADE;
+TRUNCATE TABLE media CASCADE;
+EOSQL
+    echo "✅ Database cleared, ready for fresh import"
+  fi
+
+  echo "📥 Running initial data import..."
   if [ -f init-bird-production.sh ]; then
     echo "Running init-bird-production.sh..."
     sh init-bird-production.sh
@@ -397,6 +421,7 @@ if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
   fi
 else
   echo "✅ Posts already exist ($POST_COUNT posts), skipping data import to preserve existing data"
+  echo "💡 Set FORCE_REIMPORT=true environment variable to force reimport"
 fi
 
 # Populate post versions for admin panel visibility
