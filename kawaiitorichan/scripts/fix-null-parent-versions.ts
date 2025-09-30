@@ -9,11 +9,21 @@ import configPromise from '@payload-config'
  * - PayloadCMS admin panel loads version data, not post data directly
  * - Without parent_id, versions can't be linked to posts = blank pages
  *
+ * ROOT CAUSE:
+ * - PayloadCMS APPLICATION CLEARS parent_id when running!
+ * - Creating versions with the app running → parent_id becomes NULL
+ * - Creating versions with the app stopped → parent_id stays correct
+ *
  * THE SOLUTION:
- * 1. Delete all broken versions with NULL parent_id
- * 2. Recreate proper versions for all posts
- * 3. Recreate relationship records
- * 4. Verify everything is fixed
+ * 1. STOP THE APPLICATION FIRST (critical!)
+ * 2. Delete all broken versions with NULL parent_id
+ * 3. Recreate proper versions with ALL 37 fields mapped
+ * 4. Recreate relationship records (parent_id points to _posts_v.id, not posts.id!)
+ * 5. Verify everything is fixed
+ * 6. START THE APPLICATION
+ *
+ * WARNING: If you run this with the app running, parent_id may become NULL again!
+ * For production: Stop Docker container → Run this script → Start container
  */
 async function fixNullParentVersions() {
   console.log('[Fix NULL Parent Versions] Starting...')
@@ -88,7 +98,8 @@ async function fixNullParentVersions() {
       console.log(`Found ${postsWithoutVersions.rows.length} posts without versions`)
       console.log('Creating versions for these posts...')
 
-      // Create versions with ALL fields properly mapped
+      // Create versions with ALL 37 fields properly mapped
+      // CRITICAL: This must be done with the app stopped, or PayloadCMS will clear parent_id!
       const insertResult = await db.drizzle.execute(`
         INSERT INTO _posts_v (
           parent_id,
@@ -100,6 +111,11 @@ async function fixNullParentVersions() {
           version_language,
           version_hero_image_id,
           version_hero_image_alt,
+          version_meta_title,
+          version_meta_image_id,
+          version_meta_description,
+          version_meta_keywords,
+          version_meta_focus_keyphrase,
           version_published_at,
           version__status,
           version_updated_at,
@@ -113,24 +129,19 @@ async function fixNullParentVersions() {
           version_internal_links_metadata_version,
           version_internal_links_metadata_last_processed,
           version_internal_links_metadata_content_hash,
-          version_content_db_meta_original_id,
-          version_content_db_meta_website_id,
-          version_content_db_meta_language,
-          version_content_db_meta_imported_at,
           version_affiliate_links_metadata_version,
           version_affiliate_links_metadata_last_processed,
           version_affiliate_links_metadata_content_hash,
           version_affiliate_links_metadata_exclude_from_affiliates,
-          version_meta_title,
-          version_meta_description,
-          version_meta_keywords,
-          version_meta_focus_keyphrase,
-          version_meta_image_id,
+          version_content_db_meta_original_id,
+          version_content_db_meta_website_id,
+          version_content_db_meta_language,
+          version_content_db_meta_imported_at,
           latest,
           autosave
         )
         SELECT
-          p.id as parent_id, -- ✅ Critical: Link to posts.id
+          p.id, -- parent_id = posts.id ✅ CRITICAL
           p.title,
           p.slug,
           p.slug_lock,
@@ -143,6 +154,11 @@ async function fixNullParentVersions() {
           END,
           p.hero_image_id,
           p.hero_image_alt,
+          p.meta_title,
+          p.meta_image_id,
+          p.meta_description,
+          p.meta_keywords,
+          p.meta_focus_keyphrase,
           p.published_at,
           CASE
             WHEN p._status = 'published' THEN 'published'::enum__posts_v_version_status
@@ -153,25 +169,24 @@ async function fixNullParentVersions() {
           p.wordpress_metadata_original_author,
           p.wordpress_metadata_original_date,
           p.wordpress_metadata_modified_date,
-          p.wordpress_metadata_status,
+          CASE
+            WHEN p.wordpress_metadata_status = 'published' THEN 'published'::enum__posts_v_version_wordpress_metadata_status
+            WHEN p.wordpress_metadata_status = 'draft' THEN 'draft'::enum__posts_v_version_wordpress_metadata_status
+            ELSE NULL
+          END,
           p.wordpress_metadata_enable_comments,
           p.wordpress_metadata_enable_toc,
           p.internal_links_metadata_version,
           p.internal_links_metadata_last_processed,
           p.internal_links_metadata_content_hash,
-          p.content_db_meta_original_id,
-          p.content_db_meta_website_id,
-          p.content_db_meta_language,
-          p.content_db_meta_imported_at,
           p.affiliate_links_metadata_version,
           p.affiliate_links_metadata_last_processed,
           p.affiliate_links_metadata_content_hash,
           p.affiliate_links_metadata_exclude_from_affiliates,
-          p.meta_title,
-          p.meta_description,
-          p.meta_keywords,
-          p.meta_focus_keyphrase,
-          p.meta_image_id,
+          p.content_db_meta_original_id,
+          p.content_db_meta_website_id,
+          p.content_db_meta_language,
+          p.content_db_meta_imported_at,
           true,  -- latest
           false  -- not an autosave
         FROM posts p
@@ -220,17 +235,18 @@ async function fixNullParentVersions() {
           users_id,
           tags_id
         )
-        SELECT DISTINCT
+        SELECT
           pr."order",
-          pv.id as parent_id, -- ✅ Version ID, not post ID!
+          pv.id, -- ✅ CRITICAL: parent_id points to _posts_v.id, NOT posts.id!
           pr.path,
           pr.posts_id,
           pr.categories_id,
           pr.users_id,
           pr.tags_id
         FROM posts_rels pr
-        JOIN _posts_v pv ON pv.parent_id = pr.parent_id AND pv.latest = true
-        WHERE NOT EXISTS (
+        JOIN _posts_v pv ON pv.parent_id = pr.parent_id -- Link via parent_id
+        WHERE pv.latest = true
+        AND NOT EXISTS (
           SELECT 1 FROM _posts_v_rels vr
           WHERE vr.parent_id = pv.id
           AND vr.path = pr.path
@@ -239,7 +255,6 @@ async function fixNullParentVersions() {
           AND COALESCE(vr.tags_id, 0) = COALESCE(pr.tags_id, 0)
           AND COALESCE(vr.posts_id, 0) = COALESCE(pr.posts_id, 0)
         )
-        ON CONFLICT DO NOTHING
       `)
 
       console.log('✅ Created missing relationships')
