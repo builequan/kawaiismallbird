@@ -59,13 +59,24 @@ if [ -n "$DATABASE_URI" ]; then
   ls -la *.sql* 2>&1
 
   # TRY LATEST PRODUCTION DATA FIRST (494 posts + 3414 media)
+  # Check for the file with both possible names (copied in Docker OR downloaded)
   DATA_IMPORTED=false
-  if [ -f production-data-494-posts.sql.gz ]; then
+  if [ -f production-data-494-posts.sql.gz ] || [ -f production-all-posts.sql.gz ]; then
+
+    # Use whichever file exists
+    if [ -f production-data-494-posts.sql.gz ]; then
+      IMPORT_FILE="production-data-494-posts.sql.gz"
+    else
+      IMPORT_FILE="production-all-posts.sql.gz"
+    fi
+
     echo "🚀 RUNNING PRODUCTION DATA IMPORT - 494 posts + 3414 media (compressed)..."
+    echo "📦 Using file: $IMPORT_FILE"
+    echo "📦 File size: $(ls -lh $IMPORT_FILE | awk '{print $5}')"
     echo "Database connection: $PGUSER@$PGHOST:$PGPORT/$PGDATABASE"
 
     # Import the compressed data
-    gunzip -c production-data-494-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
+    gunzip -c $IMPORT_FILE | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
     IMPORT_EXIT_CODE=$?
 
     if [ $IMPORT_EXIT_CODE -eq 0 ]; then
@@ -74,9 +85,10 @@ if [ -n "$DATABASE_URI" ]; then
     else
       echo "❌ Data import failed with code $IMPORT_EXIT_CODE"
     fi
-  # FALLBACK: Old 352-post dump (only if 494 not found)
+  # FALLBACK: Old 352-post dump (should never be used now)
   elif [ -f current-complete-data-352-posts.sql.gz ]; then
-    echo "⚠️ Using fallback 352-post dump (494-post dump not found)..."
+    echo "⚠️ WARNING: Using old 352-post dump (494-post dump not found)..."
+    echo "⚠️ This should not happen - check Docker image build"
     gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
