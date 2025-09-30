@@ -82,12 +82,12 @@ if [ -f emergency-fix.sql ]; then
   echo "✅ Emergency fix applied" >&2
 fi
 
-# First, try to create schema using reset script
-if [ -f reset-and-init-db.sh ]; then
-  echo "🔄 Running database reset to ensure proper schema..." >&2
-  chmod +x reset-and-init-db.sh
-  sh reset-and-init-db.sh 2>&1 | head -50 >&2
-fi
+# Skip reset script - Payload CMS handles schema creation
+# if [ -f reset-and-init-db.sh ]; then
+#   echo "🔄 Running database reset to ensure proper schema..." >&2
+#   chmod +x reset-and-init-db.sh
+#   sh reset-and-init-db.sh 2>&1 | head -50 >&2
+# fi
 
 # Then import data
 if [ -f quick-import.sql ]; then
