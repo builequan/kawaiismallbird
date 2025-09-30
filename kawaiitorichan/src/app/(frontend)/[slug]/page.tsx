@@ -13,6 +13,7 @@ import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import { BirdSlideshow } from '@/components/BirdSlideshow'
 // import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
 // import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
 // import type { Post, Category } from '@/payload-types'
@@ -95,15 +96,45 @@ export default async function Page({ params: paramsPromise }: Args) {
         })
         console.log('[Homepage] Total categories:', categoryCount.totalDocs)
 
-        // Fetch recent posts with minimal depth
-        const recentPosts = await payload.find({
+        // Fetch featured posts first (1 big + 4 small = 5 total)
+        const featuredPosts = await payload.find({
           collection: 'posts',
           draft,
-          limit: 12,
+          limit: 5,
           sort: '-publishedAt',
           where: {
             _status: {
               equals: 'published'
+            }
+          },
+          depth: 1,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            publishedAt: true,
+            heroImage: true,
+            excerpt: true,
+            categories: true,
+          }
+        })
+        console.log('[Homepage] Featured posts fetched:', featuredPosts.docs.length)
+
+        // Get IDs of featured posts to exclude them from recent posts
+        const featuredPostIds = featuredPosts.docs.map(post => post.id)
+
+        // Fetch recent posts (different from featured posts)
+        const recentPosts = await payload.find({
+          collection: 'posts',
+          draft,
+          limit: 6,
+          sort: '-publishedAt',
+          where: {
+            _status: {
+              equals: 'published'
+            },
+            id: {
+              not_in: featuredPostIds
             }
           },
           depth: 1,
@@ -137,47 +168,122 @@ export default async function Page({ params: paramsPromise }: Args) {
         // Return a simple homepage with the fetched data
         return (
           <div className="min-h-screen bg-white">
-            {/* Hero Section */}
-            <div className="bg-gradient-to-b from-green-50 to-white py-16">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-5xl font-bold text-center mb-4">
-                  🦜 Kawaii Bird Blog
-                </h1>
-                <p className="text-xl text-gray-600 text-center">
-                  小さくてかわいい鳥についてのブログ
-                </p>
-                <div className="mt-8 flex justify-center gap-8">
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-green-600">{postCount.totalDocs}</p>
-                    <p className="text-gray-600">記事</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-green-600">{categoryCount.totalDocs}</p>
-                    <p className="text-gray-600">カテゴリー</p>
-                  </div>
-                </div>
+            {/* Bird Slideshow Section */}
+            <div className="w-full">
+              <BirdSlideshow />
+            </div>
+
+            {/* Bird Species Section */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <h2 className="text-3xl font-bold mb-8 text-center">鳥の種類</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[
+                  { name: 'オカメインコ', slug: 'cockatiel', icon: '/bird-icons/オカメインコ.webp' },
+                  { name: '文鳥', slug: 'java-sparrow', icon: '/bird-icons/文鳥.webp' },
+                  { name: 'セキセイインコ', slug: 'budgerigar', icon: '/bird-icons/セキセイインコ .webp' },
+                  { name: 'コザクラインコ', slug: 'lovebird', icon: '/bird-icons/コザクラインコ .webp' },
+                  { name: 'カナリア', slug: 'canary', icon: '/bird-icons/カナリア.webp' },
+                  { name: 'フィンチ', slug: 'finch', icon: '/bird-icons/フィンチ.webp' },
+                  { name: 'その他', slug: 'others', icon: '/bird-icons/その他.webp' },
+                  { name: 'すべて', slug: 'all', icon: '/bird-icons/全て.webp' },
+                ].map((bird) => (
+                  <a
+                    key={bird.slug}
+                    href={`/birds/${bird.slug}`}
+                    className="group block bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+                  >
+                    <div className="aspect-square relative bg-gradient-to-br from-orange-50 to-blue-50 p-4">
+                      <img
+                        src={bird.icon}
+                        alt={bird.name}
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="font-bold text-lg text-gray-900 group-hover:text-orange-600 transition-colors">
+                        {bird.name}
+                      </h3>
+                    </div>
+                  </a>
+                ))}
               </div>
             </div>
 
-            {/* Categories Section */}
-            {categories.docs.length > 0 && (
+            {/* Featured Posts Section */}
+            {featuredPosts.docs.length > 0 && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <h2 className="text-3xl font-bold mb-8">カテゴリー</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {categories.docs.map((category) => (
-                    <a
-                      key={category.id}
-                      href={`/categories/${category.slug}`}
-                      className="block p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                    >
-                      <h3 className="font-semibold text-gray-900">{category.title}</h3>
-                      {category.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {category.description}
-                        </p>
-                      )}
-                    </a>
-                  ))}
+                <h2 className="text-3xl font-bold mb-8">注目記事</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Large Featured Article */}
+                  {featuredPosts.docs[0] && (
+                    <article className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all border-4 border-orange-300 group">
+                      <a href={`/posts/${featuredPosts.docs[0].slug}`} className="block">
+                        {featuredPosts.docs[0].heroImage && typeof featuredPosts.docs[0].heroImage === 'object' && 'url' in featuredPosts.docs[0].heroImage && (
+                          <div className="relative h-[400px] overflow-hidden">
+                            <img
+                              src={featuredPosts.docs[0].heroImage.url}
+                              alt={featuredPosts.docs[0].heroImage.alt || featuredPosts.docs[0].title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div className="absolute top-4 left-4">
+                              <span className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                                ⭐ 注目記事
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="p-8 bg-white">
+                          <h3 className="text-3xl font-bold mb-4 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                            {featuredPosts.docs[0].title}
+                          </h3>
+                          {featuredPosts.docs[0].excerpt && (
+                            <p className="text-gray-700 text-lg mb-6 line-clamp-3">
+                              {featuredPosts.docs[0].excerpt}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <time className="text-gray-500" dateTime={featuredPosts.docs[0].publishedAt}>
+                              {new Date(featuredPosts.docs[0].publishedAt).toLocaleDateString('ja-JP')}
+                            </time>
+                            <span className="text-orange-600 font-semibold group-hover:underline">
+                              続きを読む →
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    </article>
+                  )}
+
+                  {/* Small Featured Articles (4 articles in 2x2 grid) */}
+                  <div className="lg:col-span-1 grid grid-cols-1 gap-4">
+                    {featuredPosts.docs.slice(1, 5).map((post) => (
+                      <article
+                        key={post.id}
+                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border-l-4 border-orange-400 group"
+                      >
+                        <a href={`/posts/${post.slug}`} className="flex gap-3 p-4">
+                          {post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage && (
+                            <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                              <img
+                                src={post.heroImage.url}
+                                alt={post.heroImage.alt || post.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                              {post.title}
+                            </h4>
+                            <time className="text-xs text-gray-500" dateTime={post.publishedAt}>
+                              {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
+                            </time>
+                          </div>
+                        </a>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

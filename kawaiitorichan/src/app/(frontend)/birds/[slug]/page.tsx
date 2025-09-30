@@ -255,13 +255,31 @@ export default async function BirdCategoryPage({ params }: PageProps) {
     depth: 3, // Increased depth to ensure content and media are loaded
   })
 
-  // Filter posts that contain any of the bird's search terms in the title
-  const posts = allPosts.filter(post => {
-    const title = post.title.toLowerCase()
-    return bird.searchTerms.some(term =>
-      title.includes(term.toLowerCase())
-    )
-  }).slice(0, 50) // Limit to 50 posts
+  // Filter posts based on slug type
+  let posts
+  if (slug === 'others') {
+    // For "その他", exclude posts that match any of the 6 main bird species
+    const mainBirdTerms = [
+      'セキセイインコ', 'budgerigar', 'バジー',
+      'オカメインコ', 'cockatiel', 'カクテル',
+      '文鳥', 'java sparrow', 'ブンチョウ',
+      'カナリア', 'canary', 'カナリヤ',
+      'コザクラインコ', 'lovebird', 'ラブバード',
+      'フィンチ', 'finch', '十姉妹', 'ジュウシマツ'
+    ]
+    posts = allPosts.filter(post => {
+      const title = post.title.toLowerCase()
+      return !mainBirdTerms.some(term => title.includes(term.toLowerCase()))
+    }).slice(0, 50)
+  } else {
+    // For specific bird species, filter by search terms
+    posts = allPosts.filter(post => {
+      const title = post.title.toLowerCase()
+      return bird.searchTerms.some(term =>
+        title.includes(term.toLowerCase())
+      )
+    }).slice(0, 50)
+  }
 
   // Generate structured data for SEO
   const structuredData = {
