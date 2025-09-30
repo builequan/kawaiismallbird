@@ -80,6 +80,33 @@ export default async function Page({ params: paramsPromise }: Args) {
         const payload = await getPayload({ config: configPromise })
         const { isEnabled: draft } = await draftMode()
 
+        // Helper function to get image URL from heroImage field
+        const getImageUrl = (heroImage: any): string | null => {
+          if (!heroImage) return null
+
+          // If it's a full media object with url
+          if (typeof heroImage === 'object' && 'url' in heroImage) {
+            return fixMediaUrl(heroImage.url)
+          }
+
+          // If it's a full media object with filename
+          if (typeof heroImage === 'object' && 'filename' in heroImage) {
+            return `/media/${heroImage.filename}`
+          }
+
+          // If it's just an ID (number or string)
+          if (typeof heroImage === 'number' || typeof heroImage === 'string') {
+            return `/api/media-by-id/${heroImage}`
+          }
+
+          // If it's an object with id property
+          if (typeof heroImage === 'object' && 'id' in heroImage) {
+            return `/api/media-by-id/${heroImage.id}`
+          }
+
+          return null
+        }
+
         // Get posts count first to verify database is working
         const postCount = await payload.count({
           collection: 'posts',
@@ -108,18 +135,18 @@ export default async function Page({ params: paramsPromise }: Args) {
               equals: 'published'
             }
           },
-          depth: 1,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            publishedAt: true,
-            heroImage: true,
-            excerpt: true,
-            categories: true,
-          }
+          depth: 2, // Increase depth to ensure heroImage is fully populated
         })
         console.log('[Homepage] Featured posts fetched:', featuredPosts.docs.length)
+
+        // Debug: Log hero image data for first post
+        if (featuredPosts.docs[0]) {
+          console.log('[Homepage] First post hero image:', {
+            hasHeroImage: !!featuredPosts.docs[0].heroImage,
+            heroImageType: typeof featuredPosts.docs[0].heroImage,
+            heroImageValue: featuredPosts.docs[0].heroImage,
+          })
+        }
 
         // Get IDs of featured posts to exclude them from recent posts
         const featuredPostIds = featuredPosts.docs.map(post => post.id)
@@ -138,16 +165,7 @@ export default async function Page({ params: paramsPromise }: Args) {
               not_in: featuredPostIds
             }
           },
-          depth: 1,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            publishedAt: true,
-            heroImage: true,
-            excerpt: true,
-            categories: true,
-          }
+          depth: 2, // Increase depth to ensure heroImage is fully populated
         })
         console.log('[Homepage] Recent posts fetched:', recentPosts.docs.length)
 
@@ -216,16 +234,22 @@ export default async function Page({ params: paramsPromise }: Args) {
                 <h2 className="text-3xl font-bold mb-8">注目記事</h2>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Large Featured Article */}
-                  {featuredPosts.docs[0] && (
-                    <article className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all border-4 border-orange-300 group">
-                      <a href={`/posts/${featuredPosts.docs[0].slug}`} className="block">
-                        {featuredPosts.docs[0].heroImage && typeof featuredPosts.docs[0].heroImage === 'object' && 'url' in featuredPosts.docs[0].heroImage && (
-                          <div className="relative h-[400px] overflow-hidden">
-                            <img
-                              src={fixMediaUrl(featuredPosts.docs[0].heroImage.url)}
-                              alt={featuredPosts.docs[0].heroImage.alt || featuredPosts.docs[0].title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
+                  {featuredPosts.docs[0] && (() => {
+                    const imageUrl = getImageUrl(featuredPosts.docs[0].heroImage)
+                    const imageAlt = typeof featuredPosts.docs[0].heroImage === 'object' && featuredPosts.docs[0].heroImage?.alt
+                      ? featuredPosts.docs[0].heroImage.alt
+                      : featuredPosts.docs[0].title
+
+                    return (
+                      <article className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all border-4 border-orange-300 group">
+                        <a href={`/posts/${featuredPosts.docs[0].slug}`} className="block">
+                          {imageUrl && (
+                            <div className="relative h-[400px] overflow-hidden">
+                              <img
+                                src={imageUrl}
+                                alt={imageAlt}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute top-4 left-4">
                               <span className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -254,25 +278,32 @@ export default async function Page({ params: paramsPromise }: Args) {
                         </div>
                       </a>
                     </article>
-                  )}
+                    )
+                  })()}
 
                   {/* Small Featured Articles (4 articles in 2x2 grid) */}
                   <div className="lg:col-span-1 grid grid-cols-1 gap-4">
-                    {featuredPosts.docs.slice(1, 5).map((post) => (
-                      <article
-                        key={post.id}
-                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border-l-4 border-orange-400 group"
-                      >
-                        <a href={`/posts/${post.slug}`} className="flex gap-3 p-4">
-                          {post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage && (
-                            <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                              <img
-                                src={fixMediaUrl(post.heroImage.url)}
-                                alt={post.heroImage.alt || post.title}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              />
-                            </div>
-                          )}
+                    {featuredPosts.docs.slice(1, 5).map((post) => {
+                      const imageUrl = getImageUrl(post.heroImage)
+                      const imageAlt = typeof post.heroImage === 'object' && post.heroImage?.alt
+                        ? post.heroImage.alt
+                        : post.title
+
+                      return (
+                        <article
+                          key={post.id}
+                          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border-l-4 border-orange-400 group"
+                        >
+                          <a href={`/posts/${post.slug}`} className="flex gap-3 p-4">
+                            {imageUrl && (
+                              <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                                <img
+                                  src={imageUrl}
+                                  alt={imageAlt}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
+                              </div>
+                            )}
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-sm mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
                               {post.title}
@@ -283,7 +314,8 @@ export default async function Page({ params: paramsPromise }: Args) {
                           </div>
                         </a>
                       </article>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -294,20 +326,26 @@ export default async function Page({ params: paramsPromise }: Args) {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gray-50">
                 <h2 className="text-3xl font-bold mb-8">最新の記事</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {recentPosts.docs.map((post) => (
-                    <article
-                      key={post.id}
-                      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      {post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage && (
-                        <div className="aspect-video bg-gray-200">
-                          <img
-                            src={fixMediaUrl(post.heroImage.url)}
-                            alt={post.heroImage.alt || post.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                  {recentPosts.docs.map((post) => {
+                    const imageUrl = getImageUrl(post.heroImage)
+                    const imageAlt = typeof post.heroImage === 'object' && post.heroImage?.alt
+                      ? post.heroImage.alt
+                      : post.title
+
+                    return (
+                      <article
+                        key={post.id}
+                        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                      >
+                        {imageUrl && (
+                          <div className="aspect-video bg-gray-200">
+                            <img
+                              src={imageUrl}
+                              alt={imageAlt}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
                       <div className="p-6">
                         <h3 className="text-xl font-semibold mb-2 line-clamp-2">
                           <a href={`/posts/${post.slug}`} className="hover:text-green-600">
@@ -332,7 +370,8 @@ export default async function Page({ params: paramsPromise }: Args) {
                         </div>
                       </div>
                     </article>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
