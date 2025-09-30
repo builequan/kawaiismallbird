@@ -92,6 +92,9 @@ export default async function Page({ params: paramsPromise }: Args) {
           slug: true,
           publishedAt: true,
           heroImage: true,
+          hero: true,
+          excerpt: true,
+          categories: true,
           meta: true,
         }
       })
@@ -116,6 +119,9 @@ export default async function Page({ params: paramsPromise }: Args) {
           slug: true,
           publishedAt: true,
           heroImage: true,
+          hero: true,
+          excerpt: true,
+          categories: true,
           meta: true,
         }
       })
@@ -140,6 +146,9 @@ export default async function Page({ params: paramsPromise }: Args) {
           slug: true,
           publishedAt: true,
           heroImage: true,
+          hero: true,
+          excerpt: true,
+          categories: true,
           meta: true,
         }
       })
@@ -169,6 +178,21 @@ export default async function Page({ params: paramsPromise }: Args) {
       }))
       console.log('[Homepage] All data fetched successfully, rendering...')
 
+      // Clean the data to ensure it's serializable
+      const cleanPosts = (posts: any[]) => {
+        return posts.map(post => ({
+          id: post.id,
+          title: post.title || 'Untitled',
+          slug: post.slug || '',
+          publishedAt: post.publishedAt || new Date().toISOString(),
+          heroImage: post.heroImage || null,
+          hero: post.hero || null,
+          excerpt: post.excerpt || null,
+          categories: post.categories || [],
+          meta: post.meta || null,
+        }))
+      }
+
       return (
         <>
           <PageClient />
@@ -176,9 +200,9 @@ export default async function Page({ params: paramsPromise }: Args) {
           {draft && <LivePreviewListener />}
 
           <ModernHomepage
-            featuredPosts={featuredPosts.docs as Post[]}
-            recentPosts={recentPosts.docs as Post[]}
-            popularPosts={popularPosts.docs as Post[]}
+            featuredPosts={cleanPosts(featuredPosts.docs) as Post[]}
+            recentPosts={cleanPosts(recentPosts.docs) as Post[]}
+            popularPosts={cleanPosts(popularPosts.docs) as Post[]}
             categories={categoriesWithCounts}
           />
         </>
