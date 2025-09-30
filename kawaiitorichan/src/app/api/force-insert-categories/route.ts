@@ -9,9 +9,8 @@ export async function GET() {
   try {
     const payload = await getPayload({ config: configPromise })
 
-    // Execute raw SQL to insert categories
-    const result = await payload.db.drizzle.execute(sql`
-      -- Main categories
+    // Execute raw SQL to insert main categories
+    await payload.db.drizzle.execute(sql`
       INSERT INTO categories (title, slug, description, "order", slug_lock, _status, created_at, updated_at) VALUES
       ('🦜 鳥の種類', 'bird-species', '様々な鳥の種類についての情報', 1, true, 'published', NOW(), NOW()),
       ('🏠 鳥の飼い方', 'bird-care', '鳥の基本的な飼育方法', 2, true, 'published', NOW(), NOW()),
@@ -19,8 +18,7 @@ export async function GET() {
       ('🌿 鳥の生態', 'bird-behavior', '鳥の行動と生態について', 4, true, 'published', NOW(), NOW()),
       ('🔭 野鳥観察', 'bird-watching', '野鳥観察の楽しみ方', 5, true, 'published', NOW(), NOW()),
       ('🥗 餌と栄養', 'nutrition-feeding', '鳥の餌と栄養管理', 6, true, 'published', NOW(), NOW())
-      ON CONFLICT (slug) DO NOTHING
-      RETURNING id, slug;
+      ON CONFLICT (slug) DO NOTHING;
     `)
 
     // Get the parent IDs
