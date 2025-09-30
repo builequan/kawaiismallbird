@@ -58,14 +58,14 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Files after download attempt:"
   ls -la *.sql* 2>&1
 
-  # TRY COMPLETE DATA IMPORT FIRST (352 Japanese bird posts)
+  # TRY LATEST PRODUCTION DATA FIRST (494 posts + 3414 media)
   DATA_IMPORTED=false
-  if [ -f current-complete-data-352-posts.sql.gz ]; then
-    echo "🚀 RUNNING COMPLETE DATA IMPORT - 352 Japanese bird posts (compressed)..."
+  if [ -f production-data-494-posts.sql.gz ]; then
+    echo "🚀 RUNNING PRODUCTION DATA IMPORT - 494 posts + 3414 media (compressed)..."
     echo "Database connection: $PGUSER@$PGHOST:$PGPORT/$PGDATABASE"
 
     # Import the compressed data
-    gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
+    gunzip -c production-data-494-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     IMPORT_EXIT_CODE=$?
 
     if [ $IMPORT_EXIT_CODE -eq 0 ]; then
@@ -74,9 +74,10 @@ if [ -n "$DATABASE_URI" ]; then
     else
       echo "❌ Data import failed with code $IMPORT_EXIT_CODE"
     fi
-  elif [ -f current-complete-data-352-posts.sql ]; then
-    echo "🚀 RUNNING COMPLETE DATA IMPORT - 352 Japanese bird posts..."
-    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f current-complete-data-352-posts.sql 2>&1
+  # FALLBACK: Old 352-post dump (only if 494 not found)
+  elif [ -f current-complete-data-352-posts.sql.gz ]; then
+    echo "⚠️ Using fallback 352-post dump (494-post dump not found)..."
+    gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
 
@@ -87,7 +88,7 @@ if [ -n "$DATABASE_URI" ]; then
     MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
 
     if [ "$POST_COUNT" -gt "0" ]; then
-      echo "✅ COMPLETE DATA IMPORT SUCCESS: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media items!"
+      echo "✅ PRODUCTION DATA IMPORT SUCCESS: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media items!"
 
       # Clear users table for fresh registration
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
