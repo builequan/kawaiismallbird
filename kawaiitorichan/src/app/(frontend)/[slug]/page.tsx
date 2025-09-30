@@ -85,7 +85,15 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 0
+        depth: 0,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          publishedAt: true,
+          heroImage: true,
+          meta: true,
+        }
       })
       console.log('[Homepage] Featured posts fetched:', featuredPosts.totalDocs)
 
@@ -101,7 +109,15 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 0
+        depth: 0,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          publishedAt: true,
+          heroImage: true,
+          meta: true,
+        }
       })
       console.log('[Homepage] Recent posts fetched:', recentPosts.totalDocs)
 
@@ -117,7 +133,15 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 0
+        depth: 0,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          publishedAt: true,
+          heroImage: true,
+          meta: true,
+        }
       })
       console.log('[Homepage] Popular posts fetched:', popularPosts.totalDocs)
 
@@ -127,7 +151,13 @@ export default async function Page({ params: paramsPromise }: Args) {
         collection: 'categories',
         draft,
         limit: 100,
-        depth: 0
+        depth: 0,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+        }
       })
       console.log('[Homepage] Categories fetched:', categories.totalDocs)
 
