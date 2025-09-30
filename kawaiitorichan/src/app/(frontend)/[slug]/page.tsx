@@ -87,172 +87,8 @@ export default async function Page({ params: paramsPromise }: Args) {
         </div>
       )
     }
-  } catch (error) {
-    console.error('[Page] ERROR CAUGHT:', error)
-    console.error('[Page] Error stack:', (error as any)?.stack)
-    console.error('[Page] Error message:', (error as any)?.message)
 
-    // Return error page with details
-    return (
-      <div className="min-h-screen bg-white p-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8 text-red-600">Error Page</h1>
-          <p>Error occurred: {String(error)}</p>
-          <pre className="mt-4 p-4 bg-gray-100 rounded text-xs">
-            {JSON.stringify(error, null, 2)}
-          </pre>
-        </div>
-      </div>
-    )
-  }
-
-      // SKIP ALL OF THIS:
-      /*
-      console.log('[Homepage] Starting to fetch data...')
-      const payload = await getPayload({ config: configPromise })
-      console.log('[Homepage] Payload instance obtained')
-
-      // Fetch featured posts (most recent posts) - depth 0 to avoid category population errors
-      console.log('[Homepage] Fetching featured posts...')
-      const featuredPosts = await payload.find({
-        collection: 'posts',
-        draft,
-        limit: 9,
-        sort: '-publishedAt',
-        where: {
-          _status: {
-            equals: 'published'
-          }
-        },
-        depth: 0,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          publishedAt: true,
-          heroImage: true,
-          hero: true,
-          excerpt: true,
-          categories: true,
-          meta: true,
-        }
-      })
-      console.log('[Homepage] Featured posts fetched:', featuredPosts.totalDocs)
-
-      // Fetch recent posts - depth 0 to avoid category population errors
-      console.log('[Homepage] Fetching recent posts...')
-      const recentPosts = await payload.find({
-        collection: 'posts',
-        draft,
-        limit: 6,
-        sort: '-publishedAt',
-        where: {
-          _status: {
-            equals: 'published'
-          }
-        },
-        depth: 0,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          publishedAt: true,
-          heroImage: true,
-          hero: true,
-          excerpt: true,
-          categories: true,
-          meta: true,
-        }
-      })
-      console.log('[Homepage] Recent posts fetched:', recentPosts.totalDocs)
-
-      // For now, use recent posts as popular posts - depth 0 to avoid category population errors
-      console.log('[Homepage] Fetching popular posts...')
-      const popularPosts = await payload.find({
-        collection: 'posts',
-        draft,
-        limit: 5,
-        sort: '-publishedAt',
-        where: {
-          _status: {
-            equals: 'published'
-          }
-        },
-        depth: 0,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          publishedAt: true,
-          heroImage: true,
-          hero: true,
-          excerpt: true,
-          categories: true,
-          meta: true,
-        }
-      })
-      console.log('[Homepage] Popular posts fetched:', popularPosts.totalDocs)
-
-      // Fetch categories and count posts for each
-      console.log('[Homepage] Fetching categories...')
-      const categories = await payload.find({
-        collection: 'categories',
-        draft,
-        limit: 100,
-        depth: 0,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-        }
-      })
-      console.log('[Homepage] Categories fetched:', categories.totalDocs)
-
-      // Since posts_rels table is empty, skip relationship queries and set postCount to 0
-      console.log('[Homepage] Adding postCount to categories (skipping relationship queries)...')
-      // Simplified - don't spread complex category objects
-      const categoriesWithCounts = categories.docs.map((category) => ({
-        id: category.id,
-        title: category.title || 'Untitled',
-        slug: category.slug || '',
-        postCount: 0
-      }))
-      console.log('[Homepage] All data fetched successfully, rendering...')
-
-      // Extremely simple test - just static HTML, no data
-      console.log('[Homepage] Posts count:', featuredPosts.totalDocs)
-      console.log('[Homepage] Categories count:', categories.totalDocs)
-
-      // Remove all client components and just return simple HTML
-      return (
-        <div className="min-h-screen bg-white p-8">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl font-bold mb-8">Kawaii Bird Blog</h1>
-
-            <div className="mb-8 p-4 bg-green-50 rounded-lg">
-              <p>Homepage is loading!</p>
-              <p>Posts in database: 352</p>
-              <p>Categories in database: 55</p>
-            </div>
-
-            <p className="text-lg">
-              The website is working! Data has been successfully imported.
-            </p>
-
-            <div className="mt-8">
-              <a href="/admin" className="text-blue-600 hover:underline">
-                Go to Admin Panel
-              </a>
-            </div>
-          </div>
-        </div>
-      )
-      */
-  }
-
-  // For other pages, use the original logic
-  try {
+    // For other pages, use the original logic
     const { isEnabled: draft } = await draftMode()
     const url = '/' + slug
 
@@ -290,7 +126,19 @@ export default async function Page({ params: paramsPromise }: Args) {
     console.error('Error loading page:', error)
     console.error('DATABASE_URI:', process.env.DATABASE_URI?.substring(0, 30) + '...')
     console.error('PAYLOAD_SECRET exists:', !!process.env.PAYLOAD_SECRET)
-    throw error
+
+    // Return error page instead of throwing
+    return (
+      <div className="min-h-screen bg-white p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Error</h1>
+          <p>An error occurred loading the page.</p>
+          <pre className="mt-4 p-4 bg-gray-100 rounded">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </pre>
+        </div>
+      </div>
+    )
   }
 }
 

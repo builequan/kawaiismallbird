@@ -19,8 +19,25 @@ export default async function SimplePage({ params: paramsPromise }: Args) {
     const { isEnabled: draft } = await draftMode()
     const { slug = 'home' } = await paramsPromise
 
-    // Simple homepage
+    // Simple homepage - start with just static HTML
     if (slug === 'home') {
+      // Start with super simple static test
+      const isStaticTest = true
+
+      if (isStaticTest) {
+        return (
+          <div className="min-h-screen bg-white p-8">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-4xl font-bold mb-8">🦜 Kawaii Bird Blog - Static Test</h1>
+              <p>This page loads without any database queries.</p>
+              <p>If you see this, the website is working!</p>
+              <p>NODE_ENV: {process.env.NODE_ENV}</p>
+              <a href="/admin" className="text-blue-600 hover:underline">Admin Panel</a>
+            </div>
+          </div>
+        )
+      }
+
       const payload = await getPayload({ config: configPromise })
 
       // Get posts count
@@ -105,6 +122,9 @@ export default async function SimplePage({ params: paramsPromise }: Args) {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-8">Error</h1>
           <p>An error occurred loading the page.</p>
+          <pre className="mt-4 p-4 bg-gray-100 rounded">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </pre>
         </div>
       </div>
     )
