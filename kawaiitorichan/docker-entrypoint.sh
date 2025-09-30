@@ -408,6 +408,113 @@ else
   echo "⚠️ populate-post-versions.sql not found, skipping..."
 fi
 
+# CRITICAL: Check and fix NULL parent_id versions that cause blank admin panel
+echo ""
+echo "🔧 Checking post versions health..."
+VERSION_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
+echo "Found $VERSION_CHECK versions with NULL parent_id"
+
+if [ "$VERSION_CHECK" != "0" ] && [ "$VERSION_CHECK" != " 0" ]; then
+  echo "⚠️ CRITICAL: Found versions with NULL parent_id - this causes blank admin panel pages!"
+  echo "🔧 Fixing NULL parent_id versions..."
+
+  # Fix inline using SQL
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOSQL' 2>&1
+-- Delete broken versions with NULL parent_id
+DELETE FROM _posts_v WHERE parent_id IS NULL;
+
+-- Recreate versions for posts without them
+INSERT INTO _posts_v (
+  parent_id,
+  version_title,
+  version_slug,
+  version_slug_lock,
+  version_content,
+  version_excerpt,
+  version_language,
+  version_hero_image_id,
+  version_hero_image_alt,
+  version_published_at,
+  version__status,
+  version_updated_at,
+  version_created_at,
+  latest,
+  autosave
+)
+SELECT
+  p.id,
+  p.title,
+  p.slug,
+  p.slug_lock,
+  p.content,
+  p.excerpt,
+  CASE
+    WHEN p.language = 'ja' THEN 'ja'::enum__posts_v_version_language
+    WHEN p.language = 'en' THEN 'en'::enum__posts_v_version_language
+    ELSE 'ja'::enum__posts_v_version_language
+  END,
+  p.hero_image_id,
+  p.hero_image_alt,
+  p.published_at,
+  CASE
+    WHEN p._status = 'published' THEN 'published'::enum__posts_v_version_status
+    ELSE 'draft'::enum__posts_v_version_status
+  END,
+  COALESCE(p.updated_at, NOW()),
+  COALESCE(p.created_at, NOW()),
+  true,
+  false
+FROM posts p
+LEFT JOIN _posts_v pv ON pv.parent_id = p.id AND pv.latest = true
+WHERE p.title IS NOT NULL
+  AND p.title <> ''
+  AND pv.id IS NULL;
+
+-- Recreate relationships
+INSERT INTO _posts_v_rels (
+  "order",
+  parent_id,
+  path,
+  posts_id,
+  categories_id,
+  users_id,
+  tags_id
+)
+SELECT DISTINCT
+  pr."order",
+  pv.id,
+  pr.path,
+  pr.posts_id,
+  pr.categories_id,
+  pr.users_id,
+  pr.tags_id
+FROM posts_rels pr
+JOIN _posts_v pv ON pv.parent_id = pr.parent_id AND pv.latest = true
+WHERE NOT EXISTS (
+  SELECT 1 FROM _posts_v_rels vr
+  WHERE vr.parent_id = pv.id
+  AND vr.path = pr.path
+  AND COALESCE(vr.categories_id, 0) = COALESCE(pr.categories_id, 0)
+  AND COALESCE(vr.users_id, 0) = COALESCE(pr.users_id, 0)
+  AND COALESCE(vr.tags_id, 0) = COALESCE(pr.tags_id, 0)
+  AND COALESCE(vr.posts_id, 0) = COALESCE(pr.posts_id, 0)
+)
+ON CONFLICT DO NOTHING;
+EOSQL
+
+  echo "✅ Fixed NULL parent_id versions!"
+else
+  echo "✅ All versions have valid parent_id"
+fi
+
+# Verify fix worked
+FINAL_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
+if [ "$FINAL_CHECK" != "0" ] && [ "$FINAL_CHECK" != " 0" ]; then
+  echo "❌ WARNING: Still have $FINAL_CHECK versions with NULL parent_id after fix!"
+else
+  echo "✅ Version health check passed!"
+fi
+
 # Smart media sync - downloads only missing files
 echo ""
 echo "🖼️ Running smart media sync..."
