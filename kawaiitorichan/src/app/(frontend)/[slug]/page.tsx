@@ -62,13 +62,26 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  try {
-    const { isEnabled: draft } = await draftMode()
-    const { slug = 'home' } = await paramsPromise
-    const url = '/' + slug
+  const { slug = 'home' } = await paramsPromise
 
-    // If it's the homepage, render the modern homepage
-    if (slug === 'home') {
+  // If it's the homepage, render the modern homepage
+  if (slug === 'home') {
+    console.log('[Homepage] Skipping all data fetching - returning static HTML immediately')
+
+    // Return static HTML WITHOUT any data fetching
+    return (
+      <div className="min-h-screen bg-white p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Kawaii Bird Blog - Static Test</h1>
+          <p>This page loads without any database queries.</p>
+          <p>If you see this, the website is working!</p>
+          <a href="/admin" className="text-blue-600 hover:underline">Admin Panel</a>
+        </div>
+      </div>
+    )
+
+      // SKIP ALL OF THIS:
+      /*
       console.log('[Homepage] Starting to fetch data...')
       const payload = await getPayload({ config: configPromise })
       console.log('[Homepage] Payload instance obtained')
@@ -209,9 +222,14 @@ export default async function Page({ params: paramsPromise }: Args) {
           </div>
         </div>
       )
-    }
+      */
+  }
 
-    // For other pages, use the original logic
+  // For other pages, use the original logic
+  try {
+    const { isEnabled: draft } = await draftMode()
+    const url = '/' + slug
+
     let page: RequiredDataFromCollectionSlug<'pages'> | null
 
     page = await queryPageBySlug({
