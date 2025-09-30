@@ -90,10 +90,15 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
 
         // If value only has an id (reference to media)
         if ('id' in value && !('url' in value)) {
-          // Media might not be populated, show placeholder
+          // Use the media-by-id API to fetch and display the image
+          const mediaId = typeof value.id === 'number' ? value.id : String(value.id)
           return (
-            <div className="my-4 p-4 bg-gray-100 rounded text-gray-600 italic">
-              [Image ID: {value.id}]
+            <div className="my-4">
+              <img
+                src={`/api/media-by-id/${mediaId}`}
+                alt={value.alt as string || 'Image'}
+                className="max-w-full h-auto rounded-lg"
+              />
             </div>
           )
         }
@@ -101,9 +106,14 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
 
       // If value is a string ID
       if (typeof value === 'string') {
+        // Use the media-by-id API to fetch and display the image
         return (
-          <div className="my-4 p-4 bg-gray-100 rounded text-gray-600 italic">
-            [Image ID: {value}]
+          <div className="my-4">
+            <img
+              src={`/api/media-by-id/${value}`}
+              alt="Image"
+              className="max-w-full h-auto rounded-lg"
+            />
           </div>
         )
       }
