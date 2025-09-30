@@ -13,13 +13,13 @@ COPY kawaiitorichan/ .
 # Copy SQL files with proper names for init scripts
 COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-all-posts.sql.gz
 COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-data-115-posts.sql.gz
-COPY kawaiitorichan/quick-import-data.sql ./quick-import.sql
+COPY kawaiitorichan/quick-import.sql ./quick-import.sql
 COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
 COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
 
-# Cache bust - Force rebuild at 2025-09-30 22:15
+# Cache bust - Force rebuild at 2025-09-30 22:30
 # Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-22:15:00"
+ENV REBUILD_TIMESTAMP="2025-09-30-22:30:00"
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
