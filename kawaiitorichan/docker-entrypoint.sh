@@ -399,6 +399,20 @@ else
   echo "✅ Posts already exist ($POST_COUNT posts), skipping data import to preserve existing data"
 fi
 
+# Populate post versions for admin panel visibility
+echo ""
+echo "📝 Populating post versions for admin panel..."
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm populate-versions || echo "⚠️ Version population had issues but continuing..."
+else
+  echo "⚠️ pnpm not found, trying with node directly..."
+  if [ -f scripts/populate-post-versions.ts ]; then
+    node --loader tsx scripts/populate-post-versions.ts || echo "⚠️ Version population had issues but continuing..."
+  else
+    echo "⚠️ Version population script not found, skipping..."
+  fi
+fi
+
 # Smart media sync - downloads only missing files
 echo ""
 echo "🖼️ Running smart media sync..."
