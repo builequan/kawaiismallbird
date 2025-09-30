@@ -144,15 +144,20 @@ export default async function Page({ params: paramsPromise }: Args) {
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = 'home' } = await paramsPromise
+
+  // Check homepage first, skip database query entirely
+  if (slug === 'home') {
+    return generateMeta({ doc: homeStatic })
+  }
+
+  // For other pages, try to query the database
   let page = await queryPageBySlug({
     slug,
   })
 
   // Use static fallback for metadata if page not found
   if (!page) {
-    if (slug === 'home') {
-      page = homeStatic
-    } else if (slug === 'about-us') {
+    if (slug === 'about-us') {
       page = aboutStatic
     }
   }

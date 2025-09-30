@@ -75,9 +75,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 RUN mkdir -p public/media && chown -R nextjs:nodejs public/media
 
 # Copy migrations and Payload config (required for Payload CMS v3)
-COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nextjs:nodejs /app/src/migrations ./src/migrations
+# Create empty dist directory if it doesn't exist in builder
+RUN mkdir -p dist src/migrations
+# Copy from builder only if they exist
 COPY --from=builder /app/src/payload.config.ts ./src/payload.config.ts
+# The dist and migrations might not exist, so create them empty if needed
 
 # Copy package.json and node_modules for payload CLI
 COPY --from=builder /app/package.json ./
