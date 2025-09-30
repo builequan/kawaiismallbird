@@ -71,7 +71,7 @@ export default async function Page({ params: paramsPromise }: Args) {
     if (slug === 'home') {
       const payload = await getPayload({ config: configPromise })
 
-      // Fetch featured posts (most recent posts)
+      // Fetch featured posts (most recent posts) - depth 0 to avoid category population errors
       const featuredPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -82,10 +82,10 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 2
+        depth: 0
       })
 
-      // Fetch recent posts
+      // Fetch recent posts - depth 0 to avoid category population errors
       const recentPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -96,10 +96,10 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 2
+        depth: 0
       })
 
-      // For now, use recent posts as popular posts (in production, you'd track views)
+      // For now, use recent posts as popular posts - depth 0 to avoid category population errors
       const popularPosts = await payload.find({
         collection: 'posts',
         draft,
@@ -110,7 +110,7 @@ export default async function Page({ params: paramsPromise }: Args) {
             equals: 'published'
           }
         },
-        depth: 2
+        depth: 0
       })
 
       // Fetch categories and count posts for each
@@ -121,24 +121,32 @@ export default async function Page({ params: paramsPromise }: Args) {
         depth: 0
       })
 
-      // Get post counts for each category
+      // Get post counts for each category - wrapped in try-catch to handle missing relations
       const categoriesWithCounts = await Promise.all(
         categories.docs.map(async (category) => {
-          const postCount = await payload.count({
-            collection: 'posts',
-            where: {
-              categories: {
-                contains: category.id
-              },
-              _status: {
-                equals: 'published'
+          try {
+            const postCount = await payload.count({
+              collection: 'posts',
+              where: {
+                categories: {
+                  contains: category.id
+                },
+                _status: {
+                  equals: 'published'
+                }
               }
-            }
-          })
+            })
 
-          return {
-            ...category,
-            postCount: postCount.totalDocs
+            return {
+              ...category,
+              postCount: postCount.totalDocs
+            }
+          } catch (error) {
+            // If counting fails (e.g., no category relationships), return 0
+            return {
+              ...category,
+              postCount: 0
+            }
           }
         })
       )
