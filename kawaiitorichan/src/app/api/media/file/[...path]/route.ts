@@ -4,16 +4,12 @@ import fs from 'fs'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    const resolvedParams = await params
     // Get the full file path - check both possible locations
-    let fileName = params.path.join('/')
-
-    // Remove 'file/' prefix if it exists (legacy URL format)
-    if (fileName.startsWith('file/')) {
-      fileName = fileName.substring(5)
-    }
+    let fileName = resolvedParams.path.join('/')
 
     // Try public/media first (development)
     let filePath = path.join(process.cwd(), 'public', 'media', fileName)

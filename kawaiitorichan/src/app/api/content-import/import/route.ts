@@ -47,27 +47,86 @@ async function createMediaFromUrl(payload: any, url: string, alt: string = 'Imag
   }
 }
 
-// Parse inline text - NO inline images, just text
+// Parse inline text with proper link preservation
 function parseInlineText(text: string, mediaMap: Map<string, string>): any[] {
   if (!text) return []
 
-  // Clean markdown and convert images to text placeholders
-  // Inline images will be handled separately as block-level elements
-  const cleanText = text
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '') // Remove inline images - they'll be block-level
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1') // Links as text
-    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-    .replace(/__([^_]+)__/g, '$1') // Remove bold alt
-    .replace(/\*([^*]+)\*/g, '$1') // Remove italic
-    .replace(/_([^_]+)_/g, '$1') // Remove italic alt
-    .trim()
+  // Remove inline images first (they'll be block-level)
+  text = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '')
 
-  if (!cleanText) return []
+  const result: any[] = []
+  let currentText = ''
+  let i = 0
 
-  return [{
+  while (i < text.length) {
+    // Check for citation link [[number]](url) or regular link [text](url)
+    if (text[i] === '[') {
+      // Try to match [[text]](url) first (citations)
+      let linkMatch = text.slice(i).match(/^\[\[([^\]]+)\]\]\(([^)]+)\)/)
+      let linkText = linkMatch ? `[${linkMatch[1]}]` : null // Wrap in single brackets for display
+
+      // If no double bracket match, try single bracket [text](url)
+      if (!linkMatch) {
+        linkMatch = text.slice(i).match(/^\[([^\]]+)\]\(([^)]+)\)/)
+        linkText = linkMatch ? linkMatch[1] : null
+      }
+
+      if (linkMatch && linkText) {
+        // Add any accumulated text first
+        if (currentText.trim()) {
+          result.push({
+            type: 'text',
+            version: 1,
+            text: currentText
+          })
+          currentText = ''
+        }
+
+        // Add link node
+        result.push({
+          type: 'link',
+          version: 2,
+          fields: {
+            linkType: 'custom',
+            url: linkMatch[2],
+            newTab: true,
+          },
+          children: [
+            {
+              type: 'text',
+              version: 1,
+              text: linkText
+            }
+          ]
+        })
+
+        i += linkMatch[0].length
+        continue
+      }
+    }
+
+    // Regular character
+    currentText += text[i]
+    i++
+  }
+
+  // Add remaining text
+  if (currentText.trim()) {
+    result.push({
+      type: 'text',
+      version: 1,
+      text: currentText
+        .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+        .replace(/__([^_]+)__/g, '$1') // Remove bold alt
+        .replace(/\*([^*]+)\*/g, '$1') // Remove italic
+        .replace(/_([^_]+)_/g, '$1') // Remove italic alt
+    })
+  }
+
+  return result.length > 0 ? result : [{
     type: 'text',
     version: 1,
-    text: cleanText
+    text: ''
   }]
 }
 

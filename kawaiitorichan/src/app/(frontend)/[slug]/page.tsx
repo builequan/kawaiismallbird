@@ -80,31 +80,76 @@ export default async function Page({ params: paramsPromise }: Args) {
         const payload = await getPayload({ config: configPromise })
         const { isEnabled: draft } = await draftMode()
 
-        // Helper function to get image URL from heroImage field
-        const getImageUrl = (heroImage: any): string | null => {
-          if (!heroImage) return null
+        // Helper function to extract image from post content
+        const extractImageFromContent = (content: any): string | null => {
+          if (!content) return null
 
-          // If it's a full media object with url
-          if (typeof heroImage === 'object' && 'url' in heroImage) {
-            return fixMediaUrl(heroImage.url)
+          // Recursively search for upload nodes
+          const findUpload = (obj: any): any => {
+            if (!obj) return null
+
+            if (typeof obj === 'object') {
+              // Check if this is an upload node
+              if (obj.type === 'upload' && obj.relationTo === 'media' && obj.value) {
+                return obj.value
+              }
+
+              // Search in arrays
+              if (Array.isArray(obj)) {
+                for (const item of obj) {
+                  const result = findUpload(item)
+                  if (result) return result
+                }
+              } else {
+                // Search in object properties
+                for (const key in obj) {
+                  const result = findUpload(obj[key])
+                  if (result) return result
+                }
+              }
+            }
+
+            return null
           }
 
-          // If it's a full media object with filename
-          if (typeof heroImage === 'object' && 'filename' in heroImage) {
-            return `/media/${heroImage.filename}`
+          return findUpload(content)
+        }
+
+        // Helper function to get image URL from heroImage field with content fallback
+        const getImageUrl = (heroImage: any, content?: any): string | null => {
+          // Try hero image first
+          if (heroImage) {
+            // If it's a full media object with url
+            if (typeof heroImage === 'object' && 'url' in heroImage) {
+              return fixMediaUrl(heroImage.url)
+            }
+
+            // If it's a full media object with filename
+            if (typeof heroImage === 'object' && 'filename' in heroImage) {
+              return `/media/${heroImage.filename}`
+            }
+
+            // If it's just an ID (number or string)
+            if (typeof heroImage === 'number' || typeof heroImage === 'string') {
+              return `/api/media-by-id/${heroImage}`
+            }
+
+            // If it's an object with id property
+            if (typeof heroImage === 'object' && 'id' in heroImage) {
+              return `/api/media-by-id/${heroImage.id}`
+            }
           }
 
-          // If it's just an ID (number or string)
-          if (typeof heroImage === 'number' || typeof heroImage === 'string') {
-            return `/api/media-by-id/${heroImage}`
+          // Fallback: extract from content
+          if (content) {
+            const mediaId = extractImageFromContent(content)
+            if (mediaId) {
+              return `/api/media-by-id/${typeof mediaId === 'object' ? mediaId.id : mediaId}`
+            }
           }
 
-          // If it's an object with id property
-          if (typeof heroImage === 'object' && 'id' in heroImage) {
-            return `/api/media-by-id/${heroImage.id}`
-          }
-
-          return null
+          // Final fallback: default image
+          return '/api/media-by-id/904'
         }
 
         // Get posts count first to verify database is working
@@ -235,7 +280,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Large Featured Article */}
                   {featuredPosts.docs[0] && (() => {
-                    const imageUrl = getImageUrl(featuredPosts.docs[0].heroImage)
+                    const imageUrl = getImageUrl(featuredPosts.docs[0].heroImage, featuredPosts.docs[0].content)
                     const imageAlt = typeof featuredPosts.docs[0].heroImage === 'object' && featuredPosts.docs[0].heroImage?.alt
                       ? featuredPosts.docs[0].heroImage.alt
                       : featuredPosts.docs[0].title
@@ -243,13 +288,12 @@ export default async function Page({ params: paramsPromise }: Args) {
                     return (
                       <article className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all border-4 border-orange-300 group">
                         <a href={`/posts/${featuredPosts.docs[0].slug}`} className="block">
-                          {imageUrl && (
-                            <div className="relative h-[400px] overflow-hidden">
-                              <img
-                                src={imageUrl}
-                                alt={imageAlt}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
+                          <div className="relative h-[400px] overflow-hidden">
+                            <img
+                              src={imageUrl}
+                              alt={imageAlt}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute top-4 left-4">
                               <span className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
@@ -257,7 +301,6 @@ export default async function Page({ params: paramsPromise }: Args) {
                               </span>
                             </div>
                           </div>
-                        )}
                         <div className="p-8 bg-white">
                           <h3 className="text-3xl font-bold mb-4 line-clamp-2 group-hover:text-orange-600 transition-colors">
                             {featuredPosts.docs[0].title}
@@ -267,10 +310,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                               {featuredPosts.docs[0].excerpt}
                             </p>
                           )}
-                          <div className="flex items-center justify-between">
-                            <time className="text-gray-500" dateTime={featuredPosts.docs[0].publishedAt}>
-                              {new Date(featuredPosts.docs[0].publishedAt).toLocaleDateString('ja-JP')}
-                            </time>
+                          <div className="flex items-center justify-end">
                             <span className="text-orange-600 font-semibold group-hover:underline">
                               続きを読む →
                             </span>
@@ -284,7 +324,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                   {/* Small Featured Articles (4 articles in 2x2 grid) */}
                   <div className="lg:col-span-1 grid grid-cols-1 gap-4">
                     {featuredPosts.docs.slice(1, 5).map((post) => {
-                      const imageUrl = getImageUrl(post.heroImage)
+                      const imageUrl = getImageUrl(post.heroImage, post.content)
                       const imageAlt = typeof post.heroImage === 'object' && post.heroImage?.alt
                         ? post.heroImage.alt
                         : post.title
@@ -295,22 +335,17 @@ export default async function Page({ params: paramsPromise }: Args) {
                           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border-l-4 border-orange-400 group"
                         >
                           <a href={`/posts/${post.slug}`} className="flex gap-3 p-4">
-                            {imageUrl && (
-                              <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                                <img
-                                  src={imageUrl}
-                                  alt={imageAlt}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                />
-                              </div>
-                            )}
+                            <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                              <img
+                                src={imageUrl}
+                                alt={imageAlt}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
                           <div className="flex-1 min-w-0">
                             <h4 className="font-bold text-sm mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
                               {post.title}
                             </h4>
-                            <time className="text-xs text-gray-500" dateTime={post.publishedAt}>
-                              {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
-                            </time>
                           </div>
                         </a>
                       </article>
@@ -327,7 +362,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                 <h2 className="text-3xl font-bold mb-8">最新の記事</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {recentPosts.docs.map((post) => {
-                    const imageUrl = getImageUrl(post.heroImage)
+                    const imageUrl = getImageUrl(post.heroImage, post.content)
                     const imageAlt = typeof post.heroImage === 'object' && post.heroImage?.alt
                       ? post.heroImage.alt
                       : post.title
@@ -337,15 +372,13 @@ export default async function Page({ params: paramsPromise }: Args) {
                         key={post.id}
                         className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                       >
-                        {imageUrl && (
-                          <div className="aspect-video bg-gray-200">
-                            <img
-                              src={imageUrl}
-                              alt={imageAlt}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
+                        <div className="aspect-video bg-gray-200">
+                          <img
+                            src={imageUrl}
+                            alt={imageAlt}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                       <div className="p-6">
                         <h3 className="text-xl font-semibold mb-2 line-clamp-2">
                           <a href={`/posts/${post.slug}`} className="hover:text-green-600">
@@ -357,10 +390,7 @@ export default async function Page({ params: paramsPromise }: Args) {
                             {post.excerpt}
                           </p>
                         )}
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <time dateTime={post.publishedAt}>
-                            {new Date(post.publishedAt).toLocaleDateString('ja-JP')}
-                          </time>
+                        <div className="flex items-center justify-end text-sm text-gray-500">
                           <a
                             href={`/posts/${post.slug}`}
                             className="text-green-600 hover:underline"

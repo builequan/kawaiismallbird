@@ -18,6 +18,7 @@ import { MermaidDiagram } from '../../blocks/MermaidDiagram/config'
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
+import { autoSetHeroImage } from './hooks/autoSetHeroImage'
 
 import {
   MetaDescriptionField,
@@ -482,6 +483,7 @@ export const Posts: CollectionConfig<'posts'> = {
     ...slugField(),
   ],
   hooks: {
+    beforeChange: [autoSetHeroImage],
     afterChange: [revalidatePost],
     afterRead: [populateAuthors],
     afterDelete: [revalidateDelete],
