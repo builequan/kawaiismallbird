@@ -203,9 +203,73 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       </li>
     )
   },
-  // Text formatting support
+  // Text formatting support with citation fallback
   text: ({ node }) => {
-    let content: React.ReactNode = node.text || ''
+    let text = node.text || ''
+
+    // SAFETY NET: Check for citation markdown pattern [[number]](url) in plain text
+    // This catches cases where citations weren't converted to link nodes
+    const citationPattern = /\[\[(\d+)\]\]\((https?:\/\/[^)]+)\)/g
+
+    if (citationPattern.test(text)) {
+      // Split text into parts and create links for citations
+      const parts: React.ReactNode[] = []
+      let lastIndex = 0
+      const regex = /\[\[(\d+)\]\]\((https?:\/\/[^)]+)\)/g
+      let match
+      let key = 0
+
+      while ((match = regex.exec(text)) !== null) {
+        // Add text before citation
+        if (match.index > lastIndex) {
+          parts.push(text.substring(lastIndex, match.index))
+        }
+
+        // Add citation link
+        parts.push(
+          <a
+            key={`citation-${key++}`}
+            href={match[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            [{match[1]}]
+          </a>
+        )
+
+        lastIndex = regex.lastIndex
+      }
+
+      // Add remaining text
+      if (lastIndex < text.length) {
+        parts.push(text.substring(lastIndex))
+      }
+
+      // Apply formatting to the entire result
+      let content: React.ReactNode = <>{parts}</>
+
+      if (node.format & 16) { // Code (16)
+        content = <code className="px-1 py-0.5 bg-gray-100 rounded text-sm">{content}</code>
+      }
+      if (node.format & 4) { // Strikethrough (4)
+        content = <s>{content}</s>
+      }
+      if (node.format & 8) { // Underline (8)
+        content = <u>{content}</u>
+      }
+      if (node.format & 2) { // Italic (2)
+        content = <em>{content}</em>
+      }
+      if (node.format & 1) { // Bold (1)
+        content = <strong>{content}</strong>
+      }
+
+      return content
+    }
+
+    // Normal text without citations
+    let content: React.ReactNode = text
 
     // Apply formatting based on format flags (can be combined)
     if (node.format & 16) { // Code (16)
