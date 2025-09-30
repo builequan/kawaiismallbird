@@ -8,7 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-09-29-17:45
+ARG REBUILD_TIMESTAMP=2025-10-01-06:15
 
 # Copy all files from kawaiitorichan subdirectory
 COPY kawaiitorichan/ .
@@ -65,7 +65,7 @@ COPY --from=builder /app/init-full-bird-content.sql ./
 COPY --from=builder /app/init-bird-production.sh ./
 COPY --from=builder /app/current-complete-data-352-posts.sql.gz ./
 COPY --from=builder /app/essential_data.sql ./
-COPY --from=builder /app/production-data-115-posts.sql.gz ./
+COPY --from=builder /app/production-data-494-posts.sql.gz ./
 COPY --from=builder /app/quick-import-data.sql ./
 COPY --from=builder /app/quick-import.sql ./
 COPY --from=builder /app/init-schema-and-data.sql.gz ./
