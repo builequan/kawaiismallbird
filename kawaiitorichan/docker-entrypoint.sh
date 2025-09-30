@@ -378,18 +378,25 @@ fi
 
 # No longer need background check - everything is done upfront by quick-import.sql
 
-# Initialize bird theme content (always run to ensure data is present)
+# Initialize bird theme content (only if posts don't exist yet)
 echo ""
-echo "🦜 Initializing Kawaii Bird theme content..."
-if [ -f init-bird-production.sh ]; then
-  echo "Running init-bird-production.sh..."
-  sh init-bird-production.sh
-  INIT_EXIT_CODE=$?
-  if [ $INIT_EXIT_CODE -eq 0 ]; then
-    echo "✅ Bird theme initialization completed successfully!"
-  else
-    echo "⚠️ Bird theme initialization had issues but continuing..."
+echo "🦜 Checking if bird theme content needs initialization..."
+
+# Only run init if POST_COUNT is 0 (data not yet imported)
+if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
+  echo "No posts found - running initial data import..."
+  if [ -f init-bird-production.sh ]; then
+    echo "Running init-bird-production.sh..."
+    sh init-bird-production.sh
+    INIT_EXIT_CODE=$?
+    if [ $INIT_EXIT_CODE -eq 0 ]; then
+      echo "✅ Bird theme initialization completed successfully!"
+    else
+      echo "⚠️ Bird theme initialization had issues but continuing..."
+    fi
   fi
+else
+  echo "✅ Posts already exist ($POST_COUNT posts), skipping data import to preserve existing data"
 fi
 
 # Smart media sync - downloads only missing files
