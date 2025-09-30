@@ -50,6 +50,7 @@ export const Posts: CollectionConfig<'posts'> = {
     meta: {
       image: true,
       description: true,
+      title: true,
     },
   },
   admin: {
