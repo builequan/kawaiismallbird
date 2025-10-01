@@ -106,12 +106,24 @@ if [ -n "$DATABASE_URI" ]; then
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
       echo "✅ Cleared users table for fresh registration"
 
-      # Fix media URLs
-      echo "🔧 Fixing media URLs..."
+      # Fix media URLs - convert all external URLs to local paths
+      echo "🔧 Fixing media URLs (converting external URLs to local paths)..."
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
+-- Fix URLs pointing to /api/media/file/
 UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
-UPDATE media SET url = CONCAT('/media/', filename) WHERE url IS NULL OR url = '' OR url NOT LIKE '/media/%';
+
+-- Fix external URLs (https://) to use local paths
+UPDATE media SET url = '/media/' || filename
+WHERE (url LIKE 'http://%' OR url LIKE 'https://%') AND filename IS NOT NULL;
+
+-- Fix any remaining NULL or empty URLs
+UPDATE media SET url = '/media/' || filename
+WHERE (url IS NULL OR url = '') AND filename IS NOT NULL;
 EOF
+
+      # Verify the fix
+      FIXED_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media WHERE url LIKE '/media/%';" 2>/dev/null || echo "0")
+      echo "✅ Fixed $FIXED_COUNT media URLs to use local paths"
 
       # Extract and set hero images from post content
       echo "🖼️ Setting hero images from post content..."
