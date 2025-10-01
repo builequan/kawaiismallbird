@@ -106,10 +106,10 @@ if [ -n "$DATABASE_URI" ]; then
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "DELETE FROM users;" 2>/dev/null || true
       echo "✅ Cleared users table for fresh registration"
 
-      # Fix media URLs - convert all external URLs to local paths
+      # Fix media URLs - convert all external URLs to local paths AND fix size-specific URLs
       echo "🔧 Fixing media URLs (converting external URLs to local paths)..."
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<EOF
--- Fix URLs pointing to /api/media/file/
+-- Fix main URLs pointing to /api/media/file/
 UPDATE media SET url = REPLACE(url, '/api/media/file/', '/media/') WHERE url LIKE '/api/media/file/%';
 
 -- Fix external URLs (https://) to use local paths
@@ -119,11 +119,21 @@ WHERE (url LIKE 'http://%' OR url LIKE 'https://%') AND filename IS NOT NULL;
 -- Fix any remaining NULL or empty URLs
 UPDATE media SET url = '/media/' || filename
 WHERE (url IS NULL OR url = '') AND filename IS NOT NULL;
+
+-- CRITICAL: Fix all size-specific URLs (these are NULL in the dump but need to point to local files)
+UPDATE media SET sizes_thumbnail_url = '/media/' || sizes_thumbnail_filename WHERE sizes_thumbnail_filename IS NOT NULL AND sizes_thumbnail_filename != '';
+UPDATE media SET sizes_square_url = '/media/' || sizes_square_filename WHERE sizes_square_filename IS NOT NULL AND sizes_square_filename != '';
+UPDATE media SET sizes_small_url = '/media/' || sizes_small_filename WHERE sizes_small_filename IS NOT NULL AND sizes_small_filename != '';
+UPDATE media SET sizes_medium_url = '/media/' || sizes_medium_filename WHERE sizes_medium_filename IS NOT NULL AND sizes_medium_filename != '';
+UPDATE media SET sizes_large_url = '/media/' || sizes_large_filename WHERE sizes_large_filename IS NOT NULL AND sizes_large_filename != '';
+UPDATE media SET sizes_xlarge_url = '/media/' || sizes_xlarge_filename WHERE sizes_xlarge_filename IS NOT NULL AND sizes_xlarge_filename != '';
+UPDATE media SET sizes_og_url = '/media/' || sizes_og_filename WHERE sizes_og_filename IS NOT NULL AND sizes_og_filename != '';
 EOF
 
       # Verify the fix
       FIXED_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media WHERE url LIKE '/media/%';" 2>/dev/null || echo "0")
-      echo "✅ Fixed $FIXED_COUNT media URLs to use local paths"
+      SIZE_FIXED=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media WHERE sizes_thumbnail_url LIKE '/media/%' OR sizes_square_url LIKE '/media/%';" 2>/dev/null || echo "0")
+      echo "✅ Fixed $FIXED_COUNT main URLs and $SIZE_FIXED size-specific URLs to use local paths"
 
       # Extract and set hero images from post content
       echo "🖼️ Setting hero images from post content..."
