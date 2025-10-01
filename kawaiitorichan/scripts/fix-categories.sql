@@ -1,4 +1,5 @@
 -- Fix category assignments by distributing posts evenly across subcategories
+-- This version uses slugs instead of hardcoded IDs for compatibility
 
 -- First, clear existing category relationships
 DELETE FROM posts_rels WHERE categories_id IS NOT NULL;
@@ -11,30 +12,28 @@ WITH
     FROM posts
     WHERE _status = 'published'
   ),
+  parent_categories AS (
+    -- Get all parent categories
+    SELECT id, slug, title FROM categories WHERE parent_id IS NULL
+  ),
   category_groups AS (
-    -- Bird types (9 categories, parent 359)
-    SELECT id, title, 0 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 359
-    UNION ALL
-    -- Care categories (6 categories, parent 368)
-    SELECT id, title, 1 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 368
-    UNION ALL
-    -- Health categories (6 categories, parent 369)
-    SELECT id, title, 2 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 369
-    UNION ALL
-    -- Behavior categories (6 categories, parent 392)
-    SELECT id, title, 3 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 392
-    UNION ALL
-    -- Observation categories (6 categories, parent 399)
-    SELECT id, title, 4 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 399
-    UNION ALL
-    -- Nutrition categories (8 categories, parent 405)
-    SELECT id, title, 5 as group_idx, ROW_NUMBER() OVER (ORDER BY id) - 1 as cat_idx
-    FROM categories WHERE parent_id = 405
+    -- Get all subcategories grouped by parent slug
+    SELECT
+      c.id,
+      c.title,
+      CASE
+        WHEN p.slug LIKE '%species%' OR p.title LIKE '%種類%' THEN 0
+        WHEN p.slug LIKE '%care%' OR p.title LIKE '%飼い方%' THEN 1
+        WHEN p.slug LIKE '%health%' OR p.title LIKE '%健康%' THEN 2
+        WHEN p.slug LIKE '%behavior%' OR p.title LIKE '%生態%' THEN 3
+        WHEN p.slug LIKE '%watching%' OR p.title LIKE '%野鳥観察%' THEN 4
+        WHEN p.slug LIKE '%nutrition%' OR p.slug LIKE '%feeding%' OR p.title LIKE '%餌%' OR p.title LIKE '%栄養%' THEN 5
+        ELSE 6
+      END as group_idx,
+      ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY c.id) - 1 as cat_idx
+    FROM categories c
+    JOIN categories p ON c.parent_id = p.id
+    WHERE c.parent_id IS NOT NULL
   ),
   group_sizes AS (
     SELECT group_idx, COUNT(*) as size
