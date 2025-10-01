@@ -3,9 +3,9 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ChevronRight, Calendar, Clock, Eye } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { getCategoryBySlug } from '@/data/categoryData'
 
@@ -310,17 +310,53 @@ export default async function CategoryPage({ params }: PageProps) {
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {group.posts.slice(0, 4).map((post) => {
-                const heroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
-                  ? post.hero
-                  : null
+                // Extract hero image - check hero field first, then content
+                let heroImageUrl: string | null = null
+
+                if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
+                  heroImageUrl = post.hero.url
+                } else if (post.content) {
+                  // Try to extract first image from content
+                  try {
+                    if (typeof post.content === 'object' && post.content.root) {
+                      const findFirstImage = (node: any): string | null => {
+                        if (node.type === 'upload' && node.value) {
+                          if (typeof node.value === 'object' && 'url' in node.value) {
+                            return node.value.url
+                          } else if (typeof node.value === 'object' && 'filename' in node.value) {
+                            return `/media/${node.value.filename}`
+                          }
+                        }
+                        if (node.children && Array.isArray(node.children)) {
+                          for (const child of node.children) {
+                            const result = findFirstImage(child)
+                            if (result) return result
+                          }
+                        }
+                        return null
+                      }
+                      const firstImage = findFirstImage(post.content.root)
+                      if (firstImage) {
+                        heroImageUrl = firstImage
+                      }
+                    }
+                  } catch (e) {
+                    console.error('Error extracting image:', e)
+                  }
+                }
+
+                // Apply URL fix if we have an image
+                if (heroImageUrl && heroImageUrl.includes('/api/media/file/')) {
+                  heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
+                }
 
                 return (
                   <Card key={post.id} className="bg-white hover:shadow-lg transition-shadow overflow-hidden border-gray-200">
-                    {heroImage && (
+                    {heroImageUrl && (
                       <div className="relative w-full h-40">
                         <Image
-                          src={heroImage.url}
-                          alt={heroImage.alt || post.title}
+                          src={heroImageUrl}
+                          alt={post.title}
                           fill
                           className="object-cover"
                         />
@@ -336,27 +372,6 @@ export default async function CategoryPage({ params }: PageProps) {
                         </Link>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        {post.publishedAt && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>
-                              {new Date(post.publishedAt).toLocaleDateString('ja-JP', {
-                                month: 'short',
-                                day: 'numeric',
-                              })}
-                            </span>
-                          </div>
-                        )}
-                        {post.views && (
-                          <div className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
-                            <span>{post.views}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
                   </Card>
                 )
               })}
@@ -428,65 +443,14 @@ export default async function CategoryPage({ params }: PageProps) {
               )}
               <CardHeader>
                 <CardTitle className="text-xl line-clamp-2 text-gray-900">
-                  <Link 
+                  <Link
                     href={`/posts/${post.slug}`}
                     className="hover:text-green-600 transition-colors text-gray-900"
                   >
                     {post.title}
                   </Link>
                 </CardTitle>
-                {post.meta?.description && (
-                  <CardDescription className="line-clamp-3 mt-2">
-                    {post.meta.description}
-                  </CardDescription>
-                )}
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  {post.publishedAt && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>
-                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  {post.readingTime && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{post.readingTime} min read</span>
-                    </div>
-                  )}
-                  {post.views && (
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{post.views.toLocaleString()} views</span>
-                    </div>
-                  )}
-                </div>
-                {post.categories && post.categories.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-3">
-                    {post.categories.slice(0, 2).map((cat) => {
-                      const categoryData = typeof cat === 'object' ? cat : null
-                      if (!categoryData) return null
-                      
-                      return (
-                        <Badge 
-                          key={categoryData.id} 
-                          variant="secondary" 
-                          className="text-xs"
-                        >
-                          {categoryData.title}
-                        </Badge>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
                 </Card>
               )
             })}
