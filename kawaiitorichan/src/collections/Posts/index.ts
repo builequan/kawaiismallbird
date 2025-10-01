@@ -140,6 +140,7 @@ export const Posts: CollectionConfig<'posts'> = {
             {
               name: 'content',
               type: 'richText',
+              maxDepth: 0,
               editor: lexicalEditor({
                 features: ({ rootFeatures }) => {
                   return [
@@ -152,17 +153,7 @@ export const Posts: CollectionConfig<'posts'> = {
                     UploadFeature({
                       collections: {
                         media: {
-                          fields: [
-                            {
-                              name: 'alt',
-                              type: 'text',
-                              required: true,
-                            },
-                            {
-                              name: 'caption',
-                              type: 'richText',
-                            },
-                          ],
+                          fields: [],
                         },
                       },
                     }),

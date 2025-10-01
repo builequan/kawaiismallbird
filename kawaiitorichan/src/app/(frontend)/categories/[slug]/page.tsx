@@ -310,39 +310,11 @@ export default async function CategoryPage({ params }: PageProps) {
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {group.posts.slice(0, 4).map((post) => {
-                // Extract hero image - check hero field first, then content
+                // Extract hero image - check heroImage field first
                 let heroImageUrl: string | null = null
 
-                if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
-                  heroImageUrl = post.hero.url
-                } else if (post.content) {
-                  // Try to extract first image from content
-                  try {
-                    if (typeof post.content === 'object' && post.content.root) {
-                      const findFirstImage = (node: any): string | null => {
-                        if (node.type === 'upload' && node.value) {
-                          if (typeof node.value === 'object' && 'url' in node.value) {
-                            return node.value.url
-                          } else if (typeof node.value === 'object' && 'filename' in node.value) {
-                            return `/media/${node.value.filename}`
-                          }
-                        }
-                        if (node.children && Array.isArray(node.children)) {
-                          for (const child of node.children) {
-                            const result = findFirstImage(child)
-                            if (result) return result
-                          }
-                        }
-                        return null
-                      }
-                      const firstImage = findFirstImage(post.content.root)
-                      if (firstImage) {
-                        heroImageUrl = firstImage
-                      }
-                    }
-                  } catch (e) {
-                    console.error('Error extracting image:', e)
-                  }
+                if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+                  heroImageUrl = post.heroImage.url
                 }
 
                 // Apply URL fix if we have an image
@@ -387,46 +359,16 @@ export default async function CategoryPage({ params }: PageProps) {
             </h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {directPosts.map((post) => {
-          // Extract hero image properly
+          // Extract hero image - check heroImage field first
           let heroImageUrl: string | null = null
 
-          if (post.hero && typeof post.hero === 'object' && 'url' in post.hero) {
-            heroImageUrl = post.hero.url
-          } else if (post.content) {
-            // Try to extract first image from content
-            try {
-              if (typeof post.content === 'object' && post.content.root) {
-                const findFirstImage = (node: any): string | null => {
-                  if (node.type === 'upload' && node.value) {
-                    if (typeof node.value === 'object' && 'url' in node.value) {
-                      return node.value.url
-                    } else if (typeof node.value === 'object' && 'filename' in node.value) {
-                      return `/media/${node.value.filename}`
-                    }
-                  }
-                  if (node.children && Array.isArray(node.children)) {
-                    for (const child of node.children) {
-                      const result = findFirstImage(child)
-                      if (result) return result
-                    }
-                  }
-                  return null
-                }
-                const firstImage = findFirstImage(post.content.root)
-                if (firstImage) {
-                  heroImageUrl = firstImage
-                }
-              }
-            } catch (e) {
-              console.error('Error extracting image:', e)
-            }
+          if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+            heroImageUrl = post.heroImage.url
           }
 
           // Apply URL fix if we have an image
-          if (heroImageUrl) {
-            if (heroImageUrl.includes('/api/media/file/')) {
-              heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
-            }
+          if (heroImageUrl && heroImageUrl.includes('/api/media/file/')) {
+            heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
           }
 
           return (
