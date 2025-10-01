@@ -637,10 +637,19 @@ else
   echo "✅ All versions are healthy"
 fi
 
+# CRITICAL: Delete any versions with NULL parent_id (these are broken and cause admin panel issues)
+echo "🔧 Removing any broken versions with NULL parent_id..."
+NULL_BEFORE=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
+if [ "$NULL_BEFORE" != "0" ]; then
+  echo "Found $NULL_BEFORE versions with NULL parent_id, deleting..."
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "DELETE FROM _posts_v WHERE parent_id IS NULL;" 2>&1
+  echo "✅ Deleted broken versions"
+fi
+
 # Final verification
-FINAL_NULL=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
-FINAL_TOTAL=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE latest = true;" 2>/dev/null || echo "0")
-FINAL_POSTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+FINAL_NULL=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
+FINAL_TOTAL=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM _posts_v WHERE latest = true;" 2>/dev/null || echo "0")
+FINAL_POSTS=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
 
 echo ""
 echo "📊 Final version status:"
@@ -648,9 +657,13 @@ echo "  - Total posts: $FINAL_POSTS"
 echo "  - Latest versions: $FINAL_TOTAL"
 echo "  - NULL parent_id: $FINAL_NULL"
 
-if [ "$FINAL_NULL" != "0" ] && [ "$FINAL_NULL" != " 0" ]; then
-  echo "❌ CRITICAL: Still have NULL parent_id after fix!"
+# Clean up any whitespace from psql output
+FINAL_NULL_CLEAN=$(echo "$FINAL_NULL" | tr -d ' ')
+
+if [ "$FINAL_NULL_CLEAN" != "0" ] && [ -n "$FINAL_NULL_CLEAN" ]; then
+  echo "❌ CRITICAL: Still have $FINAL_NULL_CLEAN versions with NULL parent_id after fix!"
   echo "Admin panel may not work properly!"
+  echo "💡 Try running: DELETE FROM _posts_v WHERE parent_id IS NULL;"
 else
   echo "✅ All versions have valid parent_id - admin panel should work!"
 fi
