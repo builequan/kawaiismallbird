@@ -159,15 +159,21 @@ AND jsonb_typeof(p.content) = 'object';
 EOF
       echo "✅ Hero images set from content"
 
-      # Use smart media sync
-      echo "📥 Running smart media sync..."
+      # Use smart media sync IN BACKGROUND to not block container startup
+      echo "📥 Starting smart media sync in background..."
       if [ -f /app/smart-media-sync.sh ]; then
-        sh /app/smart-media-sync.sh
+        # Run in background and redirect output to log file
+        nohup sh /app/smart-media-sync.sh > /app/media-sync.log 2>&1 &
+        SYNC_PID=$!
+        echo "✅ Media sync started (PID: $SYNC_PID)"
+        echo "💡 Monitor progress: tail -f /app/media-sync.log"
+        echo "💡 Or run manually: sh /app/smart-media-sync.sh"
       else
         echo "⚠️ smart-media-sync.sh not found"
       fi
 
       echo "🌐 Complete data import complete with $POST_COUNT Japanese bird posts!"
+      echo "⏳ Media files downloading in background, images will appear as they download"
       exit 0
     else
       echo "⚠️ Complete data import failed, trying essential data..."
@@ -276,15 +282,18 @@ AND jsonb_typeof(p.content) = 'object';
 EOF
       echo "✅ Hero images set from content"
 
-      # Use smart media sync
-      echo "📥 Running smart media sync..."
+      # Use smart media sync IN BACKGROUND
+      echo "📥 Starting smart media sync in background..."
       if [ -f /app/smart-media-sync.sh ]; then
-        sh /app/smart-media-sync.sh
+        nohup sh /app/smart-media-sync.sh > /app/media-sync.log 2>&1 &
+        echo "✅ Media sync started in background"
+        echo "💡 Monitor: tail -f /app/media-sync.log"
       else
         echo "⚠️ smart-media-sync.sh not found"
       fi
 
       echo "🌐 Essential data initialization complete with $POST_COUNT posts!"
+      echo "⏳ Media files downloading in background"
       exit 0
     else
       echo "⚠️ Essential data import failed, trying compressed data..."
@@ -419,16 +428,19 @@ EOF
       echo "📋 Sample media files in database:"
       psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT filename FROM media WHERE filename IS NOT NULL LIMIT 5" 2>/dev/null || true
 
-      # Use smart media sync
+      # Use smart media sync IN BACKGROUND
       echo ""
-      echo "📥 Running smart media sync..."
+      echo "📥 Starting smart media sync in background..."
       if [ -f /app/smart-media-sync.sh ]; then
-        sh /app/smart-media-sync.sh
+        nohup sh /app/smart-media-sync.sh > /app/media-sync.log 2>&1 &
+        echo "✅ Media sync started in background"
+        echo "💡 Monitor: tail -f /app/media-sync.log"
       else
         echo "⚠️ smart-media-sync.sh not found"
       fi
 
       echo "🌐 Kawaii Bird production initialization complete!"
+      echo "⏳ Media files downloading in background"
       exit 0
     else
       echo "⚠️ Compressed import didn't work, trying uncompressed..."
