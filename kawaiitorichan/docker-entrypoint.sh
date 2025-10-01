@@ -753,6 +753,17 @@ else
   echo "⚠️ Some media URLs may still need fixing"
 fi
 
+# Fix category assignments - distribute posts across categories
+echo ""
+echo "🗂️ Fixing category assignments..."
+if [ -f scripts/fix-categories.sql ]; then
+  echo "Running category assignment fix..."
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f scripts/fix-categories.sql 2>&1 | grep -E "(DELETE|INSERT|鳥の種類|鳥の飼い方|餌と栄養|鳥の生態|野鳥観察|鳥の健康)" | head -20
+  echo "✅ Category assignments fixed!"
+else
+  echo "⚠️ scripts/fix-categories.sql not found, skipping category fix"
+fi
+
 # Smart media sync - downloads only missing files
 echo ""
 echo "🖼️ Running smart media sync..."
