@@ -8,7 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-10-01-09:30
+ARG REBUILD_TIMESTAMP=2025-10-01-09:45
 
 # Copy all files from kawaiitorichan subdirectory
 COPY kawaiitorichan/ .
@@ -58,6 +58,7 @@ COPY --from=builder /app/comprehensive-schema-fix.sql ./
 COPY --from=builder /app/emergency-fix.sql ./
 COPY --from=builder /app/validate-schema.sh ./
 COPY --from=builder /app/download-media.sh ./
+COPY --from=builder /app/smart-media-sync.sh ./
 
 # Copy bird theme SQL initialization and ALL data files
 COPY --from=builder /app/init-bird-content.sql ./
@@ -67,7 +68,7 @@ COPY --from=builder /app/production-data-494-posts.sql.gz ./
 COPY --from=builder /app/quick-import-data.sql ./
 COPY --from=builder /app/quick-import.sql ./
 COPY --from=builder /app/media-files-list.txt ./
-RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./reset-and-init-db.sh ./init-bird-production.sh ./download-media.sh ./ensure-status-column.sh
+RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./reset-and-init-db.sh ./init-bird-production.sh ./download-media.sh ./smart-media-sync.sh ./ensure-status-column.sh
 
 # Change ownership of all files to nextjs user
 RUN chown -R nextjs:nodejs /app
