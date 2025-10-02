@@ -126,6 +126,15 @@ SQL_DROP
 
     echo "✅ Tables dropped - ready for fresh import"
 
+    # CREATE TABLES FIRST (schema.sql should be in the image)
+    echo "📋 Creating database schema..."
+    if [ -f schema.sql ]; then
+      psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f schema.sql 2>&1
+      echo "✅ Schema created successfully"
+    else
+      echo "⚠️  schema.sql not found - Payload will need to create tables"
+    fi
+
     # Import the compressed data
     gunzip -c $IMPORT_FILE | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
     IMPORT_EXIT_CODE=$?
