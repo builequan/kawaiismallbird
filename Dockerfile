@@ -8,18 +8,11 @@ RUN corepack enable pnpm && pnpm install --frozen-lockfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-# Copy everything from kawaiitorichan first
-COPY kawaiitorichan/ .
-# Copy SQL files with proper names for init scripts
-COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-all-posts.sql.gz
-COPY kawaiitorichan/production-data-115-posts.sql.gz ./production-data-115-posts.sql.gz
-COPY kawaiitorichan/quick-import.sql ./quick-import.sql
-COPY kawaiitorichan/quick-import-data.sql ./quick-import-data.sql
-COPY kawaiitorichan/media-files-list.txt ./media-files-list.txt
+# Cache busting - update timestamp to force rebuild
+ARG REBUILD_TIMESTAMP=2025-10-02-12:45
 
-# Cache bust - Force rebuild at 2025-09-30 23:45
-# Change this timestamp to force complete rebuild
-ENV REBUILD_TIMESTAMP="2025-09-30-23:45:00"
+# Copy everything from kawaiitorichan (includes production-data-494-posts.sql.gz)
+COPY kawaiitorichan/ .
 
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
