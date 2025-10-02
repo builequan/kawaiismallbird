@@ -8,7 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-10-02-11:29
+ARG REBUILD_TIMESTAMP=2025-10-02-12:22
 
 # Copy all files from kawaiitorichan subdirectory
 COPY kawaiitorichan/ .

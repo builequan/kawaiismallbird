@@ -61,15 +61,22 @@ if [ -n "$DATABASE_URI" ]; then
   # TRY LATEST PRODUCTION DATA FIRST (494 posts + 3414 media)
   # Check for the file with both possible names (copied in Docker OR downloaded)
   DATA_IMPORTED=false
-  if [ -f production-data-494-posts.sql.gz ] || [ -f production-all-posts.sql.gz ]; then
 
-    # Use whichever file exists
-    if [ -f production-data-494-posts.sql.gz ]; then
-      IMPORT_FILE="production-data-494-posts.sql.gz"
-    else
-      IMPORT_FILE="production-all-posts.sql.gz"
-    fi
+  # EXPLICIT FILE CHECK WITH DETAILED LOGGING
+  echo "🔍 Checking for 494-post database files..."
+  if [ -f production-data-494-posts.sql.gz ]; then
+    echo "✅ Found: production-data-494-posts.sql.gz (from Docker image)"
+    IMPORT_FILE="production-data-494-posts.sql.gz"
+  elif [ -f production-all-posts.sql.gz ]; then
+    echo "✅ Found: production-all-posts.sql.gz (downloaded from GitHub)"
+    IMPORT_FILE="production-all-posts.sql.gz"
+  else
+    echo "❌ ERROR: No 494-post database file found!"
+    echo "❌ Expected: production-data-494-posts.sql.gz or production-all-posts.sql.gz"
+    IMPORT_FILE=""
+  fi
 
+  if [ -n "$IMPORT_FILE" ]; then
     echo "🚀 RUNNING PRODUCTION DATA IMPORT - 494 posts + 3414 media (compressed)..."
     echo "📦 Using file: $IMPORT_FILE"
     echo "📦 File size: $(ls -lh $IMPORT_FILE | awk '{print $5}')"
@@ -87,8 +94,9 @@ if [ -n "$DATABASE_URI" ]; then
     fi
   # FALLBACK: Old 352-post dump (should never be used now)
   elif [ -f current-complete-data-352-posts.sql.gz ]; then
-    echo "⚠️ WARNING: Using old 352-post dump (494-post dump not found)..."
-    echo "⚠️ This should not happen - check Docker image build"
+    echo "⚠️⚠️⚠️ CRITICAL WARNING: Using old 352-post dump ⚠️⚠️⚠️"
+    echo "⚠️ 494-post dump was not found - THIS IS A BUG!"
+    echo "⚠️ Check: Was production-data-494-posts.sql.gz copied to Docker image?"
     gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
