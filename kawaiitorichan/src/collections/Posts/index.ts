@@ -143,7 +143,37 @@ export const Posts: CollectionConfig<'posts'> = {
               hooks: {
                 beforeChange: [
                   ({ value }) => {
-                    // Ensure upload nodes contain only IDs, not populated objects
+                    // Ensure upload nodes contain only IDs, not populated objects (when saving)
+                    if (!value || !value.root) return value
+
+                    const normalizeUploadNodes = (node: any): any => {
+                      if (node.type === 'upload' && node.value && typeof node.value === 'object' && 'id' in node.value) {
+                        // Convert populated object to just the ID
+                        return { ...node, value: node.value.id }
+                      }
+
+                      if (node.children && Array.isArray(node.children)) {
+                        return {
+                          ...node,
+                          children: node.children.map(normalizeUploadNodes),
+                        }
+                      }
+
+                      return node
+                    }
+
+                    return {
+                      ...value,
+                      root: {
+                        ...value.root,
+                        children: value.root.children?.map(normalizeUploadNodes) || [],
+                      },
+                    }
+                  },
+                ],
+                afterRead: [
+                  ({ value }) => {
+                    // Also normalize when reading (for admin panel display)
                     if (!value || !value.root) return value
 
                     const normalizeUploadNodes = (node: any): any => {
