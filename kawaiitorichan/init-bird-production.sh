@@ -15,6 +15,16 @@ if [ -n "$DATABASE_URI" ]; then
   echo "   Host: $PGHOST"
   echo "   Database: $PGDATABASE"
 
+  # CHECK FOR FORCE REINIT FLAG
+  if [ "$FORCE_DB_REINIT" = "true" ]; then
+    echo "🔴 FORCE_DB_REINIT=true detected - Will drop all tables and reimport!"
+    echo "⚠️  This will DELETE ALL existing data and reinitialize from scratch"
+    SKIP_POST_COUNT_CHECK=true
+  else
+    echo "💡 Tip: Set FORCE_DB_REINIT=true environment variable to force complete database reset"
+    SKIP_POST_COUNT_CHECK=false
+  fi
+
   # Debug: List SQL files
   echo "📁 Available SQL files:"
   ls -la *.sql* 2>&1 || echo "No SQL files found"
@@ -58,6 +68,21 @@ if [ -n "$DATABASE_URI" ]; then
   echo "📁 Files after download attempt:"
   ls -la *.sql* 2>&1
 
+  # CHECK IF DATA ALREADY EXISTS (unless FORCE_DB_REINIT is set)
+  if [ "$FORCE_DB_REINIT" != "true" ]; then
+    EXISTING_POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts WHERE _status = 'published'" 2>/dev/null || echo "0")
+    if [ "$EXISTING_POST_COUNT" -ge "400" ]; then
+      echo "✅ Database already contains $EXISTING_POST_COUNT published posts - skipping import"
+      echo "💡 Set FORCE_DB_REINIT=true to force reimport"
+      return 0
+    elif [ "$EXISTING_POST_COUNT" -gt "0" ]; then
+      echo "⚠️  Database contains only $EXISTING_POST_COUNT posts (expected 494)"
+      echo "🔄 Will attempt to reimport..."
+    fi
+  else
+    echo "🔴 FORCE_DB_REINIT=true - Will drop and reimport regardless of existing data"
+  fi
+
   # TRY LATEST PRODUCTION DATA FIRST (494 posts + 3414 media)
   # Check for the file with both possible names (copied in Docker OR downloaded)
   DATA_IMPORTED=false
@@ -81,6 +106,25 @@ if [ -n "$DATABASE_URI" ]; then
     echo "📦 Using file: $IMPORT_FILE"
     echo "📦 File size: $(ls -lh $IMPORT_FILE | awk '{print $5}')"
     echo "Database connection: $PGUSER@$PGHOST:$PGPORT/$PGDATABASE"
+
+    # DROP ALL TABLES FIRST to ensure clean import
+    echo "🗑️  Dropping existing tables for clean import..."
+    psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" <<'SQL_DROP'
+DROP TABLE IF EXISTS posts_internal_links_metadata_links_added CASCADE;
+DROP TABLE IF EXISTS posts_affiliate_links_metadata_links_added CASCADE;
+DROP TABLE IF EXISTS posts_populated_authors CASCADE;
+DROP TABLE IF EXISTS posts_rels CASCADE;
+DROP TABLE IF EXISTS posts CASCADE;
+DROP TABLE IF EXISTS categories_breadcrumbs CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS tags CASCADE;
+DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS payload_locked_documents CASCADE;
+DROP TABLE IF EXISTS payload_preferences CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+SQL_DROP
+
+    echo "✅ Tables dropped - ready for fresh import"
 
     # Import the compressed data
     gunzip -c $IMPORT_FILE | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
