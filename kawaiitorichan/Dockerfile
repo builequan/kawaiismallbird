@@ -70,8 +70,9 @@ COPY --from=builder /app/quick-import-data.sql ./
 COPY --from=builder /app/quick-import.sql ./
 COPY --from=builder /app/media-files-list.txt ./
 
-# Copy scripts directory for category fixes and other utilities
-COPY --from=builder /app/scripts ./scripts
+# Copy only essential scripts needed at runtime
+RUN mkdir -p ./scripts
+COPY --from=builder /app/scripts/fix-categories.sql ./scripts/fix-categories.sql 2>/dev/null || true
 
 RUN chmod +x ./docker-entrypoint.sh ./start.sh ./init-db.sh ./force-init-db.sh ./reset-and-init-db.sh ./init-bird-production.sh ./download-media.sh ./smart-media-sync.sh ./check-media-files.sh ./ensure-status-column.sh
 
