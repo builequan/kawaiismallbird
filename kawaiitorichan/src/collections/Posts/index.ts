@@ -140,7 +140,6 @@ export const Posts: CollectionConfig<'posts'> = {
             {
               name: 'content',
               type: 'richText',
-              maxDepth: 0,
               editor: lexicalEditor({
                 features: ({ rootFeatures }) => {
                   return [
@@ -156,6 +155,7 @@ export const Posts: CollectionConfig<'posts'> = {
                           fields: [],
                         },
                       },
+                      maxDepth: 0,
                     }),
                   ]
                 },
