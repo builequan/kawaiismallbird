@@ -184,7 +184,7 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
     limit: 1,
     overrideAccess: draft,
     pagination: false,
-    depth: 2, // Need depth 2 to populate media in upload nodes
+    depth: 3, // Need depth 3 to populate internal links within Lexical content (post -> content -> link -> doc)
     where: {
       slug: {
         equals: slug,

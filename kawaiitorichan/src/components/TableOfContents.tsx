@@ -64,6 +64,8 @@ export default function TableOfContents({ content, className = '' }: TableOfCont
 
   function extractTextFromNode(node: any): string {
     if (!node) return ''
+    // Skip link nodes - headings with links should not be in TOC
+    if (node.type === 'link') return ''
     if (node.type === 'text') return node.text || ''
     if (node.children && Array.isArray(node.children)) {
       return node.children.map(extractTextFromNode).join('')

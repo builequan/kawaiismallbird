@@ -40,11 +40,24 @@ type NodeTypes =
 
 const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   const { value, relationTo } = linkNode.fields.doc!
-  if (typeof value !== 'object') {
-    throw new Error('Expected value to be an object')
+
+  // Handle both populated (object with slug) and unpopulated (just ID) cases
+  if (typeof value === 'object' && value !== null && 'slug' in value) {
+    // Value is already populated with post data
+    const slug = value.slug
+    return relationTo === 'posts' ? `/posts/${slug}` : `/${slug}`
   }
-  const slug = value.slug
-  return relationTo === 'posts' ? `/posts/${slug}` : `/${slug}`
+
+  // Value is just an ID - this means the relationship wasn't populated
+  // This shouldn't happen with proper depth, but log it for debugging
+  if (typeof value === 'number' || typeof value === 'string') {
+    console.warn('Internal link not populated, ID:', value, 'relationTo:', relationTo)
+    // Return a placeholder - the link won't work but won't crash
+    return '#unpopulated-link'
+  }
+
+  console.error('Unexpected value type for internal link:', value)
+  return '#'
 }
 
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => {
