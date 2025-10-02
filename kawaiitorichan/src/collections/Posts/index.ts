@@ -147,9 +147,23 @@ export const Posts: CollectionConfig<'posts'> = {
                     if (!value || !value.root) return value
 
                     const normalizeUploadNodes = (node: any): any => {
+                      // Normalize upload nodes (images)
                       if (node.type === 'upload' && node.value && typeof node.value === 'object' && 'id' in node.value) {
-                        // Convert populated object to just the ID
                         return { ...node, value: node.value.id }
+                      }
+
+                      // Normalize link nodes with doc field (internal links)
+                      if (node.type === 'link' && node.fields?.doc?.value && typeof node.fields.doc.value === 'object' && 'id' in node.fields.doc.value) {
+                        return {
+                          ...node,
+                          fields: {
+                            ...node.fields,
+                            doc: {
+                              ...node.fields.doc,
+                              value: node.fields.doc.value.id
+                            }
+                          }
+                        }
                       }
 
                       if (node.children && Array.isArray(node.children)) {
@@ -177,9 +191,23 @@ export const Posts: CollectionConfig<'posts'> = {
                     if (!value || !value.root) return value
 
                     const normalizeUploadNodes = (node: any): any => {
+                      // Normalize upload nodes (images)
                       if (node.type === 'upload' && node.value && typeof node.value === 'object' && 'id' in node.value) {
-                        // Convert populated object to just the ID
                         return { ...node, value: node.value.id }
+                      }
+
+                      // Normalize link nodes with doc field (internal links)
+                      if (node.type === 'link' && node.fields?.doc?.value && typeof node.fields.doc.value === 'object' && 'id' in node.fields.doc.value) {
+                        return {
+                          ...node,
+                          fields: {
+                            ...node.fields,
+                            doc: {
+                              ...node.fields.doc,
+                              value: node.fields.doc.value.id
+                            }
+                          }
+                        }
                       }
 
                       if (node.children && Array.isArray(node.children)) {
@@ -555,7 +583,16 @@ export const Posts: CollectionConfig<'posts'> = {
   hooks: {
     beforeChange: [autoSetHeroImage],
     afterChange: [revalidatePost],
-    afterRead: [populateAuthors],
+    afterRead: [
+      populateAuthors,
+      // Ensure heroImage is always an ID, not a populated object (fixes Lexical Upload error)
+      ({ data }) => {
+        if (data?.heroImage && typeof data.heroImage === 'object' && 'id' in data.heroImage) {
+          data.heroImage = data.heroImage.id
+        }
+        return data
+      },
+    ],
     afterDelete: [revalidateDelete],
   },
   versions: {
