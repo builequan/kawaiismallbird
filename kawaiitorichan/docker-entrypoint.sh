@@ -385,10 +385,21 @@ echo "🦜 Checking if bird theme content needs initialization..."
 # Check for force reimport flag
 FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
 
-# Run init if POST_COUNT is 0 OR if FORCE_REIMPORT is set
-if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ] || [ "$FORCE_REIMPORT" = "true" ]; then
+# Check if POST_COUNT is numeric and less than 400 (incomplete data)
+NEEDS_REIMPORT=false
+if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
+  NEEDS_REIMPORT=true
+elif [ "$POST_COUNT" -lt 400 ] 2>/dev/null; then
+  echo "⚠️ Only $POST_COUNT posts found (expected 494) - will reimport"
+  NEEDS_REIMPORT=true
+fi
+
+# Run init if POST_COUNT is 0 OR less than 400 OR if FORCE_REIMPORT is set
+if [ "$NEEDS_REIMPORT" = "true" ] || [ "$FORCE_REIMPORT" = "true" ]; then
   if [ "$FORCE_REIMPORT" = "true" ]; then
     echo "⚠️ FORCE_REIMPORT=true detected - will reimport data even though $POST_COUNT posts exist"
+  elif [ "$POST_COUNT" -gt 0 ]; then
+    echo "🔄 Detected incomplete data ($POST_COUNT posts) - will drop and reimport"
     echo "🔄 Truncating existing posts to prepare for fresh import..."
 
     # Clear all existing data
@@ -420,8 +431,8 @@ EOSQL
     fi
   fi
 else
-  echo "✅ Posts already exist ($POST_COUNT posts), skipping data import to preserve existing data"
-  echo "💡 Set FORCE_REIMPORT=true environment variable to force reimport"
+  echo "✅ Posts already exist ($POST_COUNT posts ≥ 400), skipping data import to preserve existing data"
+  echo "💡 Set FORCE_REIMPORT=true environment variable to force reimport if needed"
 fi
 
 # Populate post versions for admin panel visibility
