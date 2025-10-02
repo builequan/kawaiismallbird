@@ -1,18 +1,18 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-# Context is kawaiitorichan directory
-COPY package.json ./
-COPY pnpm-lock.yaml ./
+# If context is repository root (not kawaiitorichan), use full paths
+COPY kawaiitorichan/package.json ./
+COPY kawaiitorichan/pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-10-02-14:20
+ARG REBUILD_TIMESTAMP=2025-10-02-14:25
 
-# Copy all files from current directory (context is kawaiitorichan/)
-COPY . .
+# Copy all files from kawaiitorichan directory (context is repository root)
+COPY kawaiitorichan/ .
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
