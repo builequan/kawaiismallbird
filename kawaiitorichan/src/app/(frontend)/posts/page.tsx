@@ -59,6 +59,12 @@ export default async function Page() {
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Posts`,
+    title: 'ゴルフ記事一覧 - Golf Knowledge Hub',
+    description: 'ゴルフの技術、知識、機器に関する記事一覧。初心者から上級者まで役立つゴルフ情報を掲載。',
+    openGraph: {
+      title: 'ゴルフ記事一覧 - Golf Knowledge Hub',
+      description: 'ゴルフの技術、知識、機器に関する記事一覧。初心者から上級者まで役立つゴルフ情報を掲載。',
+      type: 'website',
+    },
   }
 }

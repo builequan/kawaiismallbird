@@ -13,8 +13,13 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: [
+      `${serverUrl}/sitemap-index.xml`,
       `${serverUrl}/sitemap.xml`,
+      `${serverUrl}/posts-sitemap.xml`,
+      `${serverUrl}/categories-sitemap.xml`,
+      `${serverUrl}/pages-sitemap.xml`,
       `${serverUrl}/image-sitemap.xml`,
+      `${serverUrl}/feed.xml`,
     ],
     host: serverUrl,
   }

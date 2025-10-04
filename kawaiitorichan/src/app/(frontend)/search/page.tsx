@@ -93,6 +93,12 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
 
 export function generateMetadata(): Metadata {
   return {
-    title: `Payload Website Template Search`,
+    title: 'サイト内検索 - Golf Knowledge Hub',
+    description: 'ゴルフに関する記事を検索。技術、知識、機器など、お探しの情報を見つけましょう。',
+    openGraph: {
+      title: 'サイト内検索 - Golf Knowledge Hub',
+      description: 'ゴルフに関する記事を検索。技術、知識、機器など、お探しの情報を見つけましょう。',
+      type: 'website',
+    },
   }
 }

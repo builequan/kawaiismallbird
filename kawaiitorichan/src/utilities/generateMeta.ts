@@ -51,6 +51,10 @@ export const generateMeta = async (args: {
     keywords: keywords,
     alternates: {
       canonical: canonicalUrl,
+      languages: {
+        'ja-JP': canonicalUrl,
+        'ja': canonicalUrl,
+      },
     },
     openGraph: mergeOpenGraph({
       description: doc?.meta?.description || '',
@@ -67,6 +71,7 @@ export const generateMeta = async (args: {
       title,
       url: canonicalUrl,
       type: 'publishedAt' in doc ? 'article' : 'website',
+      locale: 'ja_JP',
     }),
     twitter: {
       card: 'summary_large_image',
