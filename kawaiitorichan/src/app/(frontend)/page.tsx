@@ -1,6 +1,7 @@
 import PageTemplate, { generateMetadata } from './[slug]/page'
 
-// Enable ISR for better SEO and Core Web Vitals
+// Skip pre-rendering during build, but cache at runtime
+export const dynamic = 'force-dynamic'
 export const revalidate = 600 // Revalidate every 10 minutes
 
 export default PageTemplate

@@ -13,7 +13,8 @@ import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { generateBreadcrumbSchema, generateCategoryBreadcrumbs } from '@/utilities/generateStructuredData'
 import { getServerSideURL } from '@/utilities/getURL'
 
-// Enable ISR (Incremental Static Regeneration) for better SEO
+// Skip pre-rendering during build, but cache at runtime
+export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour
 
 interface PageProps {
