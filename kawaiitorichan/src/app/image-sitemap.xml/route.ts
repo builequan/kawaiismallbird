@@ -93,4 +93,6 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;')
 }
 
-export const revalidate = 3600 // Revalidate every hour
+// Skip pre-rendering during build, but cache at runtime
+export const dynamic = 'force-dynamic'
+export const revalidate = 3600

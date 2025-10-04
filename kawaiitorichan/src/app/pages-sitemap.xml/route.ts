@@ -52,4 +52,6 @@ ${pages
   }
 }
 
+// Skip pre-rendering during build, but cache at runtime
+export const dynamic = 'force-dynamic'
 export const revalidate = 3600
