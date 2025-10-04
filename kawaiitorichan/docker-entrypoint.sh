@@ -382,6 +382,9 @@ fi
 echo ""
 echo "🦜 Checking if bird theme content needs initialization..."
 
+# Check for skip data import flag (to preserve edited posts)
+SKIP_DATA_IMPORT="${SKIP_DATA_IMPORT:-false}"
+
 # Check for force reimport flag
 FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
 
@@ -392,6 +395,14 @@ if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
 elif [ "$POST_COUNT" -lt 400 ] 2>/dev/null; then
   echo "⚠️ Only $POST_COUNT posts found (expected 494) - will reimport"
   NEEDS_REIMPORT=true
+fi
+
+# CRITICAL: Skip import if SKIP_DATA_IMPORT is set (preserves edited posts)
+if [ "$SKIP_DATA_IMPORT" = "true" ]; then
+  echo "✅ SKIP_DATA_IMPORT=true - Preserving existing database, skipping all imports"
+  echo "💡 Current post count: $POST_COUNT"
+  NEEDS_REIMPORT=false
+  FORCE_REIMPORT=false
 fi
 
 # Run init if POST_COUNT is 0 OR less than 400 OR if FORCE_REIMPORT is set
