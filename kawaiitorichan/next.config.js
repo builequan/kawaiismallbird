@@ -10,8 +10,8 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 const nextConfig = {
   output: 'standalone', // Required for Docker deployment
   experimental: {
-    // Skip static generation during build - generate at runtime instead
-    isrMemoryCacheSize: 0,
+    // Enable ISR with memory cache for better SEO performance
+    isrMemoryCacheSize: 50 * 1024 * 1024, // 50MB ISR cache
     // Disable static optimization during build
     workerThreads: false,
     cpus: 1,

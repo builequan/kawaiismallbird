@@ -8,9 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import { getCategoryBySlug } from '@/data/categoryData'
+import { StructuredData } from '@/components/StructuredData'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
+import { generateBreadcrumbSchema, generateCategoryBreadcrumbs } from '@/utilities/generateStructuredData'
+import { getServerSideURL } from '@/utilities/getURL'
 
-// Force dynamic rendering to avoid build-time Payload initialization issues
-export const dynamic = 'force-dynamic'
+// Enable ISR (Incremental Static Regeneration) for better SEO
+export const revalidate = 3600 // Revalidate every hour
 
 interface PageProps {
   params: Promise<{
@@ -40,9 +44,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
 
+  const serverUrl = getServerSideURL()
+  const canonicalUrl = `${serverUrl}/categories/${slug}`
+
   return {
-    title: `${category.title} - Golf Category`,
+    title: `${category.title} - Golf Knowledge Hub`,
     description: category.description || `Browse all ${category.title} golf articles and guides.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: `${category.title} - Golf Knowledge Hub`,
+      description: category.description || `Browse all ${category.title} golf articles and guides.`,
+      url: canonicalUrl,
+      type: 'website',
+    },
   }
 }
 
@@ -180,8 +196,14 @@ export default async function CategoryPage({ params }: PageProps) {
     return inParent && !inChild
   })
 
+  // Generate structured data for SEO
+  const breadcrumbItems = generateCategoryBreadcrumbs(category, parentCategory)
+  const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems)
+
   return (
     <div className="min-h-screen bg-white">
+      {/* SEO: JSON-LD Structured Data */}
+      <StructuredData data={breadcrumbSchema} />
       {/* Hero Section with Category-specific Styling */}
       <div className={categoryDisplayData ? `bg-gradient-to-r ${categoryDisplayData.color} text-white relative overflow-hidden` : "bg-gradient-to-r from-green-600 to-green-700 text-white"}>
         {categoryDisplayData && (
@@ -190,29 +212,8 @@ export default async function CategoryPage({ params }: PageProps) {
           </div>
         )}
         <div className="container mx-auto px-4 py-16 relative z-10">
-          {/* Breadcrumb Navigation */}
-          <nav className="flex items-center gap-2 mb-6 text-sm">
-            <Link href="/" className="hover:text-green-200 transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-4 h-4 text-green-300" />
-            <Link href="/categories" className="hover:text-green-200 transition-colors">
-              Categories  
-            </Link>
-            {parentCategory && (
-              <>
-                <ChevronRight className="w-4 h-4 text-green-300" />
-                <Link 
-                  href={`/categories/${parentCategory.slug}`}
-                  className="hover:text-green-200 transition-colors"
-                >
-                  {parentCategory.title}
-                </Link>
-              </>
-            )}
-            <ChevronRight className="w-4 h-4 text-green-300" />
-            <span className="font-semibold">{category.title}</span>
-          </nav>
+          {/* SEO: Breadcrumb Navigation */}
+          <Breadcrumbs items={breadcrumbItems} className="mb-6 text-white [&_a]:text-white [&_a:hover]:text-green-200 [&_span]:text-white" />
 
           {/* Category Header */}
           <div>

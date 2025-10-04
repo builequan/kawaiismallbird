@@ -26,7 +26,19 @@ export const Media: CollectionConfig = {
     {
       name: 'alt',
       type: 'text',
-      //required: true,
+      required: true,
+      admin: {
+        description: 'Alternative text for accessibility and SEO. Describe the image content.',
+      },
+      validate: (value: string | undefined) => {
+        if (!value || value.trim().length === 0) {
+          return 'Alt text is required for SEO and accessibility'
+        }
+        if (value.trim().length < 5) {
+          return 'Alt text should be descriptive (at least 5 characters)'
+        }
+        return true
+      },
     },
     {
       name: 'caption',

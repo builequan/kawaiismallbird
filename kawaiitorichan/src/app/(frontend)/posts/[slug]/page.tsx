@@ -14,6 +14,8 @@ import ContentWithAffiliateLinksOptimized from '@/components/ContentWithAffiliat
 import SemanticRelatedPosts from '@/components/SemanticRelatedPosts'
 import PostReferences from '@/components/PostReferences'
 import TableOfContents from '@/components/TableOfContents'
+import { StructuredData } from '@/components/StructuredData'
+import { Breadcrumbs } from '@/components/Breadcrumbs'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -21,11 +23,16 @@ import type { Post } from '@/payload-types'
 
 import { PostHero } from '@/heros/PostHero'
 import { generateMeta } from '@/utilities/generateMeta'
+import {
+  generateArticleSchema,
+  generateBreadcrumbSchema,
+  generatePostBreadcrumbs
+} from '@/utilities/generateStructuredData'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
-// Force dynamic rendering to avoid build-time Payload initialization issues
-export const dynamic = 'force-dynamic'
+// Enable ISR (Incremental Static Regeneration) for better SEO
+export const revalidate = 3600 // Revalidate every hour
 
 // Completely disable static generation for Docker builds
 // export async function generateStaticParams() {
@@ -72,16 +79,21 @@ export default async function Post({ params: paramsPromise }: Args) {
 
   if (!post) return <PayloadRedirects url={url} />
 
+  // Generate structured data for SEO
+  const articleSchema = generateArticleSchema(post)
+  const breadcrumbItems = generatePostBreadcrumbs(post)
+  const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems)
+
   // Load similarity data to find related posts
   let similarPosts: Array<{ id: string; slug: string; score: number }> = []
   let affiliateProducts: any[] = []
-  
+
   // Load similarity data for related posts
   try {
     const similarityPath = path.join(process.cwd(), 'data', 'internal-links', 'similarity-matrix.json')
     const similarityContent = await fs.readFile(similarityPath, 'utf-8')
     const similarityData = JSON.parse(similarityContent)
-    
+
     // Get similar posts for current post
     const postSimilarities = similarityData.similarities[String(post.id)]
     if (postSimilarities && postSimilarities.similar) {
@@ -91,17 +103,17 @@ export default async function Post({ params: paramsPromise }: Args) {
     // Silently fail - similarity is optional
     console.log('Could not load similarity data:', error)
   }
-  
+
   // Load affiliate products data
   try {
     const affiliatePath = path.join(process.cwd(), 'public', 'data', 'affiliate-links', 'similarity-matrix.json')
     const productsPath = path.join(process.cwd(), 'public', 'data', 'affiliate-links', 'products-index.json')
-    
+
     const [affiliateData, productsData] = await Promise.all([
       fs.readFile(affiliatePath, 'utf-8').then(d => JSON.parse(d)).catch(() => []),
       fs.readFile(productsPath, 'utf-8').then(d => JSON.parse(d)).catch(() => [])
     ])
-    
+
     const postData = affiliateData.find((item: any) => item.postId === String(post.id))
     if (postData && postData.relevantProducts && postData.relevantProducts.length > 0) {
       affiliateProducts = postData.relevantProducts
@@ -115,6 +127,9 @@ export default async function Post({ params: paramsPromise }: Args) {
 
   return (
     <article className="pt-16 pb-16 bg-post-green text-gray-900">
+      {/* SEO: JSON-LD Structured Data */}
+      <StructuredData data={[articleSchema, breadcrumbSchema]} />
+
       <PageClient />
 
       {/* Allows redirects for valid pages too */}
@@ -127,6 +142,9 @@ export default async function Post({ params: paramsPromise }: Args) {
       <div className="flex flex-col items-center gap-4 pt-8 text-gray-900">
         <div className="container lg:grid lg:grid-cols-[1fr_48rem_1fr]">
           <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-8 pb-8 text-gray-900">
+            {/* SEO: Breadcrumb Navigation */}
+            <Breadcrumbs items={breadcrumbItems} className="mb-6" />
+
             {/* Table of Contents */}
             <TableOfContents content={post.content} className="mb-8" />
 
