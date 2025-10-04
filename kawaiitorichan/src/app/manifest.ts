@@ -1,9 +1,6 @@
 import { MetadataRoute } from 'next'
-import { getServerSideURL } from '@/utilities/getURL'
 
 export default function manifest(): MetadataRoute.Manifest {
-  const serverUrl = getServerSideURL()
-
   return {
     name: 'Golf Knowledge Hub - ゴルフ総合情報サイト',
     short_name: 'Golf Hub',

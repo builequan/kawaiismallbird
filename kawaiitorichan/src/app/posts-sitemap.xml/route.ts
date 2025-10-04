@@ -29,10 +29,8 @@ export async function GET() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${posts
   .map((post) => {
-    const lastMod =
-      post.updatedAt || post.publishedAt
-        ? new Date(post.updatedAt || post.publishedAt).toISOString()
-        : ''
+    const dateValue = post.updatedAt || post.publishedAt
+    const lastMod = dateValue ? new Date(dateValue).toISOString() : ''
     return `  <url>
     <loc>${serverUrl}/posts/${post.slug}</loc>${lastMod ? `\n    <lastmod>${lastMod}</lastmod>` : ''}
     <changefreq>weekly</changefreq>
@@ -54,5 +52,4 @@ ${posts
   }
 }
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 3600

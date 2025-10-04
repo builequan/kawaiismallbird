@@ -93,5 +93,4 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;')
 }
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour
