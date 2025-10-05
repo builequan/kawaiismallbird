@@ -78,26 +78,30 @@ echo "🚀 INITIALIZING DATABASE..." >&2
 # CRITICAL: Check for SKIP_DATA_IMPORT flag FIRST before any imports
 SKIP_DATA_IMPORT="${SKIP_DATA_IMPORT:-false}"
 
+# CRITICAL: Always run schema fixes BEFORE checking SKIP_DATA_IMPORT
+# Schema changes are safe and don't affect existing data
+echo "🔧 Running schema compatibility fixes (always runs)..." >&2
+
+# EMERGENCY FIX: Run this FIRST to ensure basic schema compatibility
+if [ -f emergency-fix.sql ]; then
+  echo "🚨 Running emergency schema fix..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f emergency-fix.sql 2>&1 | head -50 >&2
+  echo "✅ Emergency fix applied" >&2
+fi
+
+# Add Comments collection schema (ALWAYS RUN - safe to run multiple times)
+if [ -f add-comments-schema.sql ]; then
+  echo "💬 Adding Comments collection schema..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f add-comments-schema.sql 2>&1 | head -50 >&2
+  echo "✅ Comments schema added" >&2
+fi
+
 if [ "$SKIP_DATA_IMPORT" = "true" ]; then
   echo "✅ ✅ ✅ SKIP_DATA_IMPORT=true detected!" >&2
   echo "🔒 Preserving existing database - NO imports will run" >&2
   echo "💡 All data imports are skipped to preserve your edits" >&2
 else
   echo "📥 SKIP_DATA_IMPORT not set - will import data if needed" >&2
-
-  # EMERGENCY FIX: Run this FIRST to ensure basic schema compatibility
-  if [ -f emergency-fix.sql ]; then
-    echo "🚨 Running emergency schema fix FIRST..." >&2
-    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f emergency-fix.sql 2>&1 | head -50 >&2
-    echo "✅ Emergency fix applied" >&2
-  fi
-
-  # Add Comments collection schema
-  if [ -f add-comments-schema.sql ]; then
-    echo "💬 Adding Comments collection schema..." >&2
-    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f add-comments-schema.sql 2>&1 | head -50 >&2
-    echo "✅ Comments schema added" >&2
-  fi
 
   # Skip reset script - Payload CMS handles schema creation
   # if [ -f reset-and-init-db.sh ]; then

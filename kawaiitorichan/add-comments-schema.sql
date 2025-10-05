@@ -19,10 +19,24 @@ CREATE INDEX IF NOT EXISTS comments_approved_idx ON comments (approved);
 CREATE INDEX IF NOT EXISTS comments_created_at_idx ON comments (created_at DESC);
 
 -- Add comments_id column to payload_locked_documents_rels if it doesn't exist
-ALTER TABLE payload_locked_documents_rels ADD COLUMN IF NOT EXISTS comments_id INTEGER REFERENCES comments(id) ON DELETE CASCADE;
+-- Note: We add the column without foreign key first, then add the constraint separately
+ALTER TABLE payload_locked_documents_rels ADD COLUMN IF NOT EXISTS comments_id INTEGER;
 
 -- Create index for the new column
 CREATE INDEX IF NOT EXISTS payload_locked_documents_rels_comments_id_idx ON payload_locked_documents_rels (comments_id);
+
+-- Add foreign key constraint (using DO block to handle if it already exists)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'payload_locked_documents_rels_comments_fk'
+    ) THEN
+        ALTER TABLE payload_locked_documents_rels
+        ADD CONSTRAINT payload_locked_documents_rels_comments_fk
+        FOREIGN KEY (comments_id) REFERENCES comments(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Create comments_rels table for relationships (if needed by Payload)
 CREATE TABLE IF NOT EXISTS comments_rels (

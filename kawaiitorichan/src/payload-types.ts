@@ -74,6 +74,7 @@ export interface Config {
     tags: Tag;
     users: User;
     'affiliate-products': AffiliateProduct;
+    comments: Comment;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -92,6 +93,7 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'affiliate-products': AffiliateProductsSelect<false> | AffiliateProductsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1113,6 +1115,26 @@ export interface AffiliateProduct {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  post: number | Post;
+  authorName: string;
+  content: string;
+  /**
+   * Comments must be approved by admin before displaying publicly
+   */
+  approved?: boolean | null;
+  /**
+   * IP address of commenter for spam prevention
+   */
+  ipAddress?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1311,6 +1333,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'affiliate-products';
         value: number | AffiliateProduct;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1836,6 +1862,19 @@ export interface AffiliateProductsSelect<T extends boolean = true> {
         phrase?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  post?: T;
+  authorName?: T;
+  content?: T;
+  approved?: T;
+  ipAddress?: T;
   updatedAt?: T;
   createdAt?: T;
 }
