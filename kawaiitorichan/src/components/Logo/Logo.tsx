@@ -22,7 +22,13 @@ export const Logo = (props: Props) => {
       loading={loading}
       fetchPriority={priority}
       decoding="async"
-      className={clsx('max-w-[280px] w-full h-auto', className)}
+      className={clsx(
+        'w-auto h-auto',
+        'max-w-[180px] sm:max-w-[220px] md:max-w-[280px]',
+        'max-h-[40px] sm:max-h-[50px] md:max-h-[60px]',
+        'object-contain',
+        className
+      )}
       src="/kawaii-bird-logo.svg?v=1"
     />
   )

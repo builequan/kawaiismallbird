@@ -35,9 +35,9 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
       {...(theme ? { 'data-theme': theme } : {})}
     >
       <div className="container-max">
-        <div className="py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <Logo loading="eager" priority="high" className="h-10 w-auto" />
+        <div className="py-3 sm:py-4 flex justify-between items-center gap-2 sm:gap-4">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity shrink-0">
+            <Logo loading="eager" priority="high" />
           </Link>
           <HeaderNav data={data} />
         </div>

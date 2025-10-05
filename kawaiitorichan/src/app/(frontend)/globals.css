@@ -4,22 +4,22 @@
 
 @layer base {
   h1 {
-    @apply text-5xl md:text-6xl lg:text-7xl font-black tracking-tight;
+    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-tight;
   }
   h2 {
-    @apply text-4xl md:text-5xl font-bold tracking-tight;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-snug;
   }
   h3 {
-    @apply text-2xl md:text-3xl font-bold;
+    @apply text-xl sm:text-2xl md:text-3xl font-bold leading-snug;
   }
   h4 {
-    @apply text-xl md:text-2xl font-semibold;
+    @apply text-lg sm:text-xl md:text-2xl font-semibold leading-normal;
   }
   h5 {
-    @apply text-lg md:text-xl font-semibold;
+    @apply text-base sm:text-lg md:text-xl font-semibold leading-normal;
   }
   h6 {
-    @apply text-base md:text-lg font-medium;
+    @apply text-sm sm:text-base md:text-lg font-medium leading-normal;
   }
 
   :root {
@@ -92,6 +92,27 @@
   body {
     @apply bg-background text-foreground min-h-[100vh] flex flex-col;
     font-family: 'Inter', 'Noto Sans JP', system-ui, sans-serif;
+    /* Better text rendering on mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Improve paragraph readability on mobile */
+  p {
+    @apply leading-relaxed text-base;
+  }
+
+  /* Better list spacing on mobile */
+  ul, ol {
+    @apply leading-relaxed;
+  }
+
+  /* Prevent text from being too small on mobile */
+  @media (max-width: 640px) {
+    body {
+      font-size: 16px; /* Prevents iOS zoom on focus */
+    }
   }
 }
 
@@ -176,6 +197,33 @@
 
 .container-max {
   @apply container mx-auto px-4 max-w-7xl;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Prevent horizontal overflow */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Better spacing for mobile */
+  .container-max {
+    @apply px-4;
+  }
+
+  /* Ensure images don't overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Tables scroll horizontally on mobile */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Floating Animation */

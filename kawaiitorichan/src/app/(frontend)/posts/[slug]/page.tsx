@@ -139,9 +139,9 @@ export default async function Post({ params: paramsPromise }: Args) {
 
       <PostHero post={post} />
 
-      <div className="flex flex-col items-center gap-4 pt-8 text-gray-900">
-        <div className="container lg:grid lg:grid-cols-[1fr_48rem_1fr]">
-          <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-8 pb-8 text-gray-900">
+      <div className="flex flex-col items-center gap-4 pt-4 sm:pt-8 text-gray-900">
+        <div className="w-full max-w-7xl mx-auto lg:grid lg:grid-cols-[1fr_48rem_1fr] px-0">
+          <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-4 sm:px-6 md:px-8 pb-8 text-gray-900">
             {/* SEO: Breadcrumb Navigation */}
             <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 

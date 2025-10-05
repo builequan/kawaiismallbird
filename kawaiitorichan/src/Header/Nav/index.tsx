@@ -329,8 +329,12 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
 
       {/* Mobile Hamburger Button */}
       <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden flex flex-col justify-center items-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          setIsMobileMenuOpen(!isMobileMenuOpen)
+        }}
+        className="lg:hidden flex flex-col justify-center items-center w-12 h-12 rounded-lg active:bg-gray-100 transition-colors touch-manipulation z-[101]"
         aria-label="メニュー"
       >
         {isMobileMenuOpen ? (
@@ -344,7 +348,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       {isMobileMenuOpen && (
         <div
           ref={mobileMenuRef}
-          className="lg:hidden fixed inset-x-0 top-[64px] bg-white shadow-xl border-t border-gray-200 z-50 max-h-[calc(100vh-64px)] overflow-y-auto"
+          className="lg:hidden fixed inset-x-0 top-[64px] bg-white shadow-xl border-t border-gray-200 z-[100] max-h-[calc(100vh-64px)] overflow-y-auto touch-pan-y"
         >
           <div className="p-4">
             {/* Mobile Search */}
@@ -368,8 +372,13 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                   {item.hasDropdown ? (
                     <div>
                       <button
-                        onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
-                        className="w-full flex items-center justify-between px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg hover:bg-primary/10 transition-colors"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setOpenDropdown(openDropdown === item.label ? null : item.label)
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg active:bg-primary/10 transition-colors touch-manipulation min-h-[48px]"
                       >
                         {item.label}
                         <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
@@ -381,8 +390,13 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                               {dropItem.submenu ? (
                                 <>
                                   <button
-                                    onClick={() => setHoveredSubmenu(hoveredSubmenu === dropItem.label ? null : dropItem.label)}
-                                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium"
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setHoveredSubmenu(hoveredSubmenu === dropItem.label ? null : dropItem.label)
+                                    }}
+                                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 active:text-primary active:bg-primary/5 rounded-lg transition-colors font-medium touch-manipulation min-h-[44px]"
                                   >
                                     {dropItem.label}
                                     <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${hoveredSubmenu === dropItem.label ? 'rotate-180' : ''}`} />
@@ -393,7 +407,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                                         <Link
                                           key={subIdx}
                                           href={subItem.href}
-                                          className="block px-4 py-1 text-sm text-gray-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                                          className="block px-4 py-2 text-sm text-gray-600 active:text-primary active:bg-primary/5 rounded-lg transition-colors touch-manipulation min-h-[40px] flex items-center"
                                           onClick={() => {
                                             setIsMobileMenuOpen(false)
                                             setOpenDropdown(null)
@@ -409,7 +423,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                               ) : (
                                 <Link
                                   href={dropItem.href}
-                                  className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium"
+                                  className="block px-4 py-2 text-gray-700 active:text-primary active:bg-primary/5 rounded-lg transition-colors font-medium touch-manipulation min-h-[44px] flex items-center"
                                   onClick={() => {
                                     setIsMobileMenuOpen(false)
                                     setOpenDropdown(null)
@@ -426,7 +440,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                   ) : (
                     <Link
                       href={item.href}
-                      className="block px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg hover:bg-primary/10 transition-colors"
+                      className="block px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg active:bg-primary/10 transition-colors touch-manipulation min-h-[48px] flex items-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {item.label}

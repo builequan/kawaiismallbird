@@ -50,21 +50,21 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
 
   const sizeClasses = {
-    small: 'p-4',
-    medium: 'p-6', 
-    large: 'p-8',
+    small: 'p-3 sm:p-4',
+    medium: 'p-4 sm:p-6',
+    large: 'p-6 sm:p-8',
   }
 
   const titleSizes = {
-    small: 'text-lg font-semibold',
-    medium: 'text-xl font-bold',
-    large: 'text-2xl font-bold',
+    small: 'text-base sm:text-lg font-semibold',
+    medium: 'text-lg sm:text-xl font-bold',
+    large: 'text-xl sm:text-2xl font-bold',
   }
 
   const imageSizes = {
-    small: 'h-32',
-    medium: 'h-48',
-    large: 'h-64',
+    small: 'h-32 sm:h-36',
+    medium: 'h-40 sm:h-48',
+    large: 'h-48 sm:h-56 md:h-64',
   }
 
   return (

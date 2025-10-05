@@ -78,11 +78,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           // Fix the URL path - replace /api/media/file/ with /media/
           const correctedUrl = value.url.replace('/api/media/file/', '/media/')
           return (
-            <div className="my-4">
+            <div className="my-4 w-full">
               <img
                 src={correctedUrl}
                 alt={value.alt as string || 'Image'}
-                className="max-w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-lg object-contain"
+                loading="lazy"
               />
             </div>
           )
@@ -91,11 +92,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         // If value has filename, use it to construct the public media path
         if ('filename' in value && typeof value.filename === 'string') {
           return (
-            <div className="my-4">
+            <div className="my-4 w-full">
               <img
                 src={`/media/${value.filename}`}
                 alt={value.alt as string || 'Image'}
-                className="max-w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-lg object-contain"
+                loading="lazy"
               />
             </div>
           )
@@ -106,11 +108,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           // Use the media-by-id API to fetch and display the image
           const mediaId = typeof value.id === 'number' ? value.id : String(value.id)
           return (
-            <div className="my-4">
+            <div className="my-4 w-full">
               <img
                 src={`/api/media-by-id/${mediaId}`}
                 alt={value.alt as string || 'Image'}
-                className="max-w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-lg object-contain"
+                loading="lazy"
               />
             </div>
           )
@@ -121,11 +124,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       if (typeof value === 'string') {
         // Use the media-by-id API to fetch and display the image
         return (
-          <div className="my-4">
+          <div className="my-4 w-full">
             <img
               src={`/api/media-by-id/${value}`}
               alt="Image"
-              className="max-w-full h-auto rounded-lg"
+              className="w-full h-auto rounded-lg object-contain"
+              loading="lazy"
             />
           </div>
         )
