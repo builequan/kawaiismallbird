@@ -389,18 +389,33 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                             <div key={idx}>
                               {dropItem.submenu ? (
                                 <>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      setHoveredSubmenu(hoveredSubmenu === dropItem.label ? null : dropItem.label)
-                                    }}
-                                    className="w-full flex items-center justify-between px-4 py-2 text-gray-700 active:text-primary active:bg-primary/5 rounded-lg transition-colors font-medium touch-manipulation min-h-[44px]"
-                                  >
-                                    {dropItem.label}
-                                    <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${hoveredSubmenu === dropItem.label ? 'rotate-180' : ''}`} />
-                                  </button>
+                                  <div className="flex items-center gap-1">
+                                    {/* Clickable category link (left side - takes up most space) */}
+                                    <Link
+                                      href={dropItem.href}
+                                      className="flex-1 px-4 py-2 text-gray-700 active:text-primary active:bg-primary/5 rounded-lg transition-colors font-medium touch-manipulation min-h-[44px] flex items-center"
+                                      onClick={() => {
+                                        setIsMobileMenuOpen(false)
+                                        setOpenDropdown(null)
+                                        setHoveredSubmenu(null)
+                                      }}
+                                    >
+                                      {dropItem.label}
+                                    </Link>
+                                    {/* Expand/collapse button (right side - small) */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setHoveredSubmenu(hoveredSubmenu === dropItem.label ? null : dropItem.label)
+                                      }}
+                                      className="px-2 py-2 text-gray-700 active:text-primary active:bg-primary/5 rounded-lg transition-colors touch-manipulation min-h-[44px] flex items-center justify-center"
+                                      aria-label={`${dropItem.label}のサブメニューを${hoveredSubmenu === dropItem.label ? '閉じる' : '開く'}`}
+                                    >
+                                      <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${hoveredSubmenu === dropItem.label ? 'rotate-180' : ''}`} />
+                                    </button>
+                                  </div>
                                   {hoveredSubmenu === dropItem.label && (
                                     <div className="mt-1 ml-4 space-y-1">
                                       {dropItem.submenu.map((subItem, subIdx) => (
