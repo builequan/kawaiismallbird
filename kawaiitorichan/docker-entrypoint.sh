@@ -274,8 +274,8 @@ if [ "$POST_COUNT" = "0" ]; then
   echo "❌ WARNING: No posts in database! Import may have failed." >&2
 fi
 
-# FIX: Insert categories if missing
-if [ "$CATEGORY_COUNT" = "0" ] || [ "$CATEGORY_COUNT" = " 0" ]; then
+# FIX: Insert categories if missing (but only if SKIP_DATA_IMPORT is false)
+if [ "$SKIP_DATA_IMPORT" != "true" ] && ([ "$CATEGORY_COUNT" = "0" ] || [ "$CATEGORY_COUNT" = " 0" ]); then
   echo "⚠️ No categories found, inserting default categories inline..." >&2
 
   # Insert categories directly using inline SQL
@@ -361,6 +361,8 @@ EOSQL
   else
     echo "❌ Failed to insert categories!" >&2
   fi
+elif [ "$SKIP_DATA_IMPORT" = "true" ]; then
+  echo "🔒 SKIP_DATA_IMPORT=true - Skipping category insert" >&2
 fi
 
 # Check if we should force initialize the database
@@ -467,18 +469,23 @@ fi
 
 # CRITICAL: Check and fix NULL parent_id versions that cause blank admin panel
 # NOTE: This must run BEFORE the app starts because PayloadCMS clears parent_id when running!
-echo ""
-echo "🔧 Checking post versions health..."
+# IMPORTANT: Skip this if SKIP_DATA_IMPORT is set (don't modify existing data)
+if [ "$SKIP_DATA_IMPORT" = "true" ]; then
+  echo ""
+  echo "🔒 SKIP_DATA_IMPORT=true - Skipping version rebuild (preserving existing versions)" >&2
+else
+  echo ""
+  echo "🔧 Checking post versions health..."
 
-# Check for NULL parent_id OR missing versions
-VERSION_NULL_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
-VERSION_MISSING_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts p WHERE NOT EXISTS (SELECT 1 FROM _posts_v v WHERE v.parent_id = p.id AND v.latest = true);" 2>/dev/null || echo "0")
+  # Check for NULL parent_id OR missing versions
+  VERSION_NULL_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM _posts_v WHERE parent_id IS NULL;" 2>/dev/null || echo "0")
+  VERSION_MISSING_CHECK=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM posts p WHERE NOT EXISTS (SELECT 1 FROM _posts_v v WHERE v.parent_id = p.id AND v.latest = true);" 2>/dev/null || echo "0")
 
-echo "Found $VERSION_NULL_CHECK versions with NULL parent_id"
-echo "Found $VERSION_MISSING_CHECK posts without versions"
+  echo "Found $VERSION_NULL_CHECK versions with NULL parent_id"
+  echo "Found $VERSION_MISSING_CHECK posts without versions"
 
-# If we have any issues, do a complete rebuild of versions
-if [ "$VERSION_NULL_CHECK" != "0" ] && [ "$VERSION_NULL_CHECK" != " 0" ]; then
+  # If we have any issues, do a complete rebuild of versions
+  if [ "$VERSION_NULL_CHECK" != "0" ] && [ "$VERSION_NULL_CHECK" != " 0" ]; then
   echo "⚠️ CRITICAL: Found versions with NULL parent_id!"
   echo "🔧 Performing complete version rebuild..."
 
@@ -692,13 +699,14 @@ echo "  - NULL parent_id: $FINAL_NULL"
 # Clean up any whitespace from psql output
 FINAL_NULL_CLEAN=$(echo "$FINAL_NULL" | tr -d ' ')
 
-if [ "$FINAL_NULL_CLEAN" != "0" ] && [ -n "$FINAL_NULL_CLEAN" ]; then
-  echo "❌ CRITICAL: Still have $FINAL_NULL_CLEAN versions with NULL parent_id after fix!"
-  echo "Admin panel may not work properly!"
-  echo "💡 Try running: DELETE FROM _posts_v WHERE parent_id IS NULL;"
-else
-  echo "✅ All versions have valid parent_id - admin panel should work!"
-fi
+  if [ "$FINAL_NULL_CLEAN" != "0" ] && [ -n "$FINAL_NULL_CLEAN" ]; then
+    echo "❌ CRITICAL: Still have $FINAL_NULL_CLEAN versions with NULL parent_id after fix!"
+    echo "Admin panel may not work properly!"
+    echo "💡 Try running: DELETE FROM _posts_v WHERE parent_id IS NULL;"
+  else
+    echo "✅ All versions have valid parent_id - admin panel should work!"
+  fi
+fi  # End of SKIP_DATA_IMPORT check for version rebuild
 
 # CRITICAL: Fix media URLs pointing to external domains instead of local paths
 echo ""
@@ -785,15 +793,20 @@ else
   echo "⚠️ Some media URLs may still need fixing"
 fi
 
-# Fix category assignments - distribute posts across categories
-echo ""
-echo "🗂️ Fixing category assignments..."
-if [ -f scripts/fix-categories.sql ]; then
-  echo "Running category assignment fix..."
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f scripts/fix-categories.sql 2>&1 | grep -E "(DELETE|INSERT|鳥の種類|鳥の飼い方|餌と栄養|鳥の生態|野鳥観察|鳥の健康)" | head -20
-  echo "✅ Category assignments fixed!"
+# Fix category assignments - distribute posts across categories (skip if preserving data)
+if [ "$SKIP_DATA_IMPORT" = "true" ]; then
+  echo ""
+  echo "🔒 SKIP_DATA_IMPORT=true - Skipping category reassignment (preserving existing assignments)" >&2
 else
-  echo "⚠️ scripts/fix-categories.sql not found, skipping category fix"
+  echo ""
+  echo "🗂️ Fixing category assignments..."
+  if [ -f scripts/fix-categories.sql ]; then
+    echo "Running category assignment fix..."
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f scripts/fix-categories.sql 2>&1 | grep -E "(DELETE|INSERT|鳥の種類|鳥の飼い方|餌と栄養|鳥の生態|野鳥観察|鳥の健康)" | head -20
+    echo "✅ Category assignments fixed!"
+  else
+    echo "⚠️ scripts/fix-categories.sql not found, skipping category fix"
+  fi
 fi
 
 # Smart media sync - downloads only missing files
