@@ -29,12 +29,14 @@ export const CommentList: React.FC<CommentListProps> = ({ postId, refreshTrigger
         const data = await response.json()
 
         if (response.ok) {
-          setComments(data.comments)
+          setComments(data.comments || [])
         } else {
-          setError(data.error || 'コメントの読み込みに失敗しました')
+          // Don't show error for empty comments, just set empty array
+          setComments([])
         }
       } catch (err) {
-        setError('コメントの読み込みに失敗しました')
+        // Silently fail and show no comments
+        setComments([])
       } finally {
         setIsLoading(false)
       }
@@ -55,30 +57,11 @@ export const CommentList: React.FC<CommentListProps> = ({ postId, refreshTrigger
   }
 
   if (isLoading) {
-    return (
-      <div className="mt-8">
-        <p style={{ color: '#404040' }}>コメントを読み込み中...</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="mt-8">
-        <p className="text-red-600">{error}</p>
-      </div>
-    )
+    return null // Don't show loading state
   }
 
   if (comments.length === 0) {
-    return (
-      <div className="mt-8">
-        <h3 className="text-2xl font-bold mb-4" style={{ color: '#212121' }}>
-          コメント
-        </h3>
-        <p style={{ color: '#404040' }}>まだコメントはありません。最初のコメントを投稿してください！</p>
-      </div>
-    )
+    return null // Don't show anything if no comments
   }
 
   return (
