@@ -75,44 +75,55 @@ ls -la >&2
 # DATABASE INITIALIZATION - Create schema and import data
 echo "🚀 INITIALIZING DATABASE..." >&2
 
-# EMERGENCY FIX: Run this FIRST to ensure basic schema compatibility
-if [ -f emergency-fix.sql ]; then
-  echo "🚨 Running emergency schema fix FIRST..." >&2
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f emergency-fix.sql 2>&1 | head -50 >&2
-  echo "✅ Emergency fix applied" >&2
-fi
+# CRITICAL: Check for SKIP_DATA_IMPORT flag FIRST before any imports
+SKIP_DATA_IMPORT="${SKIP_DATA_IMPORT:-false}"
 
-# Skip reset script - Payload CMS handles schema creation
-# if [ -f reset-and-init-db.sh ]; then
-#   echo "🔄 Running database reset to ensure proper schema..." >&2
-#   chmod +x reset-and-init-db.sh
-#   sh reset-and-init-db.sh 2>&1 | head -50 >&2
-# fi
+if [ "$SKIP_DATA_IMPORT" = "true" ]; then
+  echo "✅ ✅ ✅ SKIP_DATA_IMPORT=true detected!" >&2
+  echo "🔒 Preserving existing database - NO imports will run" >&2
+  echo "💡 All data imports are skipped to preserve your edits" >&2
+else
+  echo "📥 SKIP_DATA_IMPORT not set - will import data if needed" >&2
 
-# Then import data
-if [ -f quick-import.sql ]; then
-  echo "📥 Importing data into database..." >&2
-
-  # The quick-import.sql has INSERT statements for the data
-  # We need to ensure _status and language have proper values
-  sed "s/'published'/'published'/g; s/'ja'/'ja'/g" quick-import.sql > /tmp/data-import.sql
-
-  IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/data-import.sql 2>&1)
-  IMPORT_EXIT_CODE=$?
-
-  if [ $IMPORT_EXIT_CODE -eq 0 ]; then
-    echo "✅ Data import successful!" >&2
-  else
-    echo "⚠️ Some warnings during data import" >&2
-    echo "$IMPORT_OUTPUT" | head -20 >&2
+  # EMERGENCY FIX: Run this FIRST to ensure basic schema compatibility
+  if [ -f emergency-fix.sql ]; then
+    echo "🚨 Running emergency schema fix FIRST..." >&2
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f emergency-fix.sql 2>&1 | head -50 >&2
+    echo "✅ Emergency fix applied" >&2
   fi
 
-  rm /tmp/data-import.sql
-elif [ -f init-schema-and-data.sql.gz ]; then
-  echo "⚠️ Using fallback init-schema-and-data.sql.gz..." >&2
-  gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
-  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1 | head -50 >&2
-  rm /tmp/init-schema-and-data.sql
+  # Skip reset script - Payload CMS handles schema creation
+  # if [ -f reset-and-init-db.sh ]; then
+  #   echo "🔄 Running database reset to ensure proper schema..." >&2
+  #   chmod +x reset-and-init-db.sh
+  #   sh reset-and-init-db.sh 2>&1 | head -50 >&2
+  # fi
+
+  # Then import data
+  if [ -f quick-import.sql ]; then
+    echo "📥 Importing data into database..." >&2
+
+    # The quick-import.sql has INSERT statements for the data
+    # We need to ensure _status and language have proper values
+    sed "s/'published'/'published'/g; s/'ja'/'ja'/g" quick-import.sql > /tmp/data-import.sql
+
+    IMPORT_OUTPUT=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/data-import.sql 2>&1)
+    IMPORT_EXIT_CODE=$?
+
+    if [ $IMPORT_EXIT_CODE -eq 0 ]; then
+      echo "✅ Data import successful!" >&2
+    else
+      echo "⚠️ Some warnings during data import" >&2
+      echo "$IMPORT_OUTPUT" | head -20 >&2
+    fi
+
+    rm /tmp/data-import.sql
+  elif [ -f init-schema-and-data.sql.gz ]; then
+    echo "⚠️ Using fallback init-schema-and-data.sql.gz..." >&2
+    gunzip -c init-schema-and-data.sql.gz > /tmp/init-schema-and-data.sql
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /tmp/init-schema-and-data.sql 2>&1 | head -50 >&2
+    rm /tmp/init-schema-and-data.sql
+  fi
 fi
 
 # CRITICAL: Run failsafe to ensure _status column exists
@@ -382,8 +393,7 @@ fi
 echo ""
 echo "🦜 Checking if bird theme content needs initialization..."
 
-# Check for skip data import flag (to preserve edited posts)
-SKIP_DATA_IMPORT="${SKIP_DATA_IMPORT:-false}"
+# SKIP_DATA_IMPORT already set earlier at line 79 - don't redeclare
 
 # Check for force reimport flag
 FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
