@@ -28,33 +28,68 @@ export async function DynamicHeaderNav({ data }: { data: HeaderType }) {
       sort: 'createdAt'
     })
 
-    // Get subcategories for each parent
+    // Get subcategories for each parent and count posts
     const categoriesWithChildren = await Promise.all(
       parentCategories.map(async (category) => {
+        // Get subcategories
         const { docs: children } = await payload.find({
           collection: 'categories',
-          limit: 20,
+          limit: 50,
           where: {
             parent: { equals: category.id }
           },
           sort: 'createdAt'
         })
 
-        return {
-          label: `${getCategoryIcon(category.title)} ${category.title}`,
-          href: `/categories/${category.slug}`,
-          submenu: children.map(child => ({
-            label: child.title,
-            href: `/categories/${child.slug}`
-          }))
+        // Filter children that have posts
+        const childrenWithPosts = await Promise.all(
+          children.map(async (child) => {
+            const { totalDocs } = await payload.find({
+              collection: 'posts',
+              limit: 1,
+              where: {
+                categories: { equals: child.id }
+              }
+            })
+
+            return totalDocs > 0 ? {
+              label: child.title,
+              href: `/categories/${child.slug}`,
+              postCount: totalDocs
+            } : null
+          })
+        ).then(items => items.filter(Boolean))
+
+        // Count posts for parent category (including all children)
+        const { totalDocs: parentPostCount } = await payload.find({
+          collection: 'posts',
+          limit: 1,
+          where: {
+            categories: { equals: category.id }
+          }
+        })
+
+        // Only return category if it has posts (either direct or in children)
+        if (parentPostCount > 0 || childrenWithPosts.length > 0) {
+          return {
+            label: `${getCategoryIcon(category.title)} ${category.title}`,
+            href: `/categories/${category.slug}`,
+            submenu: childrenWithPosts,
+            postCount: parentPostCount
+          }
         }
+
+        return null
       })
     )
+
+    // Filter out null categories (those with no posts)
+    const filteredCategories = categoriesWithChildren.filter(Boolean)
 
     // Create the enhanced data with dynamic categories
     const enhancedData: HeaderType = {
       ...data,
-      dynamicCategories: categoriesWithChildren
+      dynamicCategories: filteredCategories
     }
 
     return <HeaderNav data={enhancedData} />
