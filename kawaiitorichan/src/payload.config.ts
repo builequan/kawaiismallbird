@@ -13,6 +13,7 @@ import { Posts } from './collections/Posts'
 import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import { AffiliateProducts } from './collections/AffiliateProducts'
+import { Comments } from './collections/Comments'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { InternalLinksSettings } from './globals/InternalLinksSettings'
@@ -78,7 +79,7 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: getDatabaseAdapter(),
-  collections: [Pages, Posts, Media, Categories, Tags, Users, AffiliateProducts],
+  collections: [Pages, Posts, Media, Categories, Tags, Users, AffiliateProducts, Comments],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, InternalLinksSettings],
   plugins: [

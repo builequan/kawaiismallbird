@@ -16,6 +16,7 @@ import PostReferences from '@/components/PostReferences'
 import TableOfContents from '@/components/TableOfContents'
 import { StructuredData } from '@/components/StructuredData'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
+import { CommentSection } from '@/components/CommentSection'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -159,6 +160,9 @@ export default async function Post({ params: paramsPromise }: Args) {
 
             {/* Display enhanced affiliate product recommendations with products from the article */}
             <AffiliateLinksEnhanced postId={String(post.id)} content={post.content} />
+
+            {/* Comments Section */}
+            <CommentSection postId={String(post.id)} />
           </div>
         </div>
         
