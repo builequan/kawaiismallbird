@@ -371,18 +371,32 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
                 <div key={i}>
                   {item.hasDropdown ? (
                     <div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setOpenDropdown(openDropdown === item.label ? null : item.label)
-                        }}
-                        className="w-full flex items-center justify-between px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg active:bg-primary/10 transition-colors touch-manipulation min-h-[48px]"
-                      >
-                        {item.label}
-                        <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {/* Clickable main category link - takes most space */}
+                        <Link
+                          href={item.href}
+                          className="flex-1 px-4 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg active:bg-primary/10 transition-colors touch-manipulation min-h-[48px] flex items-center"
+                          onClick={() => {
+                            setIsMobileMenuOpen(false)
+                            setOpenDropdown(null)
+                          }}
+                        >
+                          {item.label}
+                        </Link>
+                        {/* Toggle dropdown button - small on right */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setOpenDropdown(openDropdown === item.label ? null : item.label)
+                          }}
+                          className="px-3 py-3 text-gray-900 font-semibold bg-gray-50 rounded-lg active:bg-primary/10 transition-colors touch-manipulation min-h-[48px] flex items-center justify-center"
+                          aria-label={`${item.label}メニューを${openDropdown === item.label ? '閉じる' : '開く'}`}
+                        >
+                          <ChevronDownIcon className={`w-5 h-5 transition-transform duration-200 ${openDropdown === item.label ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
                       {openDropdown === item.label && (
                         <div className="mt-2 ml-4 space-y-1">
                           {item.dropdownItems.map((dropItem, idx) => (
