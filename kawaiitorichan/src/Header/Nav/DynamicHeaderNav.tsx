@@ -18,14 +18,25 @@ export async function DynamicHeaderNav({ data }: { data: HeaderType }) {
   try {
     const payload = await getCachedPayload()
 
+    // Whitelist: Only show these 6 categories
+    const allowedCategories = [
+      '餌と栄養',
+      '野鳥観察',
+      '鳥の生態',
+      '鳥の健康',
+      '鳥の飼い方',
+      '鳥の種類'
+    ]
+
     // Get parent categories (main categories)
     const { docs: parentCategories } = await payload.find({
       collection: 'categories',
-      limit: 100, // Get all parent categories, we'll filter later
+      limit: 100,
       where: {
-        parent: { exists: false }
+        parent: { exists: false },
+        title: { in: allowedCategories } // Only get the 6 allowed categories
       },
-      sort: '-createdAt' // Newest first (DESC) to prioritize active categories
+      sort: '-createdAt'
     })
 
     // Get subcategories for each parent and count posts
@@ -60,40 +71,22 @@ export async function DynamicHeaderNav({ data }: { data: HeaderType }) {
           })
         ).then(items => items.filter(Boolean))
 
-        // Count posts for parent category (including all children)
-        const { totalDocs: parentPostCount } = await payload.find({
-          collection: 'posts',
-          limit: 1,
-          where: {
-            categories: { equals: category.id }
-          }
-        })
-
-        // Only return category if it has posts (either direct or in children)
-        if (parentPostCount > 0 || childrenWithPosts.length > 0) {
-          return {
-            label: `${getCategoryIcon(category.title)} ${category.title}`,
-            href: `/categories/${category.slug}`,
-            submenu: childrenWithPosts,
-            postCount: parentPostCount
-          }
+        // Return category with its children (these are whitelisted, so we know they're valid)
+        return {
+          label: `${getCategoryIcon(category.title)} ${category.title}`,
+          href: `/categories/${category.slug}`,
+          submenu: childrenWithPosts
         }
-
-        return null
       })
     )
 
-    // Filter out null categories (those with no posts)
-    const filteredCategories = categoriesWithChildren.filter(Boolean)
-
-    console.log('🔍 DynamicHeaderNav: Total parent categories:', parentCategories.length)
-    console.log('🔍 DynamicHeaderNav: Filtered categories with posts:', filteredCategories.length)
-    console.log('🔍 DynamicHeaderNav: Showing:', filteredCategories.map(c => c?.label).join(', '))
+    // All categories are already whitelisted, no need to filter
+    console.log('🔍 DynamicHeaderNav: Showing whitelisted categories:', categoriesWithChildren.map(c => c.label).join(', '))
 
     // Create the enhanced data with dynamic categories
     const enhancedData: HeaderType = {
       ...data,
-      dynamicCategories: filteredCategories
+      dynamicCategories: categoriesWithChildren
     }
 
     return <HeaderNav data={enhancedData} />
