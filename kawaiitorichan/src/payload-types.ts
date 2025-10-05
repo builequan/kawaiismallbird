@@ -424,7 +424,10 @@ export interface Tag {
  */
 export interface Media {
   id: number;
-  alt?: string | null;
+  /**
+   * Alternative text for accessibility and SEO. Describe the image content.
+   */
+  alt: string;
   caption?: {
     root: {
       type: string;

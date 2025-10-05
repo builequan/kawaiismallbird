@@ -86,6 +86,10 @@ export async function DynamicHeaderNav({ data }: { data: HeaderType }) {
     // Filter out null categories (those with no posts)
     const filteredCategories = categoriesWithChildren.filter(Boolean)
 
+    console.log('🔍 DynamicHeaderNav: Total parent categories:', parentCategories.length)
+    console.log('🔍 DynamicHeaderNav: Filtered categories with posts:', filteredCategories.length)
+    console.log('🔍 DynamicHeaderNav: Showing:', filteredCategories.map(c => c?.label).join(', '))
+
     // Create the enhanced data with dynamic categories
     const enhancedData: HeaderType = {
       ...data,
