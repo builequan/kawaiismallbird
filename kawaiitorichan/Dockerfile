@@ -9,7 +9,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-10-02-15:45
+ARG REBUILD_TIMESTAMP=2025-01-06-12:00
 
 # Copy all files from kawaiitorichan directory (context is repository root)
 COPY kawaiitorichan/ .
@@ -57,6 +57,7 @@ COPY --from=builder /app/ensure-status-column.sh ./
 COPY --from=builder /app/simple-status-fix.sql ./
 COPY --from=builder /app/comprehensive-schema-fix.sql ./
 COPY --from=builder /app/emergency-fix.sql ./
+COPY --from=builder /app/add-comments-schema.sql ./
 COPY --from=builder /app/validate-schema.sh ./
 COPY --from=builder /app/download-media.sh ./
 COPY --from=builder /app/smart-media-sync.sh ./
