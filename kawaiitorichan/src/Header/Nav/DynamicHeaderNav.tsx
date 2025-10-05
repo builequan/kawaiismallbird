@@ -21,11 +21,11 @@ export async function DynamicHeaderNav({ data }: { data: HeaderType }) {
     // Get parent categories (main categories)
     const { docs: parentCategories } = await payload.find({
       collection: 'categories',
-      limit: 10,
+      limit: 100, // Get all parent categories, we'll filter later
       where: {
         parent: { exists: false }
       },
-      sort: 'createdAt'
+      sort: '-createdAt' // Newest first (DESC) to prioritize active categories
     })
 
     // Get subcategories for each parent and count posts
