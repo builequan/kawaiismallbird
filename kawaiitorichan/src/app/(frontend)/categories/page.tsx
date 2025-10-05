@@ -20,11 +20,24 @@ export const metadata: Metadata = {
 
 async function getCategoriesWithPostCount() {
   const payload = await getPayload({ config })
-  
-  // Get all categories
+
+  // Whitelist: Only show these 6 categories
+  const allowedCategories = [
+    '餌と栄養',
+    '野鳥観察',
+    '鳥の生態',
+    '鳥の健康',
+    '鳥の飼い方',
+    '鳥の種類'
+  ]
+
+  // Get only whitelisted categories
   const { docs: categories } = await payload.find({
     collection: 'categories',
     limit: 100,
+    where: {
+      title: { in: allowedCategories }
+    },
     sort: 'order',
   })
 
