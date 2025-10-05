@@ -92,6 +92,13 @@ else
     echo "✅ Emergency fix applied" >&2
   fi
 
+  # Add Comments collection schema
+  if [ -f add-comments-schema.sql ]; then
+    echo "💬 Adding Comments collection schema..." >&2
+    PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f add-comments-schema.sql 2>&1 | head -50 >&2
+    echo "✅ Comments schema added" >&2
+  fi
+
   # Skip reset script - Payload CMS handles schema creation
   # if [ -f reset-and-init-db.sh ]; then
   #   echo "🔄 Running database reset to ensure proper schema..." >&2
