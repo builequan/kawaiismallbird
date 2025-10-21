@@ -415,8 +415,8 @@ FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
 NEEDS_REIMPORT=false
 if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
   NEEDS_REIMPORT=true
-elif [ "$POST_COUNT" -lt 200 ] 2>/dev/null; then
-  echo "⚠️ Only $POST_COUNT posts found (expected 230) - will reimport"
+elif [ "$POST_COUNT" -lt 250 ] 2>/dev/null; then
+  echo "⚠️ Only $POST_COUNT posts found (expected 267) - will reimport"
   NEEDS_REIMPORT=true
 fi
 
@@ -465,7 +465,7 @@ EOSQL
     fi
   fi
 else
-  echo "✅ Posts already exist ($POST_COUNT posts ≥ 200), skipping data import to preserve existing data"
+  echo "✅ Posts already exist ($POST_COUNT posts ≥ 250), skipping data import to preserve existing data"
   echo "💡 Set FORCE_REIMPORT=true environment variable to force reimport if needed"
 fi
 

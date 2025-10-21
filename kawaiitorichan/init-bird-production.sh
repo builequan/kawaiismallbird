@@ -30,19 +30,19 @@ if [ -n "$DATABASE_URI" ]; then
   ls -la *.sql* 2>&1 || echo "No SQL files found"
 
   # DOWNLOAD FILES FROM GITHUB IF NOT FOUND (using wget which is available in Alpine)
-  if [ ! -f production-data-230-posts.sql.gz ]; then
-    echo "📥 Downloading production data (230 posts) from GitHub..."
+  if [ ! -f production-data-267-posts.sql.gz ]; then
+    echo "📥 Downloading production data (267 posts) from GitHub..."
     # Download the latest 230-post dump
     if command -v wget > /dev/null 2>&1; then
-      wget -q -O production-data-230-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-230-posts.sql.gz 2>&1
+      wget -q -O production-data-267-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-267-posts.sql.gz 2>&1
     elif command -v curl > /dev/null 2>&1; then
-      curl -sL -o production-data-230-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-230-posts.sql.gz 2>&1
+      curl -sL -o production-data-267-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-267-posts.sql.gz 2>&1
     else
       echo "⚠️ Neither wget nor curl available for download"
     fi
 
-    if [ -f production-data-230-posts.sql.gz ]; then
-      echo "✅ Downloaded production-data-230-posts.sql.gz successfully"
+    if [ -f production-data-267-posts.sql.gz ]; then
+      echo "✅ Downloaded production-data-267-posts.sql.gz successfully"
     else
       echo "⚠️ Failed to download production data"
     fi
@@ -71,38 +71,38 @@ if [ -n "$DATABASE_URI" ]; then
   # CHECK IF DATA ALREADY EXISTS (unless FORCE_DB_REINIT is set)
   if [ "$FORCE_DB_REINIT" != "true" ]; then
     EXISTING_POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts WHERE _status = 'published'" 2>/dev/null || echo "0")
-    if [ "$EXISTING_POST_COUNT" -ge "200" ]; then
+    if [ "$EXISTING_POST_COUNT" -ge "250" ]; then
       echo "✅ Database already contains $EXISTING_POST_COUNT published posts - skipping import"
       echo "💡 Set FORCE_DB_REINIT=true to force reimport"
       return 0
     elif [ "$EXISTING_POST_COUNT" -gt "0" ]; then
-      echo "⚠️  Database contains only $EXISTING_POST_COUNT posts (expected 230)"
+      echo "⚠️  Database contains only $EXISTING_POST_COUNT posts (expected 267)"
       echo "🔄 Will attempt to reimport..."
     fi
   else
     echo "🔴 FORCE_DB_REINIT=true - Will drop and reimport regardless of existing data"
   fi
 
-  # TRY LATEST PRODUCTION DATA FIRST (230 posts)
+  # TRY LATEST PRODUCTION DATA FIRST (267 posts)
   # Check for the file with both possible names (copied in Docker OR downloaded)
   DATA_IMPORTED=false
 
   # EXPLICIT FILE CHECK WITH DETAILED LOGGING
   echo "🔍 Checking for 230-post database files..."
-  if [ -f production-data-230-posts.sql.gz ]; then
-    echo "✅ Found: production-data-230-posts.sql.gz (from Docker image)"
-    IMPORT_FILE="production-data-230-posts.sql.gz"
-  elif [ -f production-data-230-posts.sql.gz ]; then
-    echo "✅ Found: production-data-230-posts.sql.gz (downloaded from GitHub)"
-    IMPORT_FILE="production-data-230-posts.sql.gz"
+  if [ -f production-data-267-posts.sql.gz ]; then
+    echo "✅ Found: production-data-267-posts.sql.gz (from Docker image)"
+    IMPORT_FILE="production-data-267-posts.sql.gz"
+  elif [ -f production-data-267-posts.sql.gz ]; then
+    echo "✅ Found: production-data-267-posts.sql.gz (downloaded from GitHub)"
+    IMPORT_FILE="production-data-267-posts.sql.gz"
   else
     echo "❌ ERROR: No 230-post database file found!"
-    echo "❌ Expected: production-data-230-posts.sql.gz or production-data-230-posts.sql.gz"
+    echo "❌ Expected: production-data-267-posts.sql.gz or production-data-267-posts.sql.gz"
     IMPORT_FILE=""
   fi
 
   if [ -n "$IMPORT_FILE" ]; then
-    echo "🚀 RUNNING PRODUCTION DATA IMPORT - 230 posts (compressed)..."
+    echo "🚀 RUNNING PRODUCTION DATA IMPORT - 267 posts (compressed)..."
     echo "📦 Using file: $IMPORT_FILE"
     echo "📦 File size: $(ls -lh $IMPORT_FILE | awk '{print $5}')"
     echo "Database connection: $PGUSER@$PGHOST:$PGPORT/$PGDATABASE"
@@ -149,7 +149,7 @@ SQL_DROP
   elif [ -f current-complete-data-352-posts.sql.gz ]; then
     echo "⚠️⚠️⚠️ CRITICAL WARNING: Using old 352-post dump ⚠️⚠️⚠️"
     echo "⚠️ 230-post dump was not found - THIS IS A BUG!"
-    echo "⚠️ Check: Was production-data-230-posts.sql.gz copied to Docker image?"
+    echo "⚠️ Check: Was production-data-267-posts.sql.gz copied to Docker image?"
     gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
@@ -360,10 +360,10 @@ EOF
       echo "⚠️ Essential data import failed, trying compressed data..."
     fi
   # FALLBACK: TRY COMPRESSED PRODUCTION IMPORT
-  elif [ -f production-data-230-posts.sql.gz ]; then
+  elif [ -f production-data-267-posts.sql.gz ]; then
     echo "🚀 DECOMPRESSING AND RUNNING FULL PRODUCTION IMPORT - 115 posts..."
-    echo "📦 File size: $(ls -lh production-data-230-posts.sql.gz | awk '{print $5}')"
-    gunzip -c production-data-230-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
+    echo "📦 File size: $(ls -lh production-data-267-posts.sql.gz | awk '{print $5}')"
+    gunzip -c production-data-267-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
 
     # Check if it worked
     POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
