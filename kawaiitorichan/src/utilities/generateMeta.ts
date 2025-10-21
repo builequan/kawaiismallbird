@@ -28,8 +28,8 @@ export const generateMeta = async (args: {
   const ogImage = getImageURL(doc?.meta?.image)
 
   const title = doc?.meta?.title
-    ? doc?.meta?.title + ' | Golf Knowledge Hub'
-    : 'Golf Knowledge Hub'
+    ? doc?.meta?.title + ' | Kawaii Small Bird'
+    : 'Kawaii Small Bird'
 
   // Build canonical URL
   let canonicalUrl = serverUrl

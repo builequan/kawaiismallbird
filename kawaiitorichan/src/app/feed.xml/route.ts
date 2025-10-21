@@ -25,9 +25,9 @@ export async function GET() {
     const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Golf Knowledge Hub - ゴルフ総合情報サイト</title>
+    <title>Kawaii Small Bird - 小鳥のお世話情報サイト</title>
     <link>${serverUrl}</link>
-    <description>ゴルフの知識、技術、機器に関する総合情報サイト</description>
+    <description>小鳥の飼育、健康管理、種類に関する総合情報サイト</description>
     <language>ja-JP</language>
     <atom:link href="${serverUrl}/feed.xml" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>

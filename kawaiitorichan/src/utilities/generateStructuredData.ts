@@ -142,7 +142,7 @@ export function generateArticleSchema(post: Post): ArticleSchema {
     author: authors,
     publisher: {
       '@type': 'Organization',
-      name: 'Golf Knowledge Hub',
+      name: 'Kawaii Small Bird',
       logo: {
         '@type': 'ImageObject',
         url: `${serverUrl}/website-template-OG.webp`,
@@ -152,7 +152,7 @@ export function generateArticleSchema(post: Post): ArticleSchema {
       '@type': 'WebPage',
       '@id': postUrl,
     },
-    keywords: post.meta?.keywords || (articleSections.length > 0 ? articleSections.join(', ') : 'ゴルフ'),
+    keywords: post.meta?.keywords || (articleSections.length > 0 ? articleSections.join(', ') : '小鳥, ペット, 飼育'),
     articleSection: articleSections.length > 0 ? articleSections : undefined,
     wordCount,
     inLanguage: post.language || 'ja',
@@ -245,7 +245,7 @@ export function generateOrganizationSchema(): OrganizationSchema {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Golf Knowledge Hub',
+    name: 'Kawaii Small Bird',
     url: serverUrl,
     logo: {
       '@type': 'ImageObject',
@@ -263,12 +263,12 @@ export function generateWebSiteSchema(): WebSiteSchema {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Golf Knowledge Hub',
+    name: 'Kawaii Small Bird',
     url: serverUrl,
-    description: 'ゴルフの知識、技術、機器に関する総合情報サイト',
+    description: '小鳥の飼育、健康管理、種類に関する総合情報サイト',
     publisher: {
       '@type': 'Organization',
-      name: 'Golf Knowledge Hub',
+      name: 'Kawaii Small Bird',
     },
     potentialAction: {
       '@type': 'SearchAction',
