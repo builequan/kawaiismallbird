@@ -31,12 +31,12 @@ if [ -n "$DATABASE_URI" ]; then
 
   # DOWNLOAD FILES FROM GITHUB IF NOT FOUND (using wget which is available in Alpine)
   if [ ! -f production-all-posts.sql.gz ]; then
-    echo "📥 Downloading production data (494 posts + 3414 media) from GitHub..."
+    echo "📥 Downloading production data (230 posts) from GitHub..."
     # Download the latest 494-post dump
     if command -v wget > /dev/null 2>&1; then
-      wget -q -O production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-494-posts.sql.gz 2>&1
+      wget -q -O production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
     elif command -v curl > /dev/null 2>&1; then
-      curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-494-posts.sql.gz 2>&1
+      curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
     else
       echo "⚠️ Neither wget nor curl available for download"
     fi
@@ -76,33 +76,33 @@ if [ -n "$DATABASE_URI" ]; then
       echo "💡 Set FORCE_DB_REINIT=true to force reimport"
       return 0
     elif [ "$EXISTING_POST_COUNT" -gt "0" ]; then
-      echo "⚠️  Database contains only $EXISTING_POST_COUNT posts (expected 494)"
+      echo "⚠️  Database contains only $EXISTING_POST_COUNT posts (expected 230)"
       echo "🔄 Will attempt to reimport..."
     fi
   else
     echo "🔴 FORCE_DB_REINIT=true - Will drop and reimport regardless of existing data"
   fi
 
-  # TRY LATEST PRODUCTION DATA FIRST (494 posts + 3414 media)
+  # TRY LATEST PRODUCTION DATA FIRST (230 posts)
   # Check for the file with both possible names (copied in Docker OR downloaded)
   DATA_IMPORTED=false
 
   # EXPLICIT FILE CHECK WITH DETAILED LOGGING
   echo "🔍 Checking for 494-post database files..."
-  if [ -f production-data-494-posts.sql.gz ]; then
-    echo "✅ Found: production-data-494-posts.sql.gz (from Docker image)"
-    IMPORT_FILE="production-data-494-posts.sql.gz"
+  if [ -f production-all-posts.sql.gz ]; then
+    echo "✅ Found: production-all-posts.sql.gz (from Docker image)"
+    IMPORT_FILE="production-all-posts.sql.gz"
   elif [ -f production-all-posts.sql.gz ]; then
     echo "✅ Found: production-all-posts.sql.gz (downloaded from GitHub)"
     IMPORT_FILE="production-all-posts.sql.gz"
   else
     echo "❌ ERROR: No 494-post database file found!"
-    echo "❌ Expected: production-data-494-posts.sql.gz or production-all-posts.sql.gz"
+    echo "❌ Expected: production-all-posts.sql.gz or production-all-posts.sql.gz"
     IMPORT_FILE=""
   fi
 
   if [ -n "$IMPORT_FILE" ]; then
-    echo "🚀 RUNNING PRODUCTION DATA IMPORT - 494 posts + 3414 media (compressed)..."
+    echo "🚀 RUNNING PRODUCTION DATA IMPORT - 230 posts (compressed)..."
     echo "📦 Using file: $IMPORT_FILE"
     echo "📦 File size: $(ls -lh $IMPORT_FILE | awk '{print $5}')"
     echo "Database connection: $PGUSER@$PGHOST:$PGPORT/$PGDATABASE"
@@ -149,7 +149,7 @@ SQL_DROP
   elif [ -f current-complete-data-352-posts.sql.gz ]; then
     echo "⚠️⚠️⚠️ CRITICAL WARNING: Using old 352-post dump ⚠️⚠️⚠️"
     echo "⚠️ 494-post dump was not found - THIS IS A BUG!"
-    echo "⚠️ Check: Was production-data-494-posts.sql.gz copied to Docker image?"
+    echo "⚠️ Check: Was production-all-posts.sql.gz copied to Docker image?"
     gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
