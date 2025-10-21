@@ -36,11 +36,12 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   let src: StaticImageData | string = srcFromProps || ''
 
   if (!src && resource && typeof resource === 'object') {
-    const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
+    const { alt: altFromResource, height: fullHeight, url, width: fullWidth, filename } = resource
 
     width = fullWidth!
     height = fullHeight!
-    alt = altFromResource || ''
+    // Better alt text fallback: use filename without extension if alt is not provided
+    alt = altFromResource || (filename ? filename.replace(/\.[^/.]+$/, '').replace(/-/g, ' ') : 'Image')
 
     const cacheTag = resource.updatedAt
 

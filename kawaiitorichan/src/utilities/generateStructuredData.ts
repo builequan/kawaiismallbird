@@ -1,6 +1,6 @@
 import type { Post, Page, Category, Media } from '@/payload-types'
 import { getServerSideURL } from './getURL'
-import { serializeRichTextToExcerpt } from './serializeRichText'
+import { serializeRichTextToExcerpt, serializeRichTextToPlainText } from './serializeRichText'
 import { calculateReadingTime } from './calculateReadingTime'
 
 export interface ArticleSchema {
@@ -117,8 +117,19 @@ export function generateArticleSchema(post: Post): ArticleSchema {
     description = serializeRichTextToExcerpt(post.excerpt, 160)
   }
 
-  // Calculate word count from content
-  const wordCount = post.content ? calculateReadingTime(post.content) * 200 : undefined
+  // Calculate actual word count from content (not just estimate from reading time)
+  let wordCount: number | undefined
+  if (post.content) {
+    const contentText = serializeRichTextToPlainText(post.content)
+    // Count words more accurately - remove extra whitespace and count
+    const words = contentText.trim().split(/\s+/).filter(w => w.length > 0)
+    wordCount = words.length
+
+    // Fallback to reading time estimate if word count is 0
+    if (wordCount === 0) {
+      wordCount = calculateReadingTime(post.content) * 200
+    }
+  }
 
   const schema: ArticleSchema = {
     '@context': 'https://schema.org',
@@ -141,7 +152,7 @@ export function generateArticleSchema(post: Post): ArticleSchema {
       '@type': 'WebPage',
       '@id': postUrl,
     },
-    keywords: post.meta?.keywords || articleSections.join(', '),
+    keywords: post.meta?.keywords || (articleSections.length > 0 ? articleSections.join(', ') : 'ゴルフ'),
     articleSection: articleSections.length > 0 ? articleSections : undefined,
     wordCount,
     inLanguage: post.language || 'ja',

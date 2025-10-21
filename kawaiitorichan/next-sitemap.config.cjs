@@ -7,14 +7,18 @@ const SITE_URL =
 module.exports = {
   siteUrl: SITE_URL,
   generateRobotsTxt: true,
-  exclude: ['/posts-sitemap.xml', '/pages-sitemap.xml', '/*', '/posts/*'],
+  // Only exclude admin pages - allow all posts and pages
+  exclude: ['/admin/*', '/api/*'],
   robotsTxtOptions: {
     policies: [
       {
         userAgent: '*',
-        disallow: '/admin/*',
+        allow: '/',
+        disallow: ['/admin/*', '/api/*'],
       },
     ],
-    additionalSitemaps: [`${SITE_URL}/pages-sitemap.xml`, `${SITE_URL}/posts-sitemap.xml`],
+    additionalSitemaps: [
+      `${SITE_URL}/api/sitemap.xml`, // Dynamic sitemap from Payload CMS
+    ],
   },
 }

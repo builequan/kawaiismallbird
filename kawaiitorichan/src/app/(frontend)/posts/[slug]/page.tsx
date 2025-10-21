@@ -33,38 +33,48 @@ import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 
 // Enable ISR (Incremental Static Regeneration) for better SEO
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 600 // Revalidate every 10 minutes for fresher content
 
-// Completely disable static generation for Docker builds
-// export async function generateStaticParams() {
-//   // Skip static generation during build if no database connection
-//   if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
-//     return []
-//   }
+// Generate static params for better initial load performance
+export async function generateStaticParams() {
+  // Skip static generation during build if explicitly disabled
+  if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
+    return []
+  }
 
-//   try {
-//     const payload = await getPayload({ config: configPromise })
-//     const posts = await payload.find({
-//       collection: 'posts',
-//       draft: false,
-//       limit: 1000,
-//       overrideAccess: false,
-//       pagination: false,
-//       select: {
-//         slug: true,
-//       },
-//     })
+  try {
+    const payload = await getPayload({ config: configPromise })
+    const posts = await payload.find({
+      collection: 'posts',
+      draft: false,
+      limit: 1000,
+      overrideAccess: false,
+      pagination: false,
+      select: {
+        slug: true,
+      },
+      where: {
+        _status: {
+          equals: 'published',
+        },
+      },
+    })
 
-//     const params = posts.docs.map(({ slug }) => {
-//       return { slug }
-//     })
+    const params = posts.docs.map(({ slug }) => {
+      return { slug }
+    })
 
-//     return params
-//   } catch (error) {
-//     console.warn('Failed to generate static params for posts:', error)
-//     return []
-//   }
-// }
+    console.log(`Generating static params for ${params.length} posts`)
+    return params
+  } catch (error) {
+    console.warn('Failed to generate static params for posts:', error)
+    // Return empty array to fallback to on-demand rendering
+    return []
+  }
+}
+
+// Allow fallback rendering for posts not statically generated
+export const dynamicParams = true
 
 type Args = {
   params: Promise<{

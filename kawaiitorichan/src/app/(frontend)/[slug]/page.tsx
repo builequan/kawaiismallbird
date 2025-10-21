@@ -19,43 +19,52 @@ import { BirdSlideshow } from '@/components/BirdSlideshow'
 // import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
 // import type { Post, Category } from '@/payload-types'
 
-// Force dynamic rendering to avoid build-time Payload initialization issues
-export const dynamic = 'force-dynamic'
+// Enable ISR for better performance
+export const revalidate = 600 // Revalidate every 10 minutes
 
-// Completely disable static generation for Docker builds
-// export async function generateStaticParams() {
-//   // Skip static generation during build if no database connection
-//   if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
-//     return []
-//   }
+// Generate static params for better initial load performance
+export async function generateStaticParams() {
+  // Skip static generation during build if explicitly disabled
+  if (process.env.SKIP_BUILD_STATIC_GENERATION === 'true') {
+    return []
+  }
 
-//   try {
-//     const payload = await getPayload({ config: configPromise })
-//     const pages = await payload.find({
-//       collection: 'pages',
-//       draft: false,
-//       limit: 1000,
-//       overrideAccess: false,
-//       pagination: false,
-//       select: {
-//         slug: true,
-//       },
-//     })
+  try {
+    const payload = await getPayload({ config: configPromise })
+    const pages = await payload.find({
+      collection: 'pages',
+      draft: false,
+      limit: 1000,
+      overrideAccess: false,
+      pagination: false,
+      select: {
+        slug: true,
+      },
+      where: {
+        _status: {
+          equals: 'published',
+        },
+      },
+    })
 
-//     const params = pages.docs
-//       ?.filter((doc) => {
-//         return doc.slug !== 'home'
-//       })
-//       .map(({ slug }) => {
-//         return { slug }
-//       })
+    const params = pages.docs
+      ?.filter((doc) => {
+        return doc.slug !== 'home'
+      })
+      .map(({ slug }) => {
+        return { slug }
+      })
 
-//     return params
-//   } catch (error) {
-//     console.warn('Failed to generate static params:', error)
-//     return []
-//   }
-// }
+    console.log(`Generating static params for ${params.length} pages`)
+    return params
+  } catch (error) {
+    console.warn('Failed to generate static params for pages:', error)
+    return []
+  }
+}
+
+// Allow fallback rendering for pages not statically generated
+export const dynamicParams = true
 
 type Args = {
   params: Promise<{

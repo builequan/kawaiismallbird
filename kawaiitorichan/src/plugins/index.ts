@@ -15,7 +15,7 @@ import { Page, Post } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
+  return doc?.title ? `${doc.title} | Golf Knowledge Hub - ゴルフ総合情報サイト` : 'Golf Knowledge Hub - ゴルフ総合情報サイト'
 }
 
 const generateURL: GenerateURL<Post | Page> = ({ doc }) => {

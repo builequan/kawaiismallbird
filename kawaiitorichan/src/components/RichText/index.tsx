@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import {
   DefaultNodeTypes,
@@ -67,7 +68,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
   return {
     ...defaultConverters,
     ...defaultLinkConverters,
-    // Upload converter for images
+    // Upload converter for images - optimized with Next.js Image
     upload: ({ node }: { node: SerializedUploadNode }) => {
       const value = node.value
 
@@ -77,12 +78,18 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         if ('url' in value && typeof value.url === 'string') {
           // Fix the URL path - replace /api/media/file/ with /media/
           const correctedUrl = value.url.replace('/api/media/file/', '/media/')
+          const alt = (value.alt as string) || (value.filename as string) || 'Content image'
+          const width = (value.width as number) || 1200
+          const height = (value.height as number) || 800
+
           return (
-            <div className="my-4 w-full">
-              <img
+            <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
+              <Image
                 src={correctedUrl}
-                alt={value.alt as string || 'Image'}
-                className="w-full h-auto rounded-lg object-contain"
+                alt={alt}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                className="rounded-lg object-contain"
                 loading="lazy"
               />
             </div>
@@ -91,12 +98,18 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
 
         // If value has filename, use it to construct the public media path
         if ('filename' in value && typeof value.filename === 'string') {
+          const alt = (value.alt as string) || (value.filename as string) || 'Content image'
+          const width = (value.width as number) || 1200
+          const height = (value.height as number) || 800
+
           return (
-            <div className="my-4 w-full">
-              <img
+            <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
+              <Image
                 src={`/media/${value.filename}`}
-                alt={value.alt as string || 'Image'}
-                className="w-full h-auto rounded-lg object-contain"
+                alt={alt}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                className="rounded-lg object-contain"
                 loading="lazy"
               />
             </div>
@@ -107,12 +120,16 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         if ('id' in value && !('url' in value)) {
           // Use the media-by-id API to fetch and display the image
           const mediaId = typeof value.id === 'number' ? value.id : String(value.id)
+          const alt = (value.alt as string) || 'Content image'
+
           return (
-            <div className="my-4 w-full">
-              <img
+            <div className="my-4 w-full relative h-96">
+              <Image
                 src={`/api/media-by-id/${mediaId}`}
-                alt={value.alt as string || 'Image'}
-                className="w-full h-auto rounded-lg object-contain"
+                alt={alt}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                className="rounded-lg object-contain"
                 loading="lazy"
               />
             </div>
@@ -124,11 +141,13 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       if (typeof value === 'string') {
         // Use the media-by-id API to fetch and display the image
         return (
-          <div className="my-4 w-full">
-            <img
+          <div className="my-4 w-full relative h-96">
+            <Image
               src={`/api/media-by-id/${value}`}
-              alt="Image"
-              className="w-full h-auto rounded-lg object-contain"
+              alt="Content image"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+              className="rounded-lg object-contain"
               loading="lazy"
             />
           </div>
@@ -401,14 +420,17 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         const imagePattern = /^!\[([^\]]*)\]\(([^)]+)\)$/
         const match = imagePattern.exec(text.trim())
         if (match) {
-          const alt = match[1] || 'Image'
+          const alt = match[1] || 'Content image'
           const url = match[2]
           return (
-            <div className="my-4">
-              <img
+            <div className="my-4 w-full relative h-96">
+              <Image
                 src={url}
                 alt={alt}
-                className="max-w-full h-auto rounded-lg"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
+                className="rounded-lg object-contain"
+                loading="lazy"
               />
             </div>
           )
