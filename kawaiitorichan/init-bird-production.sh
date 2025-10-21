@@ -30,19 +30,19 @@ if [ -n "$DATABASE_URI" ]; then
   ls -la *.sql* 2>&1 || echo "No SQL files found"
 
   # DOWNLOAD FILES FROM GITHUB IF NOT FOUND (using wget which is available in Alpine)
-  if [ ! -f production-all-posts.sql.gz ]; then
+  if [ ! -f production-data-230-posts.sql.gz ]; then
     echo "📥 Downloading production data (230 posts) from GitHub..."
-    # Download the latest 494-post dump
+    # Download the latest 230-post dump
     if command -v wget > /dev/null 2>&1; then
-      wget -q -O production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
+      wget -q -O production-data-230-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-230-posts.sql.gz 2>&1
     elif command -v curl > /dev/null 2>&1; then
-      curl -sL -o production-all-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-all-posts.sql.gz 2>&1
+      curl -sL -o production-data-230-posts.sql.gz https://raw.githubusercontent.com/builequan/kawaiismallbird/master/kawaiitorichan/production-data-230-posts.sql.gz 2>&1
     else
       echo "⚠️ Neither wget nor curl available for download"
     fi
 
-    if [ -f production-all-posts.sql.gz ]; then
-      echo "✅ Downloaded production-all-posts.sql.gz successfully"
+    if [ -f production-data-230-posts.sql.gz ]; then
+      echo "✅ Downloaded production-data-230-posts.sql.gz successfully"
     else
       echo "⚠️ Failed to download production data"
     fi
@@ -71,7 +71,7 @@ if [ -n "$DATABASE_URI" ]; then
   # CHECK IF DATA ALREADY EXISTS (unless FORCE_DB_REINIT is set)
   if [ "$FORCE_DB_REINIT" != "true" ]; then
     EXISTING_POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts WHERE _status = 'published'" 2>/dev/null || echo "0")
-    if [ "$EXISTING_POST_COUNT" -ge "400" ]; then
+    if [ "$EXISTING_POST_COUNT" -ge "200" ]; then
       echo "✅ Database already contains $EXISTING_POST_COUNT published posts - skipping import"
       echo "💡 Set FORCE_DB_REINIT=true to force reimport"
       return 0
@@ -88,16 +88,16 @@ if [ -n "$DATABASE_URI" ]; then
   DATA_IMPORTED=false
 
   # EXPLICIT FILE CHECK WITH DETAILED LOGGING
-  echo "🔍 Checking for 494-post database files..."
-  if [ -f production-all-posts.sql.gz ]; then
-    echo "✅ Found: production-all-posts.sql.gz (from Docker image)"
-    IMPORT_FILE="production-all-posts.sql.gz"
-  elif [ -f production-all-posts.sql.gz ]; then
-    echo "✅ Found: production-all-posts.sql.gz (downloaded from GitHub)"
-    IMPORT_FILE="production-all-posts.sql.gz"
+  echo "🔍 Checking for 230-post database files..."
+  if [ -f production-data-230-posts.sql.gz ]; then
+    echo "✅ Found: production-data-230-posts.sql.gz (from Docker image)"
+    IMPORT_FILE="production-data-230-posts.sql.gz"
+  elif [ -f production-data-230-posts.sql.gz ]; then
+    echo "✅ Found: production-data-230-posts.sql.gz (downloaded from GitHub)"
+    IMPORT_FILE="production-data-230-posts.sql.gz"
   else
-    echo "❌ ERROR: No 494-post database file found!"
-    echo "❌ Expected: production-all-posts.sql.gz or production-all-posts.sql.gz"
+    echo "❌ ERROR: No 230-post database file found!"
+    echo "❌ Expected: production-data-230-posts.sql.gz or production-data-230-posts.sql.gz"
     IMPORT_FILE=""
   fi
 
@@ -148,8 +148,8 @@ SQL_DROP
   # FALLBACK: Old 352-post dump (should never be used now)
   elif [ -f current-complete-data-352-posts.sql.gz ]; then
     echo "⚠️⚠️⚠️ CRITICAL WARNING: Using old 352-post dump ⚠️⚠️⚠️"
-    echo "⚠️ 494-post dump was not found - THIS IS A BUG!"
-    echo "⚠️ Check: Was production-all-posts.sql.gz copied to Docker image?"
+    echo "⚠️ 230-post dump was not found - THIS IS A BUG!"
+    echo "⚠️ Check: Was production-data-230-posts.sql.gz copied to Docker image?"
     gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
     DATA_IMPORTED=true
   fi
@@ -360,10 +360,10 @@ EOF
       echo "⚠️ Essential data import failed, trying compressed data..."
     fi
   # FALLBACK: TRY COMPRESSED PRODUCTION IMPORT
-  elif [ -f production-all-posts.sql.gz ]; then
+  elif [ -f production-data-230-posts.sql.gz ]; then
     echo "🚀 DECOMPRESSING AND RUNNING FULL PRODUCTION IMPORT - 115 posts..."
-    echo "📦 File size: $(ls -lh production-all-posts.sql.gz | awk '{print $5}')"
-    gunzip -c production-all-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
+    echo "📦 File size: $(ls -lh production-data-230-posts.sql.gz | awk '{print $5}')"
+    gunzip -c production-data-230-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1
 
     # Check if it worked
     POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")

@@ -415,7 +415,7 @@ FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
 NEEDS_REIMPORT=false
 if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
   NEEDS_REIMPORT=true
-elif [ "$POST_COUNT" -lt 400 ] 2>/dev/null; then
+elif [ "$POST_COUNT" -lt 200 ] 2>/dev/null; then
   echo "⚠️ Only $POST_COUNT posts found (expected 230) - will reimport"
   NEEDS_REIMPORT=true
 fi
