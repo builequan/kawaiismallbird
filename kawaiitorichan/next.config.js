@@ -10,6 +10,8 @@ const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
 const nextConfig = {
   output: 'standalone', // Required for Docker deployment
   trailingSlash: false, // Prevent duplicate content issues
+  productionBrowserSourceMaps: false, // Reduce bundle size
+  optimizeFonts: true, // Enable automatic font optimization
   experimental: {
     // Enable ISR with memory cache for better SEO performance
     isrMemoryCacheSize: 50 * 1024 * 1024, // 50MB ISR cache
@@ -38,6 +40,13 @@ const nextConfig = {
         }
       }),
     ],
+    formats: ['image/avif', 'image/webp'], // Enable modern image formats
+  },
+  // Optimize icon library imports
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
