@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { getCategoryBySlug } from '@/data/categoryData'
 import { StructuredData } from '@/components/StructuredData'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
+import { Pagination } from '@/components/Pagination'
 import { generateBreadcrumbSchema, generateCategoryBreadcrumbs, generateCollectionPageSchema } from '@/utilities/generateStructuredData'
 import { getServerSideURL } from '@/utilities/getURL'
 
@@ -21,10 +22,15 @@ interface PageProps {
   params: Promise<{
     slug: string
   }>
+  searchParams: Promise<{
+    page?: string
+  }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const currentPage = parseInt(pageParam || '1', 10)
   const payload = await getPayload({ config })
   
   const { docs: categories } = await payload.find({
@@ -46,10 +52,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const serverUrl = getServerSideURL()
-  const canonicalUrl = `${serverUrl}/categories/${slug}`
+  const baseUrl = `${serverUrl}/categories/${slug}`
+  const canonicalUrl = currentPage > 1 ? `${baseUrl}?page=${currentPage}` : baseUrl
+  const title = currentPage > 1
+    ? `${category.title} (ページ ${currentPage}) - かわいい小鳥 | Kawaii Small Bird`
+    : `${category.title} - かわいい小鳥 | Kawaii Small Bird`
+
+  // Build pagination links
+  const links: { rel: string; url: string }[] = []
+  if (currentPage > 1) {
+    links.push({ rel: 'prev', url: currentPage === 2 ? baseUrl : `${baseUrl}?page=${currentPage - 1}` })
+  }
+  // We'll add 'next' link if there are more pages (determined in the component)
 
   return {
-    title: `${category.title} - かわいい小鳥 | Kawaii Small Bird`,
+    title,
     description: category.description || `${category.title}に関する小鳥の飼育ガイドと情報をご覧ください。`,
     alternates: {
       canonical: canonicalUrl,
@@ -58,6 +75,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         'ja': canonicalUrl,
         'x-default': canonicalUrl,
       },
+    },
+    other: {
+      ...(links.length > 0 && links.reduce((acc, link) => ({
+        ...acc,
+        [link.rel]: link.url
+      }), {}))
     },
     openGraph: {
       title: `${category.title} - かわいい小鳥`,
@@ -98,8 +121,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 //   }
 // }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const currentPage = parseInt(pageParam || '1', 10)
+  const postsPerPage = 12
   const payload = await getPayload({ config })
 
   // Get category display data
@@ -136,8 +162,8 @@ export default async function CategoryPage({ params }: PageProps) {
   // Get all category IDs to query (include children for parent categories)
   const categoryIds = [category.id, ...childCategories.map(c => c.id)]
 
-  // Get posts in this category (and child categories if parent)
-  const { docs: posts } = await payload.find({
+  // Get posts in this category (and child categories if parent) with pagination
+  const { docs: posts, totalDocs, totalPages, page } = await payload.find({
     collection: 'posts',
     where: {
       categories: {
@@ -147,7 +173,8 @@ export default async function CategoryPage({ params }: PageProps) {
         equals: 'published',
       },
     },
-    limit: 50,
+    limit: postsPerPage,
+    page: currentPage,
     sort: '-publishedAt',
     depth: 3,
   })
@@ -254,7 +281,7 @@ export default async function CategoryPage({ params }: PageProps) {
             )}
             <div className="flex items-center gap-4 mt-6">
               <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                {posts.length} {posts.length === 1 ? '記事' : '記事'}
+                {totalDocs} {totalDocs === 1 ? '記事' : '記事'}
               </Badge>
               {childCategories.length > 0 && (
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
@@ -438,6 +465,15 @@ export default async function CategoryPage({ params }: PageProps) {
               このカテゴリーにはまだ記事がありません。新しいコンテンツをお楽しみに！
             </p>
           </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/categories/${slug}`}
+          />
         )}
 
         {/* Related Categories Section for Internal Linking */}
