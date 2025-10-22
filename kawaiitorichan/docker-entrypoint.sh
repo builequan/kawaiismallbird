@@ -852,6 +852,34 @@ else
   echo "⚠️ fix-media-duplicates.sql not found, skipping media filename fix"
 fi
 
+# Clean up posts without hero images - remove incomplete posts
+echo ""
+echo "🧹 Cleaning up posts without hero images..."
+POSTS_WITHOUT_HERO=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM posts WHERE hero_image_id IS NULL;" 2>/dev/null || echo "0")
+echo "Found $POSTS_WITHOUT_HERO posts without hero images"
+
+if [ "$POSTS_WITHOUT_HERO" != "0" ] && [ "$POSTS_WITHOUT_HERO" != " 0" ]; then
+  echo "Deleting posts without hero images..."
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" <<'EOSQL' 2>&1
+-- Delete posts without hero images
+DELETE FROM posts WHERE hero_image_id IS NULL;
+
+-- Delete orphaned versions
+DELETE FROM _posts_v
+WHERE id IN (
+  SELECT v.id
+  FROM _posts_v v
+  LEFT JOIN posts p ON v.parent_id = p.id
+  WHERE p.id IS NULL
+);
+EOSQL
+
+  REMAINING=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM posts;" 2>/dev/null || echo "0")
+  echo "✅ Cleanup complete! Remaining posts: $REMAINING (all with hero images)"
+else
+  echo "✅ All posts already have hero images"
+fi
+
 # DISABLED: Media files are already included in Docker image at build time
 # Smart media sync was downloading from GitHub on every startup (slow and wasteful)
 # Media files are copied during Docker build: COPY --from=builder /app/public/media ./public/media
