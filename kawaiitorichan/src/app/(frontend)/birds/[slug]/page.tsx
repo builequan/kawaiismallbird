@@ -269,19 +269,15 @@ export default async function BirdCategoryPage({ params }: PageProps) {
     ]
     posts = allPosts.filter(post => {
       const title = post.title.toLowerCase()
-      // Check if post has hero image
-      const hasHeroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
-      return !mainBirdTerms.some(term => title.includes(term.toLowerCase())) && hasHeroImage
+      return !mainBirdTerms.some(term => title.includes(term.toLowerCase()))
     }).slice(0, 50)
   } else {
     // For specific bird species, filter by search terms
     posts = allPosts.filter(post => {
       const title = post.title.toLowerCase()
-      // Check if post has hero image
-      const hasHeroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
       return bird.searchTerms.some(term =>
         title.includes(term.toLowerCase())
-      ) && hasHeroImage
+      )
     }).slice(0, 50)
   }
 
@@ -616,9 +612,26 @@ export default async function BirdCategoryPage({ params }: PageProps) {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => {
               // Try to get hero image
-              let heroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
-                ? post.hero
-                : null
+              let heroImage: any = null
+              let heroImageUrl: string | null = null
+
+              if (post.heroImage) {
+                // If it's a full media object with url
+                if (typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+                  heroImage = post.heroImage
+                  heroImageUrl = post.heroImage.url
+                }
+                // If it's just an ID (number or string) - use API endpoint
+                else if (typeof post.heroImage === 'number' || typeof post.heroImage === 'string') {
+                  heroImageUrl = `/api/media/file/${post.heroImage}`
+                  heroImage = { url: heroImageUrl, alt: post.title }
+                }
+                // If it's an object with id property
+                else if (typeof post.heroImage === 'object' && 'id' in post.heroImage) {
+                  heroImageUrl = `/api/media/file/${post.heroImage.id}`
+                  heroImage = { url: heroImageUrl, alt: post.title }
+                }
+              }
 
               // If no hero image, try to extract first image from content
               if (!heroImage && post.content) {
