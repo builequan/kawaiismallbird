@@ -68,14 +68,46 @@ WHERE id IN (SELECT old_id FROM media_mapping);
 UPDATE media
 SET
   filename = regexp_replace(filename, '-hero-[0-9]+\.', '-hero.', 'g'),
-  url = '/media/' || regexp_replace(filename, '-hero-[0-9]+\.', '-hero.', 'g')
-WHERE filename LIKE '%-hero-%.jpg';
+  url = '/media/' || regexp_replace(filename, '-hero-[0-9]+\.', '-hero.', 'g'),
+  -- Update ALL size variant filenames and URLs
+  sizes_thumbnail_filename = regexp_replace(COALESCE(sizes_thumbnail_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_thumbnail_url = regexp_replace(COALESCE(sizes_thumbnail_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  thumbnail_u_r_l = regexp_replace(COALESCE(thumbnail_u_r_l, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_square_filename = regexp_replace(COALESCE(sizes_square_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_square_url = regexp_replace(COALESCE(sizes_square_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_small_filename = regexp_replace(COALESCE(sizes_small_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_small_url = regexp_replace(COALESCE(sizes_small_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_medium_filename = regexp_replace(COALESCE(sizes_medium_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_medium_url = regexp_replace(COALESCE(sizes_medium_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_large_filename = regexp_replace(COALESCE(sizes_large_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_large_url = regexp_replace(COALESCE(sizes_large_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_xlarge_filename = regexp_replace(COALESCE(sizes_xlarge_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_xlarge_url = regexp_replace(COALESCE(sizes_xlarge_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_og_filename = regexp_replace(COALESCE(sizes_og_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
+  sizes_og_url = regexp_replace(COALESCE(sizes_og_url, ''), '-hero-[0-9]+-', '-hero-', 'g')
+WHERE filename LIKE '%-hero.jpg';
 
 UPDATE media
 SET
   filename = regexp_replace(filename, '-section-[0-9]+\.', '-section-1.', 'g'),
-  url = '/media/' || regexp_replace(filename, '-section-[0-9]+\.', '-section-1.', 'g')
-WHERE filename LIKE '%-section-%.jpg';
+  url = '/media/' || regexp_replace(filename, '-section-[0-9]+\.', '-section-1.', 'g'),
+  -- Update ALL size variant filenames and URLs
+  sizes_thumbnail_filename = regexp_replace(COALESCE(sizes_thumbnail_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_thumbnail_url = regexp_replace(COALESCE(sizes_thumbnail_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  thumbnail_u_r_l = regexp_replace(COALESCE(thumbnail_u_r_l, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_square_filename = regexp_replace(COALESCE(sizes_square_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_square_url = regexp_replace(COALESCE(sizes_square_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_small_filename = regexp_replace(COALESCE(sizes_small_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_small_url = regexp_replace(COALESCE(sizes_small_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_medium_filename = regexp_replace(COALESCE(sizes_medium_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_medium_url = regexp_replace(COALESCE(sizes_medium_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_large_filename = regexp_replace(COALESCE(sizes_large_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_large_url = regexp_replace(COALESCE(sizes_large_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_xlarge_filename = regexp_replace(COALESCE(sizes_xlarge_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_xlarge_url = regexp_replace(COALESCE(sizes_xlarge_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_og_filename = regexp_replace(COALESCE(sizes_og_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
+  sizes_og_url = regexp_replace(COALESCE(sizes_og_url, ''), '-section-[0-9]+-', '-section-1-', 'g')
+WHERE filename LIKE '%-section-1.jpg';
 
 -- Step 7: Verify the fix
 SELECT
