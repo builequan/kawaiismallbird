@@ -65,7 +65,7 @@ COPY --from=builder /app/check-media-files.sh ./
 
 # Copy bird theme SQL initialization and ALL data files
 COPY --from=builder /app/force-clean-import.sh ./
-COPY --from=builder /app/production-data-366-posts.sql.gz ./
+COPY --from=builder /app/production-data-366-posts-fixed.sql.gz ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/media-files-list.txt ./
 
