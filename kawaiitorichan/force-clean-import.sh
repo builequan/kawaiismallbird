@@ -61,12 +61,16 @@ echo "📦 Step 3/3: Importing data..."
 if [ -f production-data-366-posts-fixed.sql.gz ]; then
   gunzip -c production-data-366-posts-fixed.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1 | grep -v "NOTICE"
 
-  # Count results
+  # Count results and verify media IDs
   POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
   CAT_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM categories" 2>/dev/null || echo "0")
   MEDIA_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM media" 2>/dev/null || echo "0")
+  MEDIA_ID_RANGE=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT MIN(id) || '-' || MAX(id) FROM media" 2>/dev/null || echo "unknown")
 
-  echo "✅ Import complete: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media"
+  echo "✅ Import complete:"
+  echo "   📝 Posts: $POST_COUNT"
+  echo "   📁 Categories: $CAT_COUNT"
+  echo "   🖼️  Media: $MEDIA_COUNT (IDs: $MEDIA_ID_RANGE)"
 else
   echo "❌ production-data-366-posts-fixed.sql.gz not found!"
   exit 1
