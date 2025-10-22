@@ -9,7 +9,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-01-22-simple-clean-import
+ARG REBUILD_TIMESTAMP=2025-01-22-fresh-366-bird-posts
 
 # Copy all files from kawaiitorichan directory (context is repository root)
 COPY kawaiitorichan/ .
@@ -65,7 +65,7 @@ COPY --from=builder /app/check-media-files.sh ./
 
 # Copy bird theme SQL initialization and ALL data files
 COPY --from=builder /app/force-clean-import.sh ./
-COPY --from=builder /app/production-data-267-posts.sql.gz ./
+COPY --from=builder /app/production-data-366-posts.sql.gz ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/media-files-list.txt ./
 

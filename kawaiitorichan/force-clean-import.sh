@@ -58,8 +58,8 @@ fi
 
 # STEP 3: IMPORT DATA
 echo "📦 Step 3/3: Importing data..."
-if [ -f production-data-267-posts.sql.gz ]; then
-  gunzip -c production-data-267-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1 | grep -v "NOTICE"
+if [ -f production-data-366-posts.sql.gz ]; then
+  gunzip -c production-data-366-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" 2>&1 | grep -v "NOTICE"
 
   # Count results
   POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts" 2>/dev/null || echo "0")
@@ -68,7 +68,7 @@ if [ -f production-data-267-posts.sql.gz ]; then
 
   echo "✅ Import complete: $POST_COUNT posts, $CAT_COUNT categories, $MEDIA_COUNT media"
 else
-  echo "❌ production-data-267-posts.sql.gz not found!"
+  echo "❌ production-data-366-posts.sql.gz not found!"
   exit 1
 fi
 
