@@ -76,8 +76,8 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       if (typeof value === 'object' && value !== null) {
         // Check if value has media data with url
         if ('url' in value && typeof value.url === 'string') {
-          // Fix the URL path - replace /api/media/file/ with /media/
-          const correctedUrl = value.url.replace('/api/media/file/', '/media/')
+          // Use the URL as-is (should be /api/media/file/... or /media/...)
+          const imageUrl = value.url
           const alt = (value.alt as string) || (value.filename as string) || 'Content image'
           const width = (value.width as number) || 1200
           const height = (value.height as number) || 800
@@ -85,7 +85,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           return (
             <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
               <Image
-                src={correctedUrl}
+                src={imageUrl}
                 alt={alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
@@ -96,7 +96,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           )
         }
 
-        // If value has filename, use it to construct the public media path
+        // If value has filename, use it to construct the API media path
         if ('filename' in value && typeof value.filename === 'string') {
           const alt = (value.alt as string) || (value.filename as string) || 'Content image'
           const width = (value.width as number) || 1200
@@ -105,7 +105,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           return (
             <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
               <Image
-                src={`/media/${value.filename}`}
+                src={`/api/media/file/${value.filename}`}
                 alt={alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
