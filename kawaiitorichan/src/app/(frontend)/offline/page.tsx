@@ -1,15 +1,7 @@
-import { Metadata } from 'next'
+'use client'
+
 import Link from 'next/link'
 import { WifiOff } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'オフライン - かわいい小鳥',
-  description: 'インターネット接続が必要です',
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
 
 export default function OfflinePage() {
   return (
