@@ -4,7 +4,7 @@ import { cn } from '@/utilities/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Noto_Sans_JP } from 'next/font/google'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
 import { Footer } from '@/Footer/Component'
@@ -62,7 +62,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
           {/* Google Analytics 4 tracking */}
-          <GoogleAnalytics />
+          <Suspense fallback={null}>
+            <GoogleAnalytics />
+          </Suspense>
 
           <Header />
           {children}
