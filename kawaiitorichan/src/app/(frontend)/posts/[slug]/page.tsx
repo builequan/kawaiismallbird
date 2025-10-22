@@ -27,7 +27,9 @@ import { generateMeta } from '@/utilities/generateMeta'
 import {
   generateArticleSchema,
   generateBreadcrumbSchema,
-  generatePostBreadcrumbs
+  generatePostBreadcrumbs,
+  extractFAQFromContent,
+  extractHowToFromContent
 } from '@/utilities/generateStructuredData'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
@@ -95,6 +97,13 @@ export default async function Post({ params: paramsPromise }: Args) {
   const breadcrumbItems = generatePostBreadcrumbs(post)
   const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems)
 
+  // Extract FAQ and HowTo schemas from post content
+  const faqSchema = extractFAQFromContent(post.content)
+  const howToSchema = extractHowToFromContent(post)
+
+  // Collect all schemas (filter out nulls)
+  const schemas = [articleSchema, breadcrumbSchema, faqSchema, howToSchema].filter(Boolean)
+
   // Load similarity data to find related posts
   let similarPosts: Array<{ id: string; slug: string; score: number }> = []
   let affiliateProducts: any[] = []
@@ -138,8 +147,8 @@ export default async function Post({ params: paramsPromise }: Args) {
 
   return (
     <article className="pt-16 pb-16 bg-post-green text-gray-900">
-      {/* SEO: JSON-LD Structured Data */}
-      <StructuredData data={[articleSchema, breadcrumbSchema]} />
+      {/* SEO: JSON-LD Structured Data (Article, Breadcrumbs, FAQ, HowTo) */}
+      <StructuredData data={schemas} />
 
       <PageClient />
 

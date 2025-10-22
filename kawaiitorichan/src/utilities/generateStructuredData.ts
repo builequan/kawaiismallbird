@@ -100,6 +100,34 @@ export interface CollectionPageSchema {
   breadcrumb?: BreadcrumbSchema
 }
 
+export interface FAQSchema {
+  '@context': 'https://schema.org'
+  '@type': 'FAQPage'
+  mainEntity: {
+    '@type': 'Question'
+    name: string
+    acceptedAnswer: {
+      '@type': 'Answer'
+      text: string
+    }
+  }[]
+}
+
+export interface HowToSchema {
+  '@context': 'https://schema.org'
+  '@type': 'HowTo'
+  name: string
+  description?: string
+  totalTime?: string
+  step: {
+    '@type': 'HowToStep'
+    name?: string
+    text: string
+    position: number
+  }[]
+  image?: string
+}
+
 /**
  * Generate Article/BlogPosting schema for a post
  */
@@ -348,4 +376,114 @@ export function generateCollectionPageSchema(
     inLanguage: 'ja',
     breadcrumb: breadcrumbSchema,
   }
+}
+
+/**
+ * Extract FAQ items from post content
+ * Looks for Q&A patterns in Japanese (Q: or 質問: followed by A: or 回答:)
+ */
+export function extractFAQFromContent(content: any): FAQSchema | null {
+  if (!content) return null
+
+  const plainText = serializeRichTextToPlainText(content)
+  const faqs: FAQSchema['mainEntity'] = []
+
+  // Pattern 1: Q: ... A: ...
+  // Pattern 2: 質問: ... 回答: ... or 答え: ...
+  // Pattern 3: Question headers followed by answers
+  const qaPairs = plainText.split(/(?=Q:|質問:|Q\d+|質問\d+)/i)
+
+  for (const pair of qaPairs) {
+    // Try to extract question and answer
+    const qMatch = pair.match(/(?:Q:|質問:|Question:|Q\d+:|質問\d+:)\s*(.+?)(?=A:|回答:|答え:|Answer:|A\d+:|回答\d+:|$)/is)
+    const aMatch = pair.match(/(?:A:|回答:|答え:|Answer:|A\d+:|回答\d+:)\s*(.+?)(?=Q:|質問:|$)/is)
+
+    if (qMatch && aMatch) {
+      const question = qMatch[1].trim()
+      const answer = aMatch[1].trim()
+
+      if (question.length > 5 && answer.length > 5) {
+        faqs.push({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: answer,
+          },
+        })
+      }
+    }
+  }
+
+  // Only return FAQ schema if we found at least 2 Q&A pairs
+  if (faqs.length >= 2) {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs,
+    }
+  }
+
+  return null
+}
+
+/**
+ * Extract HowTo steps from post content
+ * Looks for numbered steps or step-by-step patterns
+ */
+export function extractHowToFromContent(post: Post): HowToSchema | null {
+  if (!post.content) return null
+
+  const plainText = serializeRichTextToPlainText(post.content)
+  const steps: HowToSchema['step'] = []
+
+  // Pattern 1: ステップ1, ステップ2, etc.
+  // Pattern 2: 手順1, 手順2, etc.
+  // Pattern 3: 1. ... 2. ... 3. ...
+  // Pattern 4: Step 1, Step 2, etc.
+
+  // Split by step markers
+  const stepMarkers = /(?:ステップ|手順|Step|STEP)\s*(\d+)|^(\d+)\.\s+/gim
+  const parts = plainText.split(stepMarkers)
+
+  let stepPosition = 1
+  for (let i = 1; i < parts.length; i += 3) {
+    const stepNumber = parts[i] || parts[i + 1]
+    const stepContent = parts[i + 2]?.trim()
+
+    if (stepContent && stepContent.length > 10) {
+      // Extract step name (first sentence) and text (rest)
+      const sentences = stepContent.split(/[。.]/);
+      const stepName = sentences[0]?.trim()
+      const stepText = stepContent
+
+      steps.push({
+        '@type': 'HowToStep',
+        name: stepName || `Step ${stepPosition}`,
+        text: stepText,
+        position: stepPosition,
+      })
+      stepPosition++
+    }
+  }
+
+  // Only return HowTo schema if we found at least 3 steps
+  if (steps.length >= 3) {
+    const serverUrl = getServerSideURL()
+    let imageUrl: string | undefined
+    if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+      imageUrl = `${serverUrl}${post.heroImage.url}`
+    }
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: post.title,
+      description: post.meta?.description || serializeRichTextToExcerpt(post.excerpt, 160),
+      step: steps,
+      image: imageUrl,
+    }
+  }
+
+  return null
 }
