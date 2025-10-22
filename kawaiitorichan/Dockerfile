@@ -69,6 +69,9 @@ COPY --from=builder /app/production-data-366-posts.sql.gz ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/media-files-list.txt ./
 
+# Copy media files directly into Docker image
+COPY --from=builder /app/public/media ./public/media
+
 # Copy only essential scripts needed at runtime
 RUN mkdir -p ./scripts
 COPY --from=builder /app/scripts/fix-categories.sql ./scripts/fix-categories.sql
