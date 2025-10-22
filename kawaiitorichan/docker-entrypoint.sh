@@ -470,16 +470,20 @@ EOSQL
     echo "✅ Database cleared, ready for fresh import"
   fi
 
-  echo "📥 Running initial data import..."
-  if [ -f init-bird-production.sh ]; then
-    echo "Running init-bird-production.sh..."
-    sh init-bird-production.sh
+  echo "📥 Running FORCE CLEAN import (always drops and recreates)..."
+  if [ -f force-clean-import.sh ]; then
+    echo "Running force-clean-import.sh..."
+    sh force-clean-import.sh
     INIT_EXIT_CODE=$?
     if [ $INIT_EXIT_CODE -eq 0 ]; then
-      echo "✅ Bird theme initialization completed successfully!"
+      echo "✅ Clean import completed successfully!"
     else
-      echo "⚠️ Bird theme initialization had issues but continuing..."
+      echo "❌ Clean import failed!"
+      exit 1
     fi
+  else
+    echo "❌ force-clean-import.sh not found!"
+    exit 1
   fi
 else
   echo "✅ Posts already exist ($POST_COUNT posts ≥ 250), skipping data import to preserve existing data"
