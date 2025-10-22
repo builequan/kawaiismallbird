@@ -408,10 +408,17 @@ echo "🦜 Checking if bird theme content needs initialization..."
 
 # SKIP_DATA_IMPORT already set earlier at line 79 - don't redeclare
 
-# Check for force reimport flag
+# Check for force reimport flag (support both FORCE_REIMPORT and FORCE_DB_REINIT)
 FORCE_REIMPORT="${FORCE_REIMPORT:-false}"
+FORCE_DB_REINIT="${FORCE_DB_REINIT:-false}"
 
-# Check if POST_COUNT is numeric and less than 400 (incomplete data)
+# Unify the force flags - if either is set, force reimport
+if [ "$FORCE_DB_REINIT" = "true" ]; then
+  FORCE_REIMPORT=true
+  echo "🔴 FORCE_DB_REINIT=true detected - Will force complete database reimport!"
+fi
+
+# Check if POST_COUNT is numeric and less than 250 (incomplete data)
 NEEDS_REIMPORT=false
 if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
   NEEDS_REIMPORT=true
@@ -421,11 +428,17 @@ elif [ "$POST_COUNT" -lt 250 ] 2>/dev/null; then
 fi
 
 # CRITICAL: Skip import if SKIP_DATA_IMPORT is set (preserves edited posts)
-if [ "$SKIP_DATA_IMPORT" = "true" ]; then
+# BUT: Allow FORCE_DB_REINIT to override SKIP_DATA_IMPORT (strongest priority)
+if [ "$SKIP_DATA_IMPORT" = "true" ] && [ "$FORCE_DB_REINIT" != "true" ]; then
   echo "✅ SKIP_DATA_IMPORT=true - Preserving existing database, skipping all imports"
   echo "💡 Current post count: $POST_COUNT"
+  echo "💡 Set FORCE_DB_REINIT=true to override and force reimport"
   NEEDS_REIMPORT=false
   FORCE_REIMPORT=false
+elif [ "$SKIP_DATA_IMPORT" = "true" ] && [ "$FORCE_DB_REINIT" = "true" ]; then
+  echo "🔴 FORCE_DB_REINIT=true OVERRIDES SKIP_DATA_IMPORT - Will force reimport!"
+  NEEDS_REIMPORT=true
+  FORCE_REIMPORT=true
 fi
 
 # Run init if POST_COUNT is 0 OR less than 400 OR if FORCE_REIMPORT is set

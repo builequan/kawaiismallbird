@@ -3,25 +3,45 @@
 ## Problem
 After deploying to Dokploy, the website shows no posts even though the database import script ran.
 
-## Root Cause
-The initialization script (`init-bird-production.sh`) checks if posts already exist and **skips import** if it finds 250+ posts. This can happen if:
+## Root Cause (CRITICAL BUG IDENTIFIED)
 
-1. Previous deployment created tables but data import failed
-2. Old/partial data exists from earlier attempts
-3. Database wasn't completely cleared between deployments
+Your Dokploy has **`SKIP_DATA_IMPORT=true`** set as an environment variable. This is blocking ALL imports!
 
-## Solution: Force Complete Database Reinitialization
+### The Bug
 
-### Step 1: Add Environment Variable in Dokploy
+From your container logs:
+```
+📄 Database has        0 posts
+✅ SKIP_DATA_IMPORT=true - Preserving existing database, skipping all imports
+✅ Posts already exist (0 posts ≥ 250), skipping data import  <-- BUG!
+```
+
+The script logic was **broken**:
+1. Detects 0 posts (needs import) ✅
+2. Then checks `SKIP_DATA_IMPORT=true` and **disables import** ❌
+3. Sets `FORCE_REIMPORT=false` (overriding force flags) ❌
+4. Result: Skips import even with 0 posts! ⛔
+
+**This has been FIXED in commit aa52a682+**. The fix makes `FORCE_DB_REINIT=true` override `SKIP_DATA_IMPORT=true`.
+
+## Solution: Set BOTH Environment Variables
+
+### Step 1: Update Environment Variables in Dokploy
 
 1. Go to your Dokploy dashboard
 2. Select your application
 3. Go to **Environment** tab
-4. Add this variable:
+4. **Remove or set to false**:
+   ```
+   SKIP_DATA_IMPORT=false
+   ```
+   OR delete the `SKIP_DATA_IMPORT` variable entirely
+
+5. **Add this variable**:
    ```
    FORCE_DB_REINIT=true
    ```
-5. **Save** the environment variables
+6. **Save** the environment variables
 
 ### Step 2: Rebuild the Application
 
@@ -30,14 +50,18 @@ The initialization script (`init-bird-production.sh`) checks if posts already ex
 3. Watch the container logs for these messages:
 
 ```
-🔴 FORCE_DB_REINIT=true detected - Will drop all tables and reimport!
+🔴 FORCE_DB_REINIT=true detected - Will force complete database reimport!
+🔴 FORCE_DB_REINIT=true OVERRIDES SKIP_DATA_IMPORT - Will force reimport!
 🗑️  Dropping existing tables for clean import...
 ✅ Tables dropped - ready for fresh import
 📋 Creating database schema...
 ✅ Schema created successfully
+📦 Using file: production-data-267-posts.sql.gz
 ✅ Data import successful!
-✅ PRODUCTION DATA IMPORT SUCCESS: 267 posts, XX categories, XXXX media items!
+✅ PRODUCTION DATA IMPORT SUCCESS: 267 posts, XX categories, 3414 media items!
 ```
+
+**The override message confirms the fix is working!**
 
 ### Step 3: Verify Posts Were Imported
 
