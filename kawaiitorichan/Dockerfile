@@ -69,6 +69,7 @@ COPY --from=builder /app/force-clean-import.sh ./
 COPY --from=builder /app/production-data-366-posts-fixed.sql.gz ./
 COPY --from=builder /app/schema.sql ./
 COPY --from=builder /app/media-files-list.txt ./
+COPY --from=builder /app/fix-media-duplicates.sql ./
 
 # Copy media files directly into Docker image
 COPY --from=builder /app/public/media ./public/media

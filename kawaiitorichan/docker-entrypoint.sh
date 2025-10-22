@@ -841,6 +841,17 @@ else
   fi
 fi
 
+# Fix media filename mismatches - database has versioned names but files don't
+echo ""
+echo "🖼️ Fixing media filename mismatches..."
+if [ -f fix-media-duplicates.sql ]; then
+  echo "Running media filename fix..."
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f fix-media-duplicates.sql 2>&1 | grep -E "(UPDATE|DELETE|total_media|hero_images|section_images)" | head -10
+  echo "✅ Media filenames fixed!"
+else
+  echo "⚠️ fix-media-duplicates.sql not found, skipping media filename fix"
+fi
+
 # DISABLED: Media files are already included in Docker image at build time
 # Smart media sync was downloading from GitHub on every startup (slow and wasteful)
 # Media files are copied during Docker build: COPY --from=builder /app/public/media ./public/media
