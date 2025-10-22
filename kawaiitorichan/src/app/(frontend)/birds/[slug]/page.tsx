@@ -269,15 +269,19 @@ export default async function BirdCategoryPage({ params }: PageProps) {
     ]
     posts = allPosts.filter(post => {
       const title = post.title.toLowerCase()
-      return !mainBirdTerms.some(term => title.includes(term.toLowerCase()))
+      // Check if post has hero image
+      const hasHeroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
+      return !mainBirdTerms.some(term => title.includes(term.toLowerCase())) && hasHeroImage
     }).slice(0, 50)
   } else {
     // For specific bird species, filter by search terms
     posts = allPosts.filter(post => {
       const title = post.title.toLowerCase()
+      // Check if post has hero image
+      const hasHeroImage = post.hero && typeof post.hero === 'object' && 'url' in post.hero
       return bird.searchTerms.some(term =>
         title.includes(term.toLowerCase())
-      )
+      ) && hasHeroImage
     }).slice(0, 50)
   }
 
