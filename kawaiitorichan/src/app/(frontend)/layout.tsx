@@ -48,7 +48,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         {/* RSS Feed for blog syndication */}
-        <link rel="alternate" type="application/rss+xml" title="Golf Knowledge Hub RSS Feed" href="/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Kawaii Small Bird RSS Feed" href="/feed.xml" />
         {/* Google Search Console verification */}
         <GoogleSiteVerification />
         {/* Site-wide SEO: Organization and WebSite schemas */}
@@ -77,12 +77,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
-  title: 'Golf Knowledge Hub - ゴルフの知識と技術',
-  description: 'ゴルフの知識、技術、機器に関する総合情報サイト',
+  title: 'かわいい小鳥 - 小鳥の飼育と健康管理ガイド | Kawaii Small Bird',
+  description: '小鳥の飼育、健康管理、種類に関する総合情報サイト。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の飼い方を詳しく解説します。',
   openGraph: mergeOpenGraph(),
   twitter: {
     card: 'summary_large_image',
-    creator: '@golfknowledgehub',
+    creator: '@kawaiismallbird',
   },
 }
 
@@ -91,5 +91,5 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: '#357A35',
+  themeColor: '#FF8C42', // Orange theme for bird site
 }
