@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
@@ -298,10 +299,13 @@ export default async function Page({ params: paramsPromise }: Args) {
                       <article className="lg:col-span-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all border-4 border-orange-300 group">
                         <a href={`/posts/${featuredPosts.docs[0].slug}`} className="block">
                           <div className="relative h-[400px] overflow-hidden">
-                            <img
+                            <Image
                               src={imageUrl}
                               alt={imageAlt}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                              fill
+                              priority
+                              sizes="(max-width: 1024px) 100vw, 66vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute top-4 left-4">
@@ -344,11 +348,13 @@ export default async function Page({ params: paramsPromise }: Args) {
                           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border-l-4 border-orange-400 group"
                         >
                           <a href={`/posts/${post.slug}`} className="flex gap-3 p-4">
-                            <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                              <img
+                            <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-200 relative">
+                              <Image
                                 src={imageUrl}
                                 alt={imageAlt}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                fill
+                                sizes="96px"
+                                className="object-cover group-hover:scale-110 transition-transform duration-300"
                               />
                             </div>
                           <div className="flex-1 min-w-0">
@@ -381,11 +387,14 @@ export default async function Page({ params: paramsPromise }: Args) {
                         key={post.id}
                         className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                       >
-                        <div className="aspect-video bg-gray-200">
-                          <img
+                        <div className="aspect-video bg-gray-200 relative">
+                          <Image
                             src={imageUrl}
                             alt={imageAlt}
-                            className="w-full h-full object-cover"
+                            fill
+                            loading="lazy"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-cover"
                           />
                         </div>
                       <div className="p-6">

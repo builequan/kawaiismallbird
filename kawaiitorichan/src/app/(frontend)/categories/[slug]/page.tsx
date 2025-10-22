@@ -10,7 +10,7 @@ import Image from 'next/image'
 import { getCategoryBySlug } from '@/data/categoryData'
 import { StructuredData } from '@/components/StructuredData'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
-import { generateBreadcrumbSchema, generateCategoryBreadcrumbs } from '@/utilities/generateStructuredData'
+import { generateBreadcrumbSchema, generateCategoryBreadcrumbs, generateCollectionPageSchema } from '@/utilities/generateStructuredData'
 import { getServerSideURL } from '@/utilities/getURL'
 
 // Skip pre-rendering during build, but cache at runtime
@@ -49,16 +49,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `${serverUrl}/categories/${slug}`
 
   return {
-    title: `${category.title} - Golf Knowledge Hub`,
-    description: category.description || `Browse all ${category.title} golf articles and guides.`,
+    title: `${category.title} - かわいい小鳥 | Kawaii Small Bird`,
+    description: category.description || `${category.title}に関する小鳥の飼育ガイドと情報をご覧ください。`,
     alternates: {
       canonical: canonicalUrl,
+      languages: {
+        'ja-JP': canonicalUrl,
+        'ja': canonicalUrl,
+        'x-default': canonicalUrl,
+      },
     },
     openGraph: {
-      title: `${category.title} - Golf Knowledge Hub`,
-      description: category.description || `Browse all ${category.title} golf articles and guides.`,
+      title: `${category.title} - かわいい小鳥`,
+      description: category.description || `${category.title}に関する小鳥の飼育ガイドと情報`,
       url: canonicalUrl,
       type: 'website',
+      locale: 'ja_JP',
+      siteName: 'Kawaii Small Bird',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${category.title} - かわいい小鳥`,
+      description: category.description || `${category.title}に関する小鳥の飼育ガイド`,
     },
   }
 }
@@ -200,11 +212,13 @@ export default async function CategoryPage({ params }: PageProps) {
   // Generate structured data for SEO
   const breadcrumbItems = generateCategoryBreadcrumbs(category, parentCategory)
   const breadcrumbSchema = generateBreadcrumbSchema(breadcrumbItems)
+  const collectionPageSchema = generateCollectionPageSchema(category, posts, breadcrumbSchema)
 
   return (
     <div className="min-h-screen bg-white">
       {/* SEO: JSON-LD Structured Data */}
       <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={collectionPageSchema} />
       {/* Hero Section with Category-specific Styling */}
       <div className={categoryDisplayData ? `bg-gradient-to-r ${categoryDisplayData.color} text-white relative overflow-hidden` : "bg-gradient-to-r from-green-600 to-green-700 text-white"}>
         {categoryDisplayData && (
@@ -332,6 +346,8 @@ export default async function CategoryPage({ params }: PageProps) {
                           src={heroImageUrl}
                           alt={post.title}
                           fill
+                          loading="lazy"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                           className="object-cover"
                         />
                       </div>
@@ -381,6 +397,8 @@ export default async function CategoryPage({ params }: PageProps) {
                     src={heroImageUrl}
                     alt={post.title}
                     fill
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover"
                   />
                 </div>

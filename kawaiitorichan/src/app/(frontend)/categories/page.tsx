@@ -14,8 +14,28 @@ import { Badge } from '@/components/ui/badge'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Bird Categories - Browse All Topics',
-  description: 'Explore our comprehensive bird content organized by category. From species identification to birdwatching tips, find all the bird information you need.',
+  title: 'カテゴリー - かわいい小鳥 | Kawaii Small Bird',
+  description: '小鳥の飼育、健康管理、種類など、カテゴリー別に整理された情報をご覧ください。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の情報が満載です。',
+  alternates: {
+    canonical: '/categories',
+    languages: {
+      'ja-JP': '/categories',
+      'ja': '/categories',
+      'x-default': '/categories',
+    },
+  },
+  openGraph: {
+    title: 'カテゴリー - かわいい小鳥',
+    description: '小鳥の飼育、健康管理、種類など、カテゴリー別の情報',
+    type: 'website',
+    locale: 'ja_JP',
+    siteName: 'Kawaii Small Bird',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'カテゴリー - かわいい小鳥',
+    description: '小鳥の飼育、健康管理、種類など、カテゴリー別の情報',
+  },
 }
 
 async function getCategoriesWithPostCount() {

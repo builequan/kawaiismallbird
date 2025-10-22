@@ -77,6 +77,29 @@ export interface WebSiteSchema {
   inLanguage?: string
 }
 
+export interface CollectionPageSchema {
+  '@context': 'https://schema.org'
+  '@type': 'CollectionPage'
+  name: string
+  description?: string
+  url: string
+  mainEntity: {
+    '@type': 'ItemList'
+    name: string
+    description?: string
+    numberOfItems: number
+    itemListElement: {
+      '@type': 'ListItem'
+      position: number
+      url: string
+      name: string
+      image?: string
+    }[]
+  }
+  inLanguage?: string
+  breadcrumb?: BreadcrumbSchema
+}
+
 /**
  * Generate Article/BlogPosting schema for a post
  */
@@ -279,5 +302,50 @@ export function generateWebSiteSchema(): WebSiteSchema {
       'query-input': 'required name=search_term_string',
     },
     inLanguage: 'ja',
+  }
+}
+
+/**
+ * Generate CollectionPage schema for category pages
+ */
+export function generateCollectionPageSchema(
+  category: Category,
+  posts: Post[],
+  breadcrumbSchema?: BreadcrumbSchema
+): CollectionPageSchema {
+  const serverUrl = getServerSideURL()
+  const categoryUrl = `${serverUrl}/categories/${category.slug}`
+
+  // Build item list from posts
+  const itemListElement = posts.slice(0, 20).map((post, index) => {
+    let imageUrl: string | undefined
+    if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+      imageUrl = `${serverUrl}${post.heroImage.url}`
+    }
+
+    return {
+      '@type': 'ListItem' as const,
+      position: index + 1,
+      url: `${serverUrl}/posts/${post.slug}`,
+      name: post.title,
+      image: imageUrl,
+    }
+  })
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: category.title,
+    description: category.description,
+    url: categoryUrl,
+    mainEntity: {
+      '@type': 'ItemList',
+      name: `${category.title}の記事一覧`,
+      description: `${category.title}に関する小鳥の情報`,
+      numberOfItems: posts.length,
+      itemListElement,
+    },
+    inLanguage: 'ja',
+    breadcrumb: breadcrumbSchema,
   }
 }
