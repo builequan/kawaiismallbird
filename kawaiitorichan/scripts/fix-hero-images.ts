@@ -41,15 +41,15 @@ async function fixHeroImages() {
         fixedFromContent++
         console.log(`✅ Updated post ${post.id} with image from content\n`)
       } else {
-        // No image in content, use default image 904
+        // No image in content, use default image 2257 (first media in database)
         console.log(`📝 No image found in content for: ${post.title}`)
-        console.log(`   Using default image 904`)
+        console.log(`   Using default image 2257`)
 
         await payload.update({
           collection: 'posts',
           id: post.id,
           data: {
-            heroImage: 904,
+            heroImage: 2257,
           },
         })
 

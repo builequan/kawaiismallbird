@@ -157,8 +157,8 @@ export default async function Page({ params: paramsPromise }: Args) {
             }
           }
 
-          // Final fallback: default image
-          return '/api/media-by-id/904'
+          // Final fallback: default image (first media in database)
+          return '/api/media-by-id/2257'
         }
 
         // Get posts count first to verify database is working
