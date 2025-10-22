@@ -101,6 +101,13 @@ if [ -f fix-comments-locked-docs.sql ]; then
   PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f fix-comments-locked-docs.sql 2>&1 | head -50 >&2
   echo "✅ Comments locked documents fix applied" >&2
 fi
+
+# Fix media filenames to match actual files
+if [ -f fix-media-filenames.sql ]; then
+  echo "🖼️ Fixing media filenames to match actual files..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f fix-media-filenames.sql 2>&1 | head -20 >&2
+  echo "✅ Media filenames fixed" >&2
+fi
 fi
 
 if [ "$SKIP_DATA_IMPORT" = "true" ]; then
