@@ -94,6 +94,13 @@ if [ -f add-comments-schema.sql ]; then
   echo "💬 Adding Comments collection schema..." >&2
   PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f add-comments-schema.sql 2>&1 | head -50 >&2
   echo "✅ Comments schema added" >&2
+
+# Fix for Comments collection in locked documents
+if [ -f fix-comments-locked-docs.sql ]; then
+  echo "🔧 Fixing payload_locked_documents_rels for Comments collection..." >&2
+  PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f fix-comments-locked-docs.sql 2>&1 | head -50 >&2
+  echo "✅ Comments locked documents fix applied" >&2
+fi
 fi
 
 if [ "$SKIP_DATA_IMPORT" = "true" ]; then
