@@ -62,8 +62,8 @@ export const autoSetHeroImage: CollectionBeforeChangeHook = async ({
     data.heroImage = imageId
   } else {
     // Use default image if no image found
-    console.log('[autoSetHeroImage] No image in content, using default image 904')
-    data.heroImage = 904
+    console.log('[autoSetHeroImage] No image in content, using default image 2257')
+    data.heroImage = 2257
   }
 
   return data
