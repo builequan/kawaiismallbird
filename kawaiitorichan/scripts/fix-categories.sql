@@ -1,87 +1,120 @@
--- Fix category assignments by distributing posts evenly across subcategories
--- This version uses slugs instead of hardcoded IDs for compatibility
+-- Fix category assignments for bird posts
+-- Auto-categorize based on keywords in post titles
 
 -- First, clear existing category relationships
-DELETE FROM posts_rels WHERE categories_id IS NOT NULL;
+DELETE FROM posts_rels WHERE categories_id IS NOT NULL AND path = 'categories';
 
--- Create temporary table to store post distribution
-CREATE TEMP TABLE post_distribution AS
-WITH
-  posts_ordered AS (
-    SELECT id, ROW_NUMBER() OVER (ORDER BY id) - 1 as row_num
+-- Get category IDs
+DO $$
+DECLARE
+  cat_food_nutrition INTEGER;
+  cat_wild_birds INTEGER;
+  cat_bird_ecology INTEGER;
+  cat_bird_health INTEGER;
+  cat_bird_care INTEGER;
+  cat_bird_species INTEGER;
+BEGIN
+  -- Get category IDs
+  SELECT id INTO cat_food_nutrition FROM categories WHERE slug = 'food-nutrition' LIMIT 1;
+  SELECT id INTO cat_wild_birds FROM categories WHERE slug = 'wild-birds' LIMIT 1;
+  SELECT id INTO cat_bird_ecology FROM categories WHERE slug = 'bird-ecology' LIMIT 1;
+  SELECT id INTO cat_bird_health FROM categories WHERE slug = 'bird-health' LIMIT 1;
+  SELECT id INTO cat_bird_care FROM categories WHERE slug = 'bird-care' LIMIT 1;
+  SELECT id INTO cat_bird_species FROM categories WHERE slug = 'bird-species' LIMIT 1;
+
+  -- Only proceed if categories exist
+  IF cat_food_nutrition IS NOT NULL AND cat_bird_care IS NOT NULL THEN
+    -- Assign bird-health category to health-related posts
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_bird_health, 1
     FROM posts
     WHERE _status = 'published'
-  ),
-  parent_categories AS (
-    -- Get all parent categories
-    SELECT id, slug, title FROM categories WHERE parent_id IS NULL
-  ),
-  category_groups AS (
-    -- Get all subcategories grouped by parent slug
-    SELECT
-      c.id,
-      c.title,
-      CASE
-        WHEN p.slug LIKE '%species%' OR p.title LIKE '%種類%' THEN 0
-        WHEN p.slug LIKE '%care%' OR p.title LIKE '%飼い方%' THEN 1
-        WHEN p.slug LIKE '%health%' OR p.title LIKE '%健康%' THEN 2
-        WHEN p.slug LIKE '%behavior%' OR p.title LIKE '%生態%' THEN 3
-        WHEN p.slug LIKE '%watching%' OR p.title LIKE '%野鳥観察%' THEN 4
-        WHEN p.slug LIKE '%nutrition%' OR p.slug LIKE '%feeding%' OR p.title LIKE '%餌%' OR p.title LIKE '%栄養%' THEN 5
-        ELSE 6
-      END as group_idx,
-      ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY c.id) - 1 as cat_idx
-    FROM categories c
-    JOIN categories p ON c.parent_id = p.id
-    WHERE c.parent_id IS NOT NULL
-  ),
-  group_sizes AS (
-    SELECT group_idx, COUNT(*) as size
-    FROM category_groups
-    GROUP BY group_idx
-  )
-SELECT
-  p.id as post_id,
-  cg.id as category_id,
-  cg.title as category_title
-FROM posts_ordered p
-CROSS JOIN LATERAL (
-  SELECT *
-  FROM category_groups cg
-  JOIN group_sizes gs ON cg.group_idx = gs.group_idx
-  WHERE cg.group_idx = p.row_num % 6
-    AND cg.cat_idx = (p.row_num / 6) % gs.size
-  LIMIT 1
-) cg;
+      AND cat_bird_health IS NOT NULL
+      AND (
+        title ~* '健康|獣医|病気|診察|免疫|寿命|不安|ストレス|くちばし|食欲'
+      );
 
--- Insert the relationships
-INSERT INTO posts_rels (posts_id, categories_id, "order", parent_id, path)
-SELECT
-  post_id,
-  category_id,
-  0 as "order",
-  post_id as parent_id,
-  'categories' as path
-FROM post_distribution;
+    -- Assign bird-care category to care-related posts
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_bird_care, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_bird_care IS NOT NULL
+      AND (
+        title ~* '鳥かご|ケージ|飼い|お世話|引っ越|絆|錆|修理|臭い|ドア|ロック|清潔|空気|サビ|鳥舎'
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+
+    -- Assign food-nutrition category
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_food_nutrition, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_food_nutrition IS NOT NULL
+      AND title ~* '餌|栄養|食事|フード'
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+
+    -- Assign bird-species category
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_bird_species, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_bird_species IS NOT NULL
+      AND title ~* 'インコ|オカメインコ|コカトゥー|文鳥|カナリア|セキセイインコ|種類|品種'
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+
+    -- Assign wild-birds category
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_wild_birds, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_wild_birds IS NOT NULL
+      AND title ~* '野鳥|観察|バードウォッチング'
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+
+    -- Assign bird-ecology category
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_bird_ecology, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_bird_ecology IS NOT NULL
+      AND title ~* '生態|習性|行動|鳴き声|羽|飛行'
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+
+    -- Assign default category (bird-care) to remaining posts
+    INSERT INTO posts_rels (parent_id, path, categories_id, "order")
+    SELECT id, 'categories', cat_bird_care, 1
+    FROM posts
+    WHERE _status = 'published'
+      AND cat_bird_care IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM posts_rels pr
+        WHERE pr.parent_id = posts.id AND pr.path = 'categories'
+      );
+  END IF;
+END $$;
 
 -- Show distribution summary
 SELECT
-  c.id,
-  c.title,
-  c.parent_id,
-  COUNT(pr.posts_id) as post_count
+  c.title as category,
+  c.slug,
+  COUNT(pr.id) as post_count
 FROM categories c
-LEFT JOIN posts_rels pr ON c.id = pr.categories_id
-GROUP BY c.id, c.title, c.parent_id
-HAVING COUNT(pr.posts_id) > 0
-ORDER BY post_count DESC, c.id;
-
--- Summary by parent category
-SELECT
-  parent.title as parent_category,
-  COUNT(pr.posts_id) as total_posts
-FROM categories parent
-JOIN categories child ON child.parent_id = parent.id
-LEFT JOIN posts_rels pr ON pr.categories_id = child.id
-GROUP BY parent.id, parent.title
-ORDER BY total_posts DESC;
+LEFT JOIN posts_rels pr ON c.id = pr.categories_id AND pr.path = 'categories'
+GROUP BY c.id, c.title, c.slug
+ORDER BY c."order";
