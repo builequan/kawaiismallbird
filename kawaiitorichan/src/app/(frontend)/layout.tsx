@@ -14,6 +14,7 @@ import { InitTheme } from '@/providers/Theme/InitTheme'
 import { StructuredData } from '@/components/StructuredData'
 import { GoogleAnalytics } from '@/components/GoogleAnalytics'
 import { GoogleSiteVerification } from '@/components/GoogleSiteVerification'
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration'
 import { generateOrganizationSchema, generateWebSiteSchema } from '@/utilities/generateStructuredData'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
@@ -48,6 +49,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <InitTheme />
         <link href="/favicon.ico" rel="icon" sizes="32x32" />
         <link href="/favicon-navi.svg" rel="icon" type="image/svg+xml" />
+        {/* PWA Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="小鳥ガイド" />
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
@@ -71,6 +78,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Suspense fallback={null}>
             <GoogleAnalytics />
           </Suspense>
+          {/* PWA Service Worker Registration */}
+          <ServiceWorkerRegistration />
 
           <Header />
           {children}

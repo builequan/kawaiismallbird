@@ -1,0 +1,27 @@
+{
+  "name": "かわいい小鳥 - Kawaii Small Bird",
+  "short_name": "小鳥ガイド",
+  "description": "小鳥の飼育、健康管理、種類に関する総合情報サイト",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF8C42",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon-navi.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "lifestyle", "reference"],
+  "lang": "ja",
+  "dir": "ltr",
+  "prefer_related_applications": false
+}
