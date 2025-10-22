@@ -4,78 +4,53 @@ import config from '@payload-config'
 async function setupCategories() {
   const payload = await getPayload({ config })
 
-  // Define the 5 parent categories and their children
+  // Define the 6 bird categories
   const categoryStructure = [
     {
-      title: 'Fundamentals',
-      slug: 'fundamentals',
-      description: 'Essential golf knowledge for beginners and foundational concepts',
+      title: '鳥の種類',
+      slug: 'bird-species',
+      description: 'セキセイインコ、オカメインコ、文鳥など、様々な小鳥の種類について',
       order: 1,
-      children: [
-        { title: 'Getting Started', slug: 'getting-started', description: 'Everything you need to begin your golf journey' },
-        { title: 'Basic Techniques', slug: 'basic-techniques', description: 'Fundamental golf techniques and form' },
-        { title: 'Golf Basics', slug: 'golf-basics', description: 'Core concepts and basics of the game' },
-        { title: 'Terminology & Concepts', slug: 'terminology-concepts', description: 'Golf terms and important concepts' },
-      ],
+      children: [],
     },
     {
-      title: 'Equipment',
-      slug: 'equipment',
-      description: 'Golf clubs, balls, accessories, and gear guides',
+      title: '鳥の飼い方',
+      slug: 'bird-care',
+      description: '小鳥の飼育方法、ケージの選び方、日常のお世話について',
       order: 2,
-      children: [
-        { title: 'Clubs', slug: 'clubs', description: 'Golf club selection, reviews, and guides' },
-        { title: 'Balls & Accessories', slug: 'balls-accessories', description: 'Golf balls, tees, and essential accessories' },
-        { title: 'Gear Reviews', slug: 'gear-reviews', description: 'In-depth reviews of golf equipment' },
-        { title: 'Equipment Guides', slug: 'equipment-guides', description: 'Comprehensive equipment buying and maintenance guides' },
-        { title: 'Technology & Innovation', slug: 'technology-innovation', description: 'Latest golf technology and innovations' },
-      ],
+      children: [],
     },
     {
-      title: 'Skills & Technique',
-      slug: 'skills-technique',
-      description: 'Improve your golf skills and perfect your technique',
+      title: '鳥の健康',
+      slug: 'bird-health',
+      description: '小鳥の健康管理、病気の予防と対処法について',
       order: 3,
-      children: [
-        { title: 'Swing Mechanics', slug: 'swing-mechanics', description: 'Master the golf swing fundamentals' },
-        { title: 'Short Game', slug: 'short-game', description: 'Chipping, pitching, and greenside skills' },
-        { title: 'Putting', slug: 'putting', description: 'Putting techniques and strategies' },
-        { title: 'Practice & Drills', slug: 'practice-drills', description: 'Effective practice routines and drills' },
-        { title: 'Problem Solving', slug: 'problem-solving', description: 'Fix common golf problems and mistakes' },
-        { title: 'Advanced Techniques', slug: 'advanced-techniques', description: 'Advanced skills for experienced players' },
-      ],
+      children: [],
     },
     {
-      title: 'Playing Golf',
-      slug: 'playing-golf',
-      description: 'Course management, strategy, and playing conditions',
+      title: '鳥の生態',
+      slug: 'bird-ecology',
+      description: '小鳥の習性、行動、生態について学ぼう',
       order: 4,
-      children: [
-        { title: 'Course Management', slug: 'course-management', description: 'Navigate the golf course effectively' },
-        { title: 'Strategy & Tactics', slug: 'strategy-tactics', description: 'Smart golf strategy and tactical decisions' },
-        { title: 'Mental Game', slug: 'mental-game', description: 'Golf psychology and mental preparation' },
-        { title: 'Scoring & Improvement', slug: 'scoring-improvement', description: 'Track progress and improve your scores' },
-        { title: 'Weather & Conditions', slug: 'weather-conditions', description: 'Playing in different weather and course conditions' },
-        { title: 'Different Formats', slug: 'different-formats', description: 'Various golf game formats and variations' },
-      ],
+      children: [],
     },
     {
-      title: 'Golf Life',
-      slug: 'golf-life',
-      description: 'Golf culture, etiquette, rules, and lifestyle',
+      title: '餌と栄養',
+      slug: 'food-nutrition',
+      description: '小鳥の食事、栄養管理、おやつについて',
       order: 5,
-      children: [
-        { title: 'Rules & Regulations', slug: 'rules-regulations', description: 'Official golf rules and regulations' },
-        { title: 'Etiquette & Culture', slug: 'etiquette-culture', description: 'Golf etiquette and cultural aspects' },
-        { title: 'Golf Lifestyle', slug: 'golf-lifestyle', description: 'Living the golf lifestyle' },
-        { title: 'Competitions & Events', slug: 'competitions-events', description: 'Tournaments, competitions, and golf events' },
-        { title: 'Golf Business', slug: 'golf-business', description: 'Business of golf and industry insights' },
-        { title: 'History & Traditions', slug: 'history-traditions', description: 'Golf history and traditions' },
-      ],
+      children: [],
+    },
+    {
+      title: '野鳥観察',
+      slug: 'wild-bird-watching',
+      description: '野鳥の観察方法、識別、バードウォッチングのコツ',
+      order: 6,
+      children: [],
     },
   ]
 
-  console.log('Setting up golf categories...')
+  console.log('Setting up bird categories...')
 
   try {
     // First, create all parent categories
