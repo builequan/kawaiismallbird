@@ -182,6 +182,18 @@ export default async function CategoryPage({ params }: PageProps) {
     siblingCategories = siblings
   }
 
+  // Get other categories for internal linking
+  const { docs: otherCategories } = await payload.find({
+    collection: 'categories',
+    where: {
+      id: {
+        not_equals: category.id,
+      },
+    },
+    limit: 6,
+    sort: 'order',
+  })
+
   // Group posts by subcategory
   const postsBySubcategory = childCategories.map(subcat => {
     const subcatPosts = posts.filter(post => {
@@ -427,6 +439,25 @@ export default async function CategoryPage({ params }: PageProps) {
             </p>
           </div>
         )}
+
+        {/* Related Categories Section for Internal Linking */}
+        <div className="mt-12 pt-12 border-t border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">その他のカテゴリー</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {otherCategories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/categories/${cat.slug}`}
+                className="block p-6 bg-white rounded-lg border border-gray-200 hover:border-primary hover:shadow-md transition-all"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{cat.title}</h3>
+                {cat.description && (
+                  <p className="text-sm text-gray-600 line-clamp-2">{cat.description}</p>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
