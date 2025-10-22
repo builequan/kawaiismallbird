@@ -5,7 +5,6 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Noto_Sans_JP } from 'next/font/google'
 import React, { Suspense } from 'react'
-import dynamic from 'next/dynamic'
 
 import { Footer } from '@/Footer/Component'
 import { Header } from '@/Header/Component'
@@ -18,16 +17,11 @@ import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistratio
 import { generateOrganizationSchema, generateWebSiteSchema } from '@/utilities/generateStructuredData'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
+import { AdminBar } from '@/components/AdminBar'
 
 import './globals.css'
 import '../affiliate-link-styles.css'
 import { getServerSideURL } from '@/utilities/getURL'
-
-// Lazy load AdminBar - only load when needed for authenticated users
-const AdminBar = dynamic(() => import('@/components/AdminBar').then((mod) => mod.AdminBar), {
-  ssr: false,
-  loading: () => null,
-})
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin', 'latin-ext'],
