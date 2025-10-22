@@ -59,6 +59,13 @@ export async function GET(
 
     if (!filePath) {
       console.error(`[media-by-id] File not found in any location:`, possiblePaths)
+
+      // If file doesn't exist locally, check if URL points to external source
+      if (media.url && (media.url.startsWith('http://') || media.url.startsWith('https://'))) {
+        console.log(`[media-by-id] Redirecting to external URL: ${media.url}`)
+        return NextResponse.redirect(media.url, 307)
+      }
+
       return new NextResponse(`File not found: ${fileName}`, { status: 404 })
     }
 

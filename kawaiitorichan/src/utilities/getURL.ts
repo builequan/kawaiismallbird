@@ -16,28 +16,36 @@ export const getServerSideURL = () => {
 }
 
 export const getClientSideURL = () => {
-  // Always use NEXT_PUBLIC_SERVER_URL if available for consistency
+  // PRODUCTION FIX: In production, always use production URL
+  // This prevents localhost URLs during server-side rendering in Docker builds
+  if (process.env.NODE_ENV === 'production') {
+    // First try NEXT_PUBLIC_SERVER_URL
+    if (process.env.NEXT_PUBLIC_SERVER_URL) {
+      return process.env.NEXT_PUBLIC_SERVER_URL
+    }
+    // Fallback to hardcoded production URL for kawaiitorichan.com
+    return 'https://kawaiitorichan.com'
+  }
+
+  // Development: use NEXT_PUBLIC_SERVER_URL if available
   if (process.env.NEXT_PUBLIC_SERVER_URL) {
     return process.env.NEXT_PUBLIC_SERVER_URL
   }
 
-  // CRITICAL FIX: When running in browser, use the current window location
-  // This ensures we always use the actual domain, not localhost
+  // Browser: use the current window location
   if (canUseDOM) {
     const protocol = window.location.protocol
     const domain = window.location.hostname
     const port = window.location.port
-
-    // Always return the current browser URL (where the user is visiting from)
     return `${protocol}//${domain}${port ? `:${port}` : ''}`
   }
 
-  // For server-side rendering, try to use the actual server URL
+  // Vercel deployment
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   }
 
-  // Last resort fallback - but this should rarely be reached
+  // Local development fallback
   const port = process.env.PORT || '3000'
   return `http://localhost:${port}`
 }
