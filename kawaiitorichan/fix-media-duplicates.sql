@@ -85,7 +85,7 @@ SET
   sizes_xlarge_url = regexp_replace(COALESCE(sizes_xlarge_url, ''), '-hero-[0-9]+-', '-hero-', 'g'),
   sizes_og_filename = regexp_replace(COALESCE(sizes_og_filename, ''), '-hero-[0-9]+-', '-hero-', 'g'),
   sizes_og_url = regexp_replace(COALESCE(sizes_og_url, ''), '-hero-[0-9]+-', '-hero-', 'g')
-WHERE filename LIKE '%-hero.jpg';
+WHERE filename LIKE '%-hero-%.jpg';  -- Match filenames with version numbers that need fixing
 
 UPDATE media
 SET
@@ -107,7 +107,7 @@ SET
   sizes_xlarge_url = regexp_replace(COALESCE(sizes_xlarge_url, ''), '-section-[0-9]+-', '-section-1-', 'g'),
   sizes_og_filename = regexp_replace(COALESCE(sizes_og_filename, ''), '-section-[0-9]+-', '-section-1-', 'g'),
   sizes_og_url = regexp_replace(COALESCE(sizes_og_url, ''), '-section-[0-9]+-', '-section-1-', 'g')
-WHERE filename LIKE '%-section-1.jpg';
+WHERE filename LIKE '%-section-%.jpg';  -- Match filenames with version numbers that need fixing
 
 -- Step 7: Verify the fix
 SELECT
