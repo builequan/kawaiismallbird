@@ -80,7 +80,9 @@ if [ -n "$DATABASE_URI" ]; then
       echo "🔄 Will attempt to reimport..."
     fi
   else
+    EXISTING_POST_COUNT=$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -tAc "SELECT COUNT(*) FROM posts WHERE _status = 'published'" 2>/dev/null || echo "0")
     echo "🔴 FORCE_DB_REINIT=true - Will drop and reimport regardless of existing data"
+    echo "🔴 Current post count: $EXISTING_POST_COUNT (will be replaced with 267 fresh posts)"
   fi
 
   # TRY LATEST PRODUCTION DATA FIRST (267 posts)
@@ -144,14 +146,13 @@ SQL_DROP
       DATA_IMPORTED=true
     else
       echo "❌ Data import failed with code $IMPORT_EXIT_CODE"
+      DATA_IMPORTED=false
     fi
-  # FALLBACK: Old 352-post dump (should never be used now)
-  elif [ -f current-complete-data-352-posts.sql.gz ]; then
-    echo "⚠️⚠️⚠️ CRITICAL WARNING: Using old 352-post dump ⚠️⚠️⚠️"
-    echo "⚠️ 230-post dump was not found - THIS IS A BUG!"
-    echo "⚠️ Check: Was production-data-267-posts.sql.gz copied to Docker image?"
-    gunzip -c current-complete-data-352-posts.sql.gz | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE"
-    DATA_IMPORTED=true
+  else
+    echo "❌ CRITICAL ERROR: production-data-267-posts.sql.gz not found!"
+    echo "❌ Cannot proceed without data file"
+    echo "❌ This should have been copied in Dockerfile or downloaded from GitHub"
+    DATA_IMPORTED=false
   fi
 
   # Check if complete data import worked

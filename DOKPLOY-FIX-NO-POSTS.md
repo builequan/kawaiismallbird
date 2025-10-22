@@ -1,28 +1,32 @@
 # Fix: No Posts Showing After Dokploy Deployment
 
 ## Problem
-After deploying to Dokploy, the website shows no posts even though the database import script ran.
+After deploying to Dokploy, the website shows OLD posts or DUPLICATE posts instead of the current 267 posts.
 
-## Root Cause (CRITICAL BUG IDENTIFIED)
+## Root Cause: 352 Posts = Old Data Not Dropped
 
-Your Dokploy has **`SKIP_DATA_IMPORT=true`** set as an environment variable. This is blocking ALL imports!
+If you're seeing **352 posts** on Dokploy, this means:
+- 85 old posts from previous deployment
+- \+ 267 new posts from import
+- = 352 total (duplicates!)
 
-### The Bug
+### The Bugs
 
-From your container logs:
-```
-📄 Database has        0 posts
-✅ SKIP_DATA_IMPORT=true - Preserving existing database, skipping all imports
-✅ Posts already exist (0 posts ≥ 250), skipping data import  <-- BUG!
-```
+**Bug #1**: `SKIP_DATA_IMPORT=true` blocked table drops
+- Even with `FORCE_DB_REINIT=true`, the DROP TABLE statements never ran
+- Old data remained in database
+- New import added on top of old data
 
-The script logic was **broken**:
-1. Detects 0 posts (needs import) ✅
-2. Then checks `SKIP_DATA_IMPORT=true` and **disables import** ❌
-3. Sets `FORCE_REIMPORT=false` (overriding force flags) ❌
-4. Result: Skips import even with 0 posts! ⛔
+**Bug #2**: `init-bird-production.sh` line 74 early return
+- Script checks: "if posts ≥ 250, skip import"
+- 352 posts triggers this check
+- Returns early without dropping tables
+- Even `FORCE_DB_REINIT=true` couldn't override this
 
-**This has been FIXED in commit aa52a682+**. The fix makes `FORCE_DB_REINIT=true` override `SKIP_DATA_IMPORT=true`.
+**FIXED in commits 2463bdde + current**:
+- `FORCE_DB_REINIT=true` now overrides `SKIP_DATA_IMPORT=true`
+- `init-bird-production.sh` no longer returns early when `FORCE_DB_REINIT=true`
+- Removed dangerous 352-post fallback code
 
 ## Solution: Set BOTH Environment Variables
 
