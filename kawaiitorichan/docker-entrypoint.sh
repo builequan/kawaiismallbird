@@ -422,12 +422,12 @@ fi
 export FORCE_DB_REINIT
 export FORCE_REIMPORT
 
-# Check if POST_COUNT is numeric and less than 250 (incomplete data)
+# Check if POST_COUNT matches expected 366 posts (complete fresh data)
 NEEDS_REIMPORT=false
 if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then
   NEEDS_REIMPORT=true
-elif [ "$POST_COUNT" -lt 250 ] 2>/dev/null; then
-  echo "⚠️ Only $POST_COUNT posts found (expected 267) - will reimport"
+elif [ "$POST_COUNT" -ne 366 ] 2>/dev/null; then
+  echo "⚠️ Found $POST_COUNT posts (expected 366) - will reimport fresh data"
   NEEDS_REIMPORT=true
 fi
 
@@ -486,7 +486,7 @@ EOSQL
     exit 1
   fi
 else
-  echo "✅ Posts already exist ($POST_COUNT posts ≥ 250), skipping data import to preserve existing data"
+  echo "✅ Database already has correct data ($POST_COUNT posts = 366), skipping reimport"
   echo "💡 Set FORCE_REIMPORT=true environment variable to force reimport if needed"
 fi
 
