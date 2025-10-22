@@ -18,11 +18,12 @@ COPY kawaiitorichan/ .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Skip static generation during build
 ENV SKIP_BUILD_STATIC_GENERATION=true
-# IMPORTANT: These are dummy values for build only
+# IMPORTANT: These are dummy values for build only (except NEXT_PUBLIC_* which are baked in)
 # Real values MUST be provided at runtime via Docker environment
 ENV PAYLOAD_SECRET=build_time_secret_replaced_at_runtime
 ENV DATABASE_URI=postgres://build:build@localhost:5432/build
-ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+# NEXT_PUBLIC_ variables are baked into the build at build time, not runtime
+ENV NEXT_PUBLIC_SERVER_URL=https://kawaiitorichan.com
 
 RUN corepack enable pnpm && pnpm build
 

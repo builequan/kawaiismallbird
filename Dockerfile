@@ -64,8 +64,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Create media directory structure
-RUN mkdir -p public/media && chown -R nextjs:nodejs public/media
+# Set ownership of public directory including media files (don't create empty directory)
+RUN chown -R nextjs:nodejs public/
 
 # Copy migrations and Payload config (required for Payload CMS v3)
 # Create empty dist directory if it doesn't exist in builder
