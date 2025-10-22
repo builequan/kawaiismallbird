@@ -1,7 +1,6 @@
-'use client'
-
 import Link from 'next/link'
 import { WifiOff } from 'lucide-react'
+import { ReloadButton } from './ReloadButton'
 
 // Prevent static generation - this page should only render at runtime
 export const dynamic = 'force-dynamic'
@@ -42,12 +41,7 @@ export default function OfflinePage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-            >
-              再読み込み
-            </button>
+            <ReloadButton />
             <Link
               href="/"
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors text-center"
