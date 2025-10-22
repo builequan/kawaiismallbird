@@ -17,11 +17,11 @@ COPY kawaiitorichan/ .
 # Remove any existing .env files that might have been copied
 RUN rm -f .env .env.local .env.production.local
 
-# Copy and use build environment file
-COPY kawaiitorichan/.env.build .env
+# Copy and use build environment file (if exists, otherwise skip)
+RUN touch .env
 
 # Accept build-time argument for NEXT_PUBLIC_SERVER_URL from Dokploy
-ARG NEXT_PUBLIC_SERVER_URL
+ARG NEXT_PUBLIC_SERVER_URL=https://kawaiitorichan.com
 # Set it as environment variable so Next.js can use it during build
 ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
 
