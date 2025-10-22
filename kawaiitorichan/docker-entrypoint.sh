@@ -841,15 +841,12 @@ else
   fi
 fi
 
-# Smart media sync - downloads only missing files
+# DISABLED: Media files are already included in Docker image at build time
+# Smart media sync was downloading from GitHub on every startup (slow and wasteful)
+# Media files are copied during Docker build: COPY --from=builder /app/public/media ./public/media
 echo ""
-echo "🖼️ Running smart media sync..."
-if [ -f smart-media-sync.sh ]; then
-  chmod +x smart-media-sync.sh
-  sh smart-media-sync.sh || echo "⚠️ Media sync had issues but continuing..."
-else
-  echo "⚠️ smart-media-sync.sh not found, skipping media sync"
-fi
+echo "🖼️ Media files included in Docker image (no download needed)"
+echo "✅ Skipping smart-media-sync.sh - media already present in image"
 
 # FINAL VALIDATION before starting app
 echo ""

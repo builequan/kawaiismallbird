@@ -40,12 +40,14 @@ kawaiitorichan/.nyc_output
 kawaiitorichan/.turbo
 kawaiitorichan/dist
 
-# Exclude media files during build (downloaded at runtime to save space)
-kawaiitorichan/public/media/**/*.jpg
-kawaiitorichan/public/media/**/*.jpeg
-kawaiitorichan/public/media/**/*.png
-kawaiitorichan/public/media/**/*.gif
-kawaiitorichan/public/media/**/*.webp
+# INCLUDE media files in Docker build (previously excluded to save space)
+# Now included in build to avoid runtime downloads from GitHub
+# This adds ~120MB to image but eliminates startup delay and GitHub dependency
+# kawaiitorichan/public/media/**/*.jpg
+# kawaiitorichan/public/media/**/*.jpeg
+# kawaiitorichan/public/media/**/*.png
+# kawaiitorichan/public/media/**/*.gif
+# kawaiitorichan/public/media/**/*.webp
 
 # Keep essential icons and logos
 !kawaiitorichan/public/kawaii-bird-logo.svg
