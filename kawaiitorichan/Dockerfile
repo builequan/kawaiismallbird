@@ -32,7 +32,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install PostgreSQL client for database initialization and curl for media downloads
-RUN apk add --no-cache postgresql-client curl
+RUN apk update && apk add --no-cache postgresql-client curl
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
