@@ -418,6 +418,10 @@ if [ "$FORCE_DB_REINIT" = "true" ]; then
   echo "🔴 FORCE_DB_REINIT=true detected - Will force complete database reimport!"
 fi
 
+# CRITICAL: Export FORCE_DB_REINIT so init-bird-production.sh can see it
+export FORCE_DB_REINIT
+export FORCE_REIMPORT
+
 # Check if POST_COUNT is numeric and less than 250 (incomplete data)
 NEEDS_REIMPORT=false
 if [ "$POST_COUNT" = "0" ] || [ "$POST_COUNT" = " 0" ]; then

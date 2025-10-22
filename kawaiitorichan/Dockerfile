@@ -9,7 +9,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # Cache busting - update timestamp to force rebuild
-ARG REBUILD_TIMESTAMP=2025-01-22-fix-352-duplicate-posts
+ARG REBUILD_TIMESTAMP=2025-01-22-export-force-vars
 
 # Copy all files from kawaiitorichan directory (context is repository root)
 COPY kawaiitorichan/ .
