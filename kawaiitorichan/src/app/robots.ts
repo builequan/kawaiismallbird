@@ -8,19 +8,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: ['/', '/api/sitemap.xml'], // Allow sitemap access
         disallow: ['/admin/', '/api/'],
       },
     ],
-    sitemap: [
-      `${serverUrl}/sitemap-index.xml`,
-      `${serverUrl}/sitemap.xml`,
-      `${serverUrl}/posts-sitemap.xml`,
-      `${serverUrl}/categories-sitemap.xml`,
-      `${serverUrl}/pages-sitemap.xml`,
-      `${serverUrl}/image-sitemap.xml`,
-      `${serverUrl}/feed.xml`,
-    ],
+    sitemap: `${serverUrl}/sitemap.xml`,
     host: serverUrl,
   }
 }
