@@ -544,13 +544,8 @@ export const Posts: CollectionConfig<'posts'> = {
     afterChange: [revalidatePost],
     afterRead: [
       populateAuthors,
-      // Normalize heroImage to ID for consistent API responses
-      ({ data }) => {
-        if (data?.heroImage && typeof data.heroImage === 'object' && 'id' in data.heroImage) {
-          data.heroImage = data.heroImage.id
-        }
-        return data
-      },
+      // Note: No heroImage normalization - let depth parameter control population
+      // Frontend can handle both ID (number) and full object formats
     ],
     afterDelete: [revalidateDelete],
   },
