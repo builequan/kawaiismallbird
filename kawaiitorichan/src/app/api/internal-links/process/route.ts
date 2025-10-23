@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
     }
     
     // Build command based on request (using semantic links script with diverse targeting)
-    let command = 'PAYLOAD_SECRET=your-secret-key-here DATABASE_URI=postgres://postgres:2801@127.0.0.1:5432/golfer pnpm tsx scripts/internal-links/04-apply-semantic-links-fixed.ts --force'
+    // Use environment variables for database connection
+    const databaseUri = process.env.DATABASE_URI || ''
+    const payloadSecret = process.env.PAYLOAD_SECRET || ''
+    let command = `PAYLOAD_SECRET=${payloadSecret} DATABASE_URI=${databaseUri} pnpm tsx scripts/internal-links/04-apply-semantic-links-fixed.ts --force`
     
     if (!all && postIds.length === 1) {
       // For single post, we would need to modify the script to accept --id parameter

@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
     } = body
     
     const results = []
-    const baseEnv = 'PAYLOAD_SECRET=your-secret-key-here DATABASE_URI=postgres://postgres:2801@127.0.0.1:5432/golfer'
+    // Use environment variables for database connection
+    const databaseUri = process.env.DATABASE_URI || ''
+    const payloadSecret = process.env.PAYLOAD_SECRET || ''
+    const baseEnv = `PAYLOAD_SECRET=${payloadSecret} DATABASE_URI=${databaseUri}`
     
     try {
       // Step 1: Rebuild index (using FIXED version with proper phrase extraction)
