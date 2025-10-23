@@ -35,7 +35,24 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install PostgreSQL client for database initialization and curl for media downloads
-RUN apk update && apk add --no-cache postgresql-client curl
+# Also install python3 and pip for embedding generation, plus build dependencies
+RUN apk update && apk add --no-cache \
+    postgresql-client \
+    curl \
+    python3 \
+    py3-pip \
+    py3-numpy \
+    py3-scipy \
+    build-base \
+    python3-dev
+
+# Install Python packages for embeddings
+# Install torch CPU version first, then sentence-transformers
+RUN pip3 install --no-cache-dir --break-system-packages torch --extra-index-url https://download.pytorch.org/whl/cpu && \
+    pip3 install --no-cache-dir --break-system-packages sentence-transformers
+
+# Enable pnpm for running internal-links scripts in production
+RUN corepack enable pnpm
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -78,9 +95,21 @@ COPY --from=builder /app/fix-media-duplicates.sql ./
 # Copy media files directly into Docker image
 COPY --from=builder /app/public/media ./public/media
 
-# Copy only essential scripts needed at runtime
-RUN mkdir -p ./scripts
-COPY --from=builder /app/scripts/fix-categories.sql ./scripts/fix-categories.sql
+# Copy ALL scripts and data needed for internal-links processing
+RUN mkdir -p ./scripts ./data/internal-links
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/data/internal-links ./data/internal-links
+
+# Copy node_modules needed for tsx and scripts execution
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package.json for pnpm script execution
+COPY --from=builder /app/package.json ./package.json
+
+# Copy source files needed by internal-links scripts
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 RUN chmod +x ./docker-entrypoint.sh ./start.sh ./force-clean-import.sh ./download-media.sh ./smart-media-sync.sh ./check-media-files.sh
 
