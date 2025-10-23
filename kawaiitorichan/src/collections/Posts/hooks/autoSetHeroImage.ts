@@ -58,13 +58,30 @@ export const autoSetHeroImage: CollectionBeforeChangeHook = async ({
   const imageId = extractImageFromContent(data.content)
 
   if (imageId) {
-    console.log(`[autoSetHeroImage] Setting hero image ${imageId} for post`)
-    data.heroImage = imageId
+    // Verify that the media ID actually exists in the database
+    try {
+      const mediaDoc = await req.payload.findByID({
+        collection: 'media',
+        id: imageId,
+      })
+
+      if (mediaDoc) {
+        console.log(`[autoSetHeroImage] Setting hero image ${imageId} for post`)
+        data.heroImage = imageId
+      } else {
+        console.log(`[autoSetHeroImage] Media ID ${imageId} not found, leaving hero image empty`)
+        data.heroImage = null
+      }
+    } catch (error) {
+      // If media doesn't exist, don't set it
+      console.log(`[autoSetHeroImage] Media ID ${imageId} not found in database, leaving hero image empty`)
+      data.heroImage = null
+    }
   } else {
     // Leave hero image empty if no image found in content
     // Don't set a default to avoid foreign key constraint errors
     console.log('[autoSetHeroImage] No image in content, leaving hero image empty')
-    // data.heroImage remains undefined/null
+    data.heroImage = null
   }
 
   return data
