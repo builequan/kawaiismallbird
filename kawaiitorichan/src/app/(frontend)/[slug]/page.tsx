@@ -158,8 +158,8 @@ export default async function Page({ params: paramsPromise }: Args) {
             }
           }
 
-          // Final fallback: default image (first media in database)
-          return '/api/media-by-id/2257'
+          // No image available - return null and let frontend handle it
+          return null
         }
 
         // Get posts count first to verify database is working

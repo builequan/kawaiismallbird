@@ -42,9 +42,10 @@ export const Posts: CollectionConfig<'posts'> = {
   // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
   // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'posts'>
   defaultPopulate: {
+    id: true,
     title: true,
     slug: true,
-    heroImage: true,
+    // heroImage: true, // Removed - let it return as ID, frontend can request with depth=1 if needed
     excerpt: true,
     categories: true,
     tags: true,
@@ -185,50 +186,8 @@ export const Posts: CollectionConfig<'posts'> = {
                     }
                   },
                 ],
-                afterRead: [
-                  ({ value }) => {
-                    // Also normalize when reading (for admin panel display)
-                    if (!value || !value.root) return value
-
-                    const normalizeUploadNodes = (node: any): any => {
-                      // Normalize upload nodes (images)
-                      if (node.type === 'upload' && node.value && typeof node.value === 'object' && 'id' in node.value) {
-                        return { ...node, value: node.value.id }
-                      }
-
-                      // Normalize link nodes with doc field (internal links)
-                      if (node.type === 'link' && node.fields?.doc?.value && typeof node.fields.doc.value === 'object' && 'id' in node.fields.doc.value) {
-                        return {
-                          ...node,
-                          fields: {
-                            ...node.fields,
-                            doc: {
-                              ...node.fields.doc,
-                              value: node.fields.doc.value.id
-                            }
-                          }
-                        }
-                      }
-
-                      if (node.children && Array.isArray(node.children)) {
-                        return {
-                          ...node,
-                          children: node.children.map(normalizeUploadNodes),
-                        }
-                      }
-
-                      return node
-                    }
-
-                    return {
-                      ...value,
-                      root: {
-                        ...value.root,
-                        children: value.root.children?.map(normalizeUploadNodes) || [],
-                      },
-                    }
-                  },
-                ],
+                // Note: No afterRead hook here - the admin panel needs full data structure
+                // The beforeChange hook above handles normalization when saving to database
               },
               editor: lexicalEditor({
                 features: ({ rootFeatures }) => {
@@ -585,7 +544,7 @@ export const Posts: CollectionConfig<'posts'> = {
     afterChange: [revalidatePost],
     afterRead: [
       populateAuthors,
-      // Ensure heroImage is always an ID, not a populated object (fixes Lexical Upload error)
+      // Normalize heroImage to ID for consistent API responses
       ({ data }) => {
         if (data?.heroImage && typeof data.heroImage === 'object' && 'id' in data.heroImage) {
           data.heroImage = data.heroImage.id

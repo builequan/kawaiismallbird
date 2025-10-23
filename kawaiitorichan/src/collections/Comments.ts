@@ -22,6 +22,7 @@ export const Comments: CollectionConfig = {
       relationTo: 'posts',
       required: true,
       index: true,
+      hasMany: false,
     },
     {
       name: 'authorName',

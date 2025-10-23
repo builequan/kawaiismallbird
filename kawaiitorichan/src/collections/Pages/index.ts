@@ -36,6 +36,7 @@ export const Pages: CollectionConfig<'pages'> = {
   // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
   // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'pages'>
   defaultPopulate: {
+    id: true,
     title: true,
     slug: true,
   },

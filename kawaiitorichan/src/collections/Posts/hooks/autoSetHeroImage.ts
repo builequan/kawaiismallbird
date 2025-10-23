@@ -61,9 +61,10 @@ export const autoSetHeroImage: CollectionBeforeChangeHook = async ({
     console.log(`[autoSetHeroImage] Setting hero image ${imageId} for post`)
     data.heroImage = imageId
   } else {
-    // Use default image if no image found
-    console.log('[autoSetHeroImage] No image in content, using default image 2257')
-    data.heroImage = 2257
+    // Leave hero image empty if no image found in content
+    // Don't set a default to avoid foreign key constraint errors
+    console.log('[autoSetHeroImage] No image in content, leaving hero image empty')
+    // data.heroImage remains undefined/null
   }
 
   return data
