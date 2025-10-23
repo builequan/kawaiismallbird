@@ -1,8 +1,9 @@
 import { getClientSideURL } from '@/utilities/getURL'
+import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 import type { Media } from '@/payload-types'
 
 /**
- * Processes media resource URL to ensure proper formatting
+ * Processes media resource URL to ensure proper formatting and Brave browser compatibility
  * @param resource The media resource (string URL or Media object)
  * @param cacheTag Optional cache tag to append to the URL
  * @returns Properly formatted URL with cache tag if provided
@@ -19,6 +20,9 @@ export const getMediaUrl = (resource: string | Media | null | undefined, cacheTa
   }
 
   if (!url) return ''
+
+  // Transform URL to Brave-compatible /files/ path
+  url = fixMediaUrl(url)
 
   // Check if URL already has http/https protocol
   if (url.startsWith('http://') || url.startsWith('https://')) {
