@@ -18,6 +18,7 @@ import {
   RichText as ConvertRichText,
 } from '@payloadcms/richtext-lexical/react'
 import { ShoppingCart } from 'lucide-react'
+import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 
 import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
 
@@ -76,8 +77,8 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       if (typeof value === 'object' && value !== null) {
         // Check if value has media data with url
         if ('url' in value && typeof value.url === 'string') {
-          // Use the URL as-is (should be /api/media/file/... or /media/...)
-          const imageUrl = value.url
+          // Transform URL to Brave-compatible /files/ path
+          const imageUrl = fixMediaUrl(value.url)
           const alt = (value.alt as string) || (value.filename as string) || 'Content image'
           const width = (value.width as number) || 1200
           const height = (value.height as number) || 800
@@ -118,14 +119,14 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
 
         // If value only has an id (reference to media)
         if ('id' in value && !('url' in value)) {
-          // Use the media-by-id API to fetch and display the image
+          // Use the files-by-id API to fetch and display the image
           const mediaId = typeof value.id === 'number' ? value.id : String(value.id)
           const alt = (value.alt as string) || 'Content image'
 
           return (
             <div className="my-4 w-full relative h-96">
               <Image
-                src={`/api/media-by-id/${mediaId}`}
+                src={`/api/files-by-id/${mediaId}`}
                 alt={alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
