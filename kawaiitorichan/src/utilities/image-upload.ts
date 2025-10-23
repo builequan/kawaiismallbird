@@ -137,7 +137,7 @@ async function uploadFileDirectly({
         filename: fileName,
         mimeType,
         filesize: stats.size,
-        url: `/media/${fileName}`,
+        url: `/files/${fileName}`,
       },
     })
     

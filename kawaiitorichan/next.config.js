@@ -74,9 +74,15 @@ const nextConfig = {
   // Rewrite media URLs to serve from public directory
   async rewrites() {
     return [
+      // New files endpoint (Brave-compatible)
+      {
+        source: '/files/:path*',
+        destination: '/api/files/:path*',
+      },
+      // Keep old media endpoint for backward compatibility
       {
         source: '/media/:path*',
-        destination: '/api/media/:path*',
+        destination: '/api/files/:path*',
       },
     ]
   },
@@ -113,6 +119,15 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/files/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },

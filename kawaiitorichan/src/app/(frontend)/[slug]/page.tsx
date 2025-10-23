@@ -136,17 +136,17 @@ export default async function Page({ params: paramsPromise }: Args) {
 
             // If it's a full media object with filename
             if (typeof heroImage === 'object' && 'filename' in heroImage) {
-              return `/media/${heroImage.filename}`
+              return `/files/${heroImage.filename}`
             }
 
             // If it's just an ID (number or string)
             if (typeof heroImage === 'number' || typeof heroImage === 'string') {
-              return `/api/media-by-id/${heroImage}`
+              return `/api/files-by-id/${heroImage}`
             }
 
             // If it's an object with id property
             if (typeof heroImage === 'object' && 'id' in heroImage) {
-              return `/api/media-by-id/${heroImage.id}`
+              return `/api/files-by-id/${heroImage.id}`
             }
           }
 
@@ -154,7 +154,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           if (content) {
             const mediaId = extractImageFromContent(content)
             if (mediaId) {
-              return `/api/media-by-id/${typeof mediaId === 'object' ? mediaId.id : mediaId}`
+              return `/api/files-by-id/${typeof mediaId === 'object' ? mediaId.id : mediaId}`
             }
           }
 

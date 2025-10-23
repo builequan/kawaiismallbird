@@ -623,12 +623,12 @@ export default async function BirdCategoryPage({ params }: PageProps) {
                 }
                 // If it's just an ID (number or string) - use API endpoint
                 else if (typeof post.heroImage === 'number' || typeof post.heroImage === 'string') {
-                  heroImageUrl = `/api/media/file/${post.heroImage}`
+                  heroImageUrl = `/api/files/file/${post.heroImage}`
                   heroImage = { url: heroImageUrl, alt: post.title }
                 }
                 // If it's an object with id property
                 else if (typeof post.heroImage === 'object' && 'id' in post.heroImage) {
-                  heroImageUrl = `/api/media/file/${post.heroImage.id}`
+                  heroImageUrl = `/api/files/file/${post.heroImage.id}`
                   heroImage = { url: heroImageUrl, alt: post.title }
                 }
               }

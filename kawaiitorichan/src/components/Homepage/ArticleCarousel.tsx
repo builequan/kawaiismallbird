@@ -114,7 +114,7 @@ export const ArticleCarousel: React.FC<ArticleCarouselProps> = ({ posts }) => {
                         if ('url' in node.value) {
                           return node.value.url
                         } else if ('filename' in node.value) {
-                          return `/media/${node.value.filename}`
+                          return `/files/${node.value.filename}`
                         }
                       }
                     }

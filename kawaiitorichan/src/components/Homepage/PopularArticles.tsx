@@ -53,7 +53,7 @@ export const PopularArticles: React.FC<PopularArticlesProps> = ({ posts }) => {
                                       if ('url' in node.value) {
                                         return node.value.url
                                       } else if ('filename' in node.value) {
-                                        return `/media/${node.value.filename}`
+                                        return `/files/${node.value.filename}`
                                       }
                                     }
                                   }
@@ -157,7 +157,7 @@ export const PopularArticles: React.FC<PopularArticlesProps> = ({ posts }) => {
                         if ('url' in node.value) {
                           return node.value.url
                         } else if ('filename' in node.value) {
-                          return `/media/${node.value.filename}`
+                          return `/files/${node.value.filename}`
                         }
                       }
                     }

@@ -274,7 +274,7 @@ export default async function BirdSpeciesPage() {
                                 return node.value.url
                               } else if ('filename' in node.value) {
                                 // Construct URL from filename
-                                return `/media/${node.value.filename}`
+                                return `/files/${node.value.filename}`
                               }
                             }
                           }

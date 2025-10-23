@@ -373,8 +373,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 }
 
                 // Apply URL fix if we have an image
-                if (heroImageUrl && heroImageUrl.includes('/api/media/file/')) {
-                  heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
+                if (heroImageUrl && heroImageUrl.includes('/api/files/file/')) {
+                  heroImageUrl = heroImageUrl.replace('/api/files/file/', '/files/')
                 }
 
                 return (
@@ -424,8 +424,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           }
 
           // Apply URL fix if we have an image
-          if (heroImageUrl && heroImageUrl.includes('/api/media/file/')) {
-            heroImageUrl = heroImageUrl.replace('/api/media/file/', '/media/')
+          if (heroImageUrl && heroImageUrl.includes('/api/files/file/')) {
+            heroImageUrl = heroImageUrl.replace('/api/files/file/', '/files/')
           }
 
           return (

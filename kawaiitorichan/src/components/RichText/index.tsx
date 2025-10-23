@@ -105,7 +105,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           return (
             <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
               <Image
-                src={`/api/media/file/${value.filename}`}
+                src={`/api/files/file/${value.filename}`}
                 alt={alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"

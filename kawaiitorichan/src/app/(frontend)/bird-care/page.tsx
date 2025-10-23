@@ -286,7 +286,7 @@ export default async function BirdCarePage() {
                                 return node.value.url
                               } else if ('filename' in node.value) {
                                 // Construct URL from filename
-                                return `/media/${node.value.filename}`
+                                return `/files/${node.value.filename}`
                               }
                             } else if (typeof node.value === 'string') {
                               // If it's a string ID, we can't use it directly

@@ -39,7 +39,7 @@ export async function GET() {
     for (const post of posts) {
       if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
         const postUrl = `${serverUrl}/posts/${post.slug}`
-        const imageUrl = `${serverUrl}${post.heroImage.url}`.replace('/api/media/file/', '/media/')
+        const imageUrl = `${serverUrl}${post.heroImage.url}`.replace('/api/files/file/', '/files/')
         const imageTitle = post.title
         const imageCaption = post.heroImageAlt || post.title
 
