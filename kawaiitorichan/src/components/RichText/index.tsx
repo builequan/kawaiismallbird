@@ -97,16 +97,18 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           )
         }
 
-        // If value has filename, use it to construct the API media path
+        // If value has filename, use it to construct the direct file path
         if ('filename' in value && typeof value.filename === 'string') {
           const alt = (value.alt as string) || (value.filename as string) || 'Content image'
           const width = (value.width as number) || 1200
           const height = (value.height as number) || 800
+          // Use fixMediaUrl to ensure /files/ path (Brave-compatible)
+          const imageUrl = fixMediaUrl(`/media/${value.filename}`)
 
           return (
             <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
               <Image
-                src={`/api/files/file/${value.filename}`}
+                src={imageUrl}
                 alt={alt}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
