@@ -77,12 +77,12 @@ const nextConfig = {
       // New files endpoint (Brave-compatible)
       {
         source: '/files/:path*',
-        destination: '/api/files/:path*',
+        destination: '/api/files/file/:path*',
       },
       // Keep old media endpoint for backward compatibility
       {
         source: '/media/:path*',
-        destination: '/api/files/:path*',
+        destination: '/api/files/file/:path*',
       },
     ]
   },
