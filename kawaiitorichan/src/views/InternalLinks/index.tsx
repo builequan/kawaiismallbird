@@ -3,6 +3,8 @@
 import React from 'react'
 import InternalLinksManager from '@/components/admin/InternalLinksManager'
 
-export default function InternalLinksView() {
+const InternalLinksView: React.FC = () => {
   return <InternalLinksManager />
 }
+
+export default InternalLinksView
