@@ -24,6 +24,8 @@ ENV PAYLOAD_SECRET=build_time_secret_replaced_at_runtime
 ENV DATABASE_URI=postgres://build:build@localhost:5432/build
 # NEXT_PUBLIC_ variables are baked into the build at build time, not runtime
 ENV NEXT_PUBLIC_SERVER_URL=https://kawaiitorichan.com
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=G-D0F94TNM0E
+ENV NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=M3jYRO1Cmu0m6aEq4-rv9V_3QR4mzyiM2aVyt1pYIrU
 
 RUN corepack enable pnpm && pnpm build
 
