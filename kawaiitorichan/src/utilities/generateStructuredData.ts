@@ -159,7 +159,7 @@ export function generateArticleSchema(post: Post): ArticleSchema {
     name: author.name || 'Anonymous',
   })) || [{
     '@type': 'Person' as const,
-    name: 'Golf Expert',
+    name: 'Bird Care Expert',
   }]
 
   // Convert excerpt from RichText to plain text

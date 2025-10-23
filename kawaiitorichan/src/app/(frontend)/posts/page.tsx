@@ -59,11 +59,11 @@ export default async function Page() {
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'ゴルフ記事一覧 - Golf Knowledge Hub',
-    description: 'ゴルフの技術、知識、機器に関する記事一覧。初心者から上級者まで役立つゴルフ情報を掲載。',
+    title: '記事一覧 - かわいい小鳥 | Kawaii Small Bird',
+    description: '小鳥の飼育、健康管理、種類に関する記事一覧。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の情報が満載です。',
     openGraph: {
-      title: 'ゴルフ記事一覧 - Golf Knowledge Hub',
-      description: 'ゴルフの技術、知識、機器に関する記事一覧。初心者から上級者まで役立つゴルフ情報を掲載。',
+      title: '記事一覧 - かわいい小鳥',
+      description: '小鳥の飼育、健康管理、種類に関する記事一覧。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の情報が満載です。',
       type: 'website',
     },
   }

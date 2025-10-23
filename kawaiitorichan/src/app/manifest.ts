@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Golf Knowledge Hub - ゴルフ総合情報サイト',
-    short_name: 'Golf Hub',
-    description: 'ゴルフの知識、技術、機器に関する総合情報サイト - Golf Knowledge Hub',
+    name: 'Kawaii Small Bird - 小鳥の総合情報サイト',
+    short_name: 'Kawaii Bird',
+    description: '小鳥の飼育、健康管理、種類に関する総合情報サイト - Kawaii Small Bird',
     start_url: '/',
     display: 'standalone',
     background_color: '#FFFFFF',
@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: '/',
     lang: 'ja-JP',
     dir: 'ltr',
-    categories: ['sports', 'education', 'lifestyle'],
+    categories: ['pets', 'education', 'lifestyle'],
     icons: [
       {
         src: '/favicon.ico',
