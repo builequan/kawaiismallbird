@@ -84,7 +84,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           const height = (value.height as number) || 800
 
           return (
-            <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
+            <div className="mt-3 mb-12 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
               <Image
                 src={imageUrl}
                 alt={alt}
