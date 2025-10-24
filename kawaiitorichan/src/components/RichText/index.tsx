@@ -100,19 +100,20 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         // If value has filename, use it to construct the direct file path
         if ('filename' in value && typeof value.filename === 'string') {
           const alt = (value.alt as string) || (value.filename as string) || 'Content image'
-          const width = (value.width as number) || 1200
-          const height = (value.height as number) || 800
+          const width = (value.width as number) || 800
+          const height = (value.height as number) || 600
           // Use fixMediaUrl to ensure /files/ path (Brave-compatible)
           const imageUrl = fixMediaUrl(`/media/${value.filename}`)
 
           return (
-            <div className="my-4 w-full relative" style={{ aspectRatio: `${width}/${height}` }}>
+            <div className="mt-3 mb-12 w-full flex justify-center">
               <Image
                 src={imageUrl}
                 alt={alt}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
-                className="rounded-lg object-contain"
+                width={width}
+                height={height}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
+                className="rounded-lg object-contain w-full h-auto max-h-[500px]"
                 loading="lazy"
               />
             </div>
@@ -126,13 +127,14 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
           const alt = (value.alt as string) || 'Content image'
 
           return (
-            <div className="my-4 w-full relative h-96">
+            <div className="mt-3 mb-12 w-full flex justify-center">
               <Image
                 src={`/api/files-by-id/${mediaId}`}
                 alt={alt}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
-                className="rounded-lg object-contain"
+                width={800}
+                height={600}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
+                className="rounded-lg object-contain w-full h-auto max-h-[500px]"
                 loading="lazy"
               />
             </div>
@@ -140,17 +142,18 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         }
       }
 
-      // If value is a string ID
-      if (typeof value === 'string') {
+      // If value is a string or number ID
+      if (typeof value === 'string' || typeof value === 'number') {
         // Use the media-by-id API to fetch and display the image
         return (
-          <div className="my-4 w-full relative h-96">
+          <div className="mt-3 mb-12 w-full flex justify-center">
             <Image
               src={`/api/media-by-id/${value}`}
               alt="Content image"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
-              className="rounded-lg object-contain"
+              width={800}
+              height={600}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 800px"
+              className="rounded-lg object-contain w-full h-auto max-h-[500px]"
               loading="lazy"
             />
           </div>
