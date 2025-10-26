@@ -17,7 +17,7 @@ ENV NODE_ENV=production
 # These MUST be dummy values for build - real values come from runtime
 ENV DATABASE_URI=postgres://build:build@localhost:5432/build
 ENV PAYLOAD_SECRET=build_time_secret_will_be_replaced_at_runtime
-ENV NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+# Note: NEXT_PUBLIC_SERVER_URL is NOT set here to allow runtime fallback in getServerSideURL()
 
 RUN corepack enable pnpm && pnpm build
 
