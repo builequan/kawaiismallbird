@@ -17,8 +17,6 @@ module.exports = {
         disallow: ['/admin/*', '/api/*'],
       },
     ],
-    additionalSitemaps: [
-      `${SITE_URL}/api/sitemap.xml`, // Dynamic sitemap from Payload CMS
-    ],
+    // Note: sitemap.ts handles dynamic content from Payload CMS
   },
 }
