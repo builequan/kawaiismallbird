@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: '/',
     display: 'standalone',
     background_color: '#FFFFFF',
-    theme_color: '#357A35',
+    theme_color: '#FF8C42',
     orientation: 'portrait-primary',
     scope: '/',
     lang: 'ja-JP',
@@ -21,7 +21,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/x-icon',
       },
       {
-        src: '/favicon-navi.svg',
+        src: '/favicon-bird.svg',
         sizes: 'any',
         type: 'image/svg+xml',
         purpose: 'maskable',

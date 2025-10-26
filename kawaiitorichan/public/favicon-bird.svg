@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Simplified cute bird favicon -->
+  <g transform="translate(32, 32)">
+    <!-- Main body -->
+    <ellipse cx="0" cy="0" rx="20" ry="18" fill="white" stroke="black" stroke-width="2"/>
+
+    <!-- Black head marking -->
+    <path d="M -15,-12 Q 0,-18 15,-12 Q 13,-5 0,-3 Q -13,-5 -15,-12" fill="black"/>
+
+    <!-- Eyes -->
+    <circle cx="-6" cy="-6" r="5" fill="white"/>
+    <circle cx="6" cy="-6" r="5" fill="white"/>
+    <circle cx="-6" cy="-5" r="3" fill="black"/>
+    <circle cx="6" cy="-5" r="3" fill="black"/>
+    <circle cx="-5" cy="-6" r="1" fill="white"/>
+    <circle cx="7" cy="-6" r="1" fill="white"/>
+
+    <!-- Beak -->
+    <path d="M -2,0 L 0,2 L 2,0 Z" fill="#FFA500" stroke="black" stroke-width="0.8"/>
+
+    <!-- Wing -->
+    <path d="M 12,-2 Q 18,0 16,8 Q 14,10 12,6" fill="black" stroke="black" stroke-width="1.2"/>
+
+    <!-- Tail -->
+    <path d="M -14,8 L -16,14 L -12,12 Z" fill="black"/>
+
+    <!-- Branch -->
+    <rect x="-22" y="14" width="44" height="3" rx="1.5" fill="#8B4513" stroke="black" stroke-width="1.2"/>
+
+    <!-- Feet -->
+    <line x1="-4" y1="13" x2="-4" y2="17" stroke="black" stroke-width="1.5"/>
+    <line x1="4" y1="13" x2="4" y2="17" stroke="black" stroke-width="1.5"/>
+    <line x1="-6" y1="17" x2="-2" y2="17" stroke="black" stroke-width="1.2"/>
+    <line x1="2" y1="17" x2="6" y2="17" stroke="black" stroke-width="1.2"/>
+  </g>
+</svg>

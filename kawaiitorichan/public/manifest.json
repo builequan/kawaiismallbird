@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon-navi.svg",
+      "src": "/favicon-bird.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
