@@ -7,6 +7,12 @@ export const getServerSideURL = () => {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   }
 
+  // PRODUCTION FIX: In production, fallback to hardcoded production URL
+  // This prevents localhost URLs in sitemaps and metadata during server-side rendering
+  if (!url && process.env.NODE_ENV === 'production') {
+    return 'https://kawaiitorichan.com'
+  }
+
   if (!url) {
     const port = process.env.PORT || '3000'
     url = `http://localhost:${port}`
