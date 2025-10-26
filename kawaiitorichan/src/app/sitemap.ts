@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const payload = await getPayload({ config })
 
-    // Get all published posts
+    // Get all published posts (optimized query)
     const { docs: posts } = await payload.find({
       collection: 'posts',
       limit: 10000,
@@ -28,9 +28,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         updatedAt: true,
         publishedAt: true,
       },
+      depth: 0, // Don't populate relationships
+      sort: '-updatedAt', // Sort by most recent first
     })
 
-    // Get all categories
+    // Get all categories (optimized query)
     const { docs: categories } = await payload.find({
       collection: 'categories',
       limit: 1000,
@@ -39,9 +41,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         slug: true,
         updatedAt: true,
       },
+      depth: 0, // Don't populate relationships
+      sort: 'slug', // Sort alphabetically
     })
 
-    // Get all published pages
+    // Get all published pages (optimized query)
     const { docs: pages } = await payload.find({
       collection: 'pages',
       limit: 1000,
@@ -55,6 +59,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         slug: true,
         updatedAt: true,
       },
+      depth: 0, // Don't populate relationships
+      sort: 'slug', // Sort alphabetically
     })
 
     const sitemap: MetadataRoute.Sitemap = [
@@ -100,7 +106,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return sitemap
   } catch (error) {
     console.error('Error generating sitemap:', error)
-    // Return minimal sitemap on error
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error')
+    // Return minimal sitemap on error to prevent 500/502 errors
     return [
       {
         url: serverUrl,
