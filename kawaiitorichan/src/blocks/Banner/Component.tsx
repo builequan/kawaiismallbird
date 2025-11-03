@@ -1,3 +1,5 @@
+'use client'
+
 import type { BannerBlock as BannerBlockProps } from 'src/payload-types'
 
 import { cn } from '@/utilities/ui'
