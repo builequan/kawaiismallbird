@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
 import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
@@ -90,7 +91,9 @@ export default async function Post({ params: paramsPromise }: Args) {
   const url = '/posts/' + slug
   const post = await queryPostBySlug({ slug })
 
-  if (!post) return <PayloadRedirects url={url} />
+  if (!post) {
+    notFound()
+  }
 
   // Generate structured data for SEO
   const articleSchema = generateArticleSchema(post)
@@ -207,6 +210,13 @@ export default async function Post({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = '' } = await paramsPromise
   const post = await queryPostBySlug({ slug })
+
+  if (!post) {
+    return {
+      title: 'Post Not Found',
+      description: 'The requested post could not be found.',
+    }
+  }
 
   return generateMeta({ doc: post })
 }
