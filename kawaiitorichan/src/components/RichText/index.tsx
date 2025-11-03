@@ -186,41 +186,25 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
     
     // Check if this is an affiliate link
     const isAffiliate = rel?.includes('sponsored') || url?.includes('a8.net') || url?.includes('rakuten')
-    
-    // Style for affiliate links
-    const affiliateStyles = isAffiliate ? {
-      color: '#2563eb',
-      textDecoration: 'underline',
-      textDecorationColor: '#2563eb',
-      textUnderlineOffset: '3px',
-      fontWeight: 600,
-      transition: 'all 0.2s ease',
-      position: 'relative' as const,
-      padding: '2px 4px',
-    } : {}
-    
+
     return (
       <a
         href={href}
         target={newTab ? '_blank' : undefined}
         rel={rel}
-        style={affiliateStyles}
-        className={isAffiliate ? 'affiliate-link hover:bg-blue-50' : ''}
-        onMouseEnter={(e) => {
-          if (isAffiliate) {
-            e.currentTarget.style.color = '#1d4ed8'
-            e.currentTarget.style.backgroundColor = 'rgba(37, 99, 235, 0.08)'
-            e.currentTarget.style.borderRadius = '4px'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (isAffiliate) {
-            e.currentTarget.style.color = '#2563eb'
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.borderRadius = '0'
-          }
-        }}
+        className={isAffiliate ? 'affiliate-link' : ''}
+        style={isAffiliate ? {
+          color: '#2563eb',
+          textDecoration: 'underline',
+          textDecorationColor: '#2563eb',
+          textUnderlineOffset: '3px',
+          fontWeight: 600,
+          padding: '2px 4px',
+          borderRadius: '0',
+          transition: 'all 0.2s ease',
+        } : undefined}
       >
+        {isAffiliate ? '🛒 ' : ''}
         {node.children && nodesToJSX({ nodes: node.children })}
       </a>
     )
