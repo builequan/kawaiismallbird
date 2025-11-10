@@ -16,6 +16,7 @@ export interface ExtractedImage {
 
 /**
  * Parse HTML and extract title and content
+ * More intelligent extraction that handles various HTML structures
  */
 export function parseHTML(htmlContent: string): ParsedHTML {
   const dom = new JSDOM(htmlContent)
@@ -32,13 +33,71 @@ export function parseHTML(htmlContent: string): ParsedHTML {
     title = h1Tag.textContent.trim()
   }
 
-  // Extract content from body
-  const bodyElement = document.querySelector('body')
+  // Extract content - try multiple strategies
   let content = ''
 
-  if (bodyElement) {
+  // Strategy 1: Look for common content container elements
+  const bodyElement = document.querySelector('body')
+  if (!bodyElement) {
+    return { title, content: '' }
+  }
+
+  // First, clone the body to avoid modifying original
+  const contentClone = bodyElement.cloneNode(true) as any
+
+  // Remove script and style tags
+  const scriptsAndStyles = contentClone.querySelectorAll('script, style, noscript')
+  scriptsAndStyles.forEach((el: any) => el.remove())
+
+  // Strategy 1: Find article/main/content divs
+  let contentElement = contentClone.querySelector('article') ||
+                       contentClone.querySelector('main') ||
+                       contentClone.querySelector('[role="main"]') ||
+                       contentClone.querySelector('.content') ||
+                       contentClone.querySelector('.article-content') ||
+                       contentClone.querySelector('.post-content') ||
+                       contentClone.querySelector('.entry-content')
+
+  // Strategy 2: If no container found, use body but exclude nav/header/footer/ads
+  if (!contentElement) {
+    contentElement = contentClone
+
+    // Remove common non-content elements
+    const unwantedSelectors = [
+      'nav', 'header', 'footer', '[role="navigation"]',
+      '.navbar', '.header', '.footer', '.sidebar', '.ads', '.ad-container',
+      '.comments', '.comment-section', '[class*="sidebar"]'
+    ]
+
+    unwantedSelectors.forEach(selector => {
+      contentElement.querySelectorAll(selector).forEach((el: any) => el.remove())
+    })
+  }
+
+  // Extract content
+  if (contentElement) {
+    // Remove the first h1 if it matches the title (it's likely duplicate)
+    const firstH1 = contentElement.querySelector('h1')
+    if (firstH1 && firstH1.textContent?.trim() === title) {
+      firstH1.remove()
+    }
+
+    // Get remaining content
+    let contentHTML = contentElement.innerHTML.trim()
+
+    // Only use if we got meaningful content
+    if (contentHTML && contentHTML.length > 50) {
+      content = contentHTML
+    } else {
+      // Fallback: use full body if we didn't extract enough
+      content = bodyElement.innerHTML
+    }
+  } else {
     content = bodyElement.innerHTML
   }
+
+  // Final cleanup: remove multiple consecutive newlines
+  content = content.replace(/\n\s*\n/g, '\n')
 
   return {
     title,
@@ -128,14 +187,22 @@ export async function uploadImageToPayload(
     mimeType = response.headers.get('content-type') || 'image/jpeg'
   }
 
-  // Create a File-like object for Payload
-  const file = new File([fileBuffer], filename, { type: mimeType })
+  // Create a file object in the format Payload expects on server side
+  const file = {
+    data: fileBuffer,
+    mimetype: mimeType,
+    name: filename,
+    size: fileBuffer.length,
+  }
 
   // Upload to Payload media collection
+  // Ensure alt text is not empty and meets validation requirements
+  const altText = (image.alt && image.alt.trim()) || `Image from HTML import ${Date.now()}`
+
   const mediaDoc = await payload.create({
     collection: 'media',
     data: {
-      alt: image.alt || 'Uploaded from HTML import',
+      alt: altText,
     },
     file,
   })

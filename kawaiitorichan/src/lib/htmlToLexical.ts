@@ -16,12 +16,32 @@ interface TextNode {
   version: number
 }
 
+interface LinkNode {
+  type: 'link'
+  fields: {
+    linkType: 'custom' | 'internal'
+    url?: string
+    doc?: {
+      relationTo: string
+      value: string | number
+    }
+    newTab?: boolean
+  }
+  children: TextNode[]
+  direction?: 'ltr' | 'rtl' | null
+  format?: string | number
+  indent?: number
+  version?: number
+}
+
+type InlineNode = TextNode | LinkNode
+
 interface ParagraphNode {
   type: 'paragraph'
   format: string
   indent: number
   version: number
-  children: TextNode[]
+  children: InlineNode[]
   direction?: 'ltr' | 'rtl' | null
   textStyle?: string
   textFormat?: number
@@ -33,7 +53,7 @@ interface HeadingNode {
   format: string
   indent: number
   version: number
-  children: TextNode[]
+  children: InlineNode[]
   direction?: 'ltr' | 'rtl' | null
 }
 
@@ -53,7 +73,7 @@ interface ListItemNode {
   format: string
   indent: number
   version: number
-  children: TextNode[]
+  children: InlineNode[]
 }
 
 interface QuoteNode {
@@ -67,11 +87,42 @@ interface QuoteNode {
 interface UploadNode {
   type: 'upload'
   relationTo: 'media'
-  value: string
-  alt: string
+  value: string | number
+  format: string | number
+  indent: number
+  version: number
+  fields?: {
+    alt?: string
+  }
 }
 
-type LexicalNode = ParagraphNode | HeadingNode | ListNode | QuoteNode | UploadNode
+interface TableCellNode {
+  type: 'tablecell'
+  version: number
+  backgroundColor: string | null
+  colSpan: number
+  headerState: number
+  rowSpan: number
+  width: number | null
+  children: ParagraphNode[]
+}
+
+interface TableRowNode {
+  type: 'tablerow'
+  version: number
+  children: TableCellNode[]
+}
+
+interface TableNode {
+  type: 'table'
+  version: number
+  children: TableRowNode[]
+  direction: 'ltr' | 'rtl' | null
+  format: string
+  indent: number
+}
+
+type LexicalNode = ParagraphNode | HeadingNode | ListNode | QuoteNode | UploadNode | TableNode
 
 /**
  * Create a text node with proper Payload format
@@ -79,7 +130,7 @@ type LexicalNode = ParagraphNode | HeadingNode | ListNode | QuoteNode | UploadNo
 function createTextNode(text: string, format: number = 0): TextNode {
   return {
     mode: 'normal',
-    text: text,
+    text: text || '',
     type: 'text',
     style: '',
     detail: 0,
@@ -91,13 +142,13 @@ function createTextNode(text: string, format: number = 0): TextNode {
 /**
  * Create a paragraph node
  */
-function createParagraphNode(children: TextNode[]): ParagraphNode {
+function createParagraphNode(children: InlineNode[]): ParagraphNode {
   return {
     type: 'paragraph',
     format: '',
     indent: 0,
     version: 1,
-    children: children.length > 0 ? children : [createTextNode('')],
+    children: children && children.length > 0 ? children : [createTextNode(' ')],
     direction: 'ltr',
     textStyle: '',
     textFormat: 0,
@@ -105,18 +156,37 @@ function createParagraphNode(children: TextNode[]): ParagraphNode {
 }
 
 /**
- * Extract text content and formatting from HTML element
- * NOTE: Links are extracted as text only (Payload's link support requires special fields)
+ * Create a link node
  */
-function extractTextWithFormatting(element: Element): TextNode[] {
-  const nodes: TextNode[] = []
+function createLinkNode(url: string, text: string, format: number = 0): LinkNode {
+  return {
+    type: 'link',
+    fields: {
+      linkType: 'custom',
+      url: url,
+      newTab: url.startsWith('http') || url.startsWith('//'),
+    },
+    children: [createTextNode(text, format)],
+    direction: 'ltr',
+    format: 0,
+    indent: 0,
+    version: 1,
+  }
+}
+
+/**
+ * Extract text content and formatting from HTML element
+ * Returns InlineNode objects (text nodes and link nodes)
+ */
+function extractTextWithFormatting(element: Element, currentFormat: number = 0): InlineNode[] {
+  const nodes: InlineNode[] = []
 
   Array.from(element.childNodes).forEach((node: any) => {
     if (node.nodeType === 3) {
       // Text node
       const text = node.textContent?.trim()
       if (text && text.length > 0) {
-        nodes.push(createTextNode(text))
+        nodes.push(createTextNode(text, currentFormat))
       }
     } else if (node.nodeType === 1) {
       // Element node
@@ -125,38 +195,30 @@ function extractTextWithFormatting(element: Element): TextNode[] {
 
       if (['strong', 'b'].includes(tagName)) {
         // Bold format - apply to text nodes
-        const childNodes = extractTextWithFormatting(el)
-        childNodes.forEach(child => {
-          nodes.push(createTextNode(child.text, child.format | 1))
-        })
+        const childNodes = extractTextWithFormatting(el, currentFormat | 1)
+        nodes.push(...childNodes)
       } else if (['em', 'i'].includes(tagName)) {
         // Italic format
-        const childNodes = extractTextWithFormatting(el)
-        childNodes.forEach(child => {
-          nodes.push(createTextNode(child.text, child.format | 2))
-        })
+        const childNodes = extractTextWithFormatting(el, currentFormat | 2)
+        nodes.push(...childNodes)
       } else if (tagName === 'u') {
         // Underline format
-        const childNodes = extractTextWithFormatting(el)
-        childNodes.forEach(child => {
-          nodes.push(createTextNode(child.text, child.format | 4))
-        })
+        const childNodes = extractTextWithFormatting(el, currentFormat | 4)
+        nodes.push(...childNodes)
       } else if (tagName === 'a') {
-        // Links: Extract text with optional href as text annotation
-        // Payload's link support requires internal doc references which we don't have here
+        // Links: Create proper link nodes
         const text = el.textContent?.trim()
         const href = el.getAttribute('href')
-        if (text) {
-          // Include href in the text as notation for now
-          if (href && href !== '#') {
-            nodes.push(createTextNode(`${text} (${href})`))
-          } else {
-            nodes.push(createTextNode(text))
-          }
+        // Only create link nodes for valid URLs (not empty, not #, not javascript:)
+        if (text && href && href.trim() !== '' && href !== '#' && !href.startsWith('javascript:')) {
+          // Create a proper link node
+          nodes.push(createLinkNode(href.trim(), text, currentFormat))
+        } else if (text) {
+          nodes.push(createTextNode(text, currentFormat))
         }
       } else {
         // Recursively process other elements
-        const childNodes = extractTextWithFormatting(el)
+        const childNodes = extractTextWithFormatting(el, currentFormat)
         nodes.push(...childNodes)
       }
     }
@@ -283,20 +345,55 @@ export function convertHTMLToPayloadLexical(htmlContent: string): any {
         } as ListNode)
       }
     } else if (tagName === 'table') {
-      // Convert table to formatted text with line breaks
-      // Tables in plain Lexical are complex - simplify to readable text format
-      const rows: string[] = []
+      // Convert HTML table to proper Lexical table structure
+      console.log('[TABLE DEBUG] Found table element in HTML')
+      const tableRows: TableRowNode[] = []
+
       element.querySelectorAll('tr').forEach((tr: any) => {
-        const cells: string[] = []
-        tr.querySelectorAll('td, th').forEach((cell: any) => {
-          cells.push(cell.textContent?.trim() || '')
+        const tableCells: TableCellNode[] = []
+        const cellElements = tr.querySelectorAll('td, th')
+
+        cellElements.forEach((cell: any) => {
+          const text = cell.textContent?.trim() || ''
+          const isHeader = cell.tagName.toLowerCase() === 'th'
+
+          // Create paragraph node with the cell's text content
+          const cellParagraph = createParagraphNode([createTextNode(text)])
+
+          // Create table cell node with proper structure
+          tableCells.push({
+            type: 'tablecell',
+            version: 1,
+            backgroundColor: null,
+            colSpan: 1,
+            headerState: isHeader ? 1 : 0,
+            rowSpan: 1,
+            width: null,
+            children: [cellParagraph],
+          })
         })
-        rows.push(cells.join(' | '))
+
+        if (tableCells.length > 0) {
+          tableRows.push({
+            type: 'tablerow',
+            version: 1,
+            children: tableCells,
+          })
+        }
       })
-      if (rows.length > 0) {
-        rows.forEach(row => {
-          children.push(createParagraphNode([createTextNode(row)]))
-        })
+
+      if (tableRows.length > 0) {
+        console.log(`[TABLE DEBUG] Created table with ${tableRows.length} rows`)
+        children.push({
+          type: 'table',
+          version: 1,
+          children: tableRows,
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+        } as TableNode)
+      } else {
+        console.log('[TABLE DEBUG] No rows found in table, skipping')
       }
     } else if (tagName === 'img') {
       // Handle images with media ID markers
@@ -308,20 +405,23 @@ export function convertHTMLToPayloadLexical(htmlContent: string): any {
         const mediaIdMatch = src.match(/__MEDIA_ID_([^_]+)__/)
         if (mediaIdMatch) {
           const mediaId = mediaIdMatch[1]
+          // Convert string ID to number if it's numeric
+          const mediaValue = /^\d+$/.test(mediaId) ? parseInt(mediaId, 10) : mediaId
           children.push({
             type: 'upload',
             relationTo: 'media',
-            value: mediaId,
-            alt: alt
+            value: mediaValue,
+            format: '',
+            indent: 0,
+            version: 1,
+            fields: {
+              alt: alt
+            }
           } as UploadNode)
-        } else if (src.startsWith('http')) {
-          // External image URL
-          children.push({
-            type: 'upload',
-            relationTo: 'media',
-            value: src,
-            alt: alt
-          } as UploadNode)
+        } else if (src.startsWith('http') || src.startsWith('data:')) {
+          // For external URLs or data URIs, just skip for now
+          // (they should have been processed by uploadImageToPayload)
+          console.warn(`Skipping external/data URI image: ${src.substring(0, 100)}`)
         }
       }
     } else if (tagName === 'br') {
@@ -335,9 +435,9 @@ export function convertHTMLToPayloadLexical(htmlContent: string): any {
     }
   })
 
-  // Ensure we always have at least one paragraph
+  // Ensure we always have at least one paragraph with valid content
   if (children.length === 0) {
-    children.push(createParagraphNode([createTextNode('No content')]))
+    children.push(createParagraphNode([createTextNode('Content imported from HTML')]))
   }
 
   return {

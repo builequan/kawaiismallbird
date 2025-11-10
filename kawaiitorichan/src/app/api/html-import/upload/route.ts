@@ -62,12 +62,19 @@ export async function POST(req: NextRequest) {
       try {
         console.log(`[UPLOAD] Uploading image file: ${imageFile.name}`)
 
-        // Read the image file
+        // Convert File object to Buffer for server-side Payload upload
         const arrayBuffer = await imageFile.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
-        const file = new File([buffer], imageFile.name, { type: imageFile.type })
+        const fileBuffer = Buffer.from(arrayBuffer)
 
-        // Upload to Payload
+        // Create file object in the format Payload expects on server side
+        const file = {
+          data: fileBuffer,
+          mimetype: imageFile.type || 'image/jpeg',
+          name: imageFile.name,
+          size: fileBuffer.length,
+        }
+
+        // Upload to Payload media collection
         const mediaDoc = await payload.create({
           collection: 'media',
           data: {
@@ -174,6 +181,11 @@ export async function POST(req: NextRequest) {
 
         // Also handle any base64 or external URLs
         const images = extractImagesFromHTML(parsed.content)
+        console.log(`[IMAGE DEBUG] Extracted ${images.length} total images from HTML:`)
+        images.forEach((img, idx) => {
+          console.log(`  Image ${idx + 1}: ${img.isBase64 ? 'base64' : 'URL'} - ${img.src.substring(0, 50)}...`)
+        })
+
         for (const image of images) {
           if (image.isBase64 || image.src.startsWith('http')) {
             try {
@@ -182,13 +194,18 @@ export async function POST(req: NextRequest) {
 
               // Replace in content
               const searchStr = `src="${image.src}"`
+              console.log(`[IMAGE DEBUG] Searching for: ${searchStr.substring(0, 60)}...`)
               if (contentWithUpdatedImages.includes(searchStr)) {
-                contentWithUpdatedImages = contentWithUpdatedImages.split(searchStr).join(`src="__MEDIA_ID_${mediaDoc.id}__"`)
-                console.log(`[IMAGE DEBUG] Replaced ${image.isBase64 ? 'base64' : 'external'} image with ID ${mediaDoc.id}`)
+                const replaceStr = `src="__MEDIA_ID_${mediaDoc.id}__"`
+                contentWithUpdatedImages = contentWithUpdatedImages.split(searchStr).join(replaceStr)
+                console.log(`[IMAGE DEBUG] ✅ Replaced ${image.isBase64 ? 'base64' : 'external'} image with ID ${mediaDoc.id}`)
+              } else {
+                console.log(`[IMAGE DEBUG] ❌ Could not find image src in content to replace`)
               }
 
               if (!heroImageId) {
                 heroImageId = mediaDoc.id
+                console.log(`[IMAGE DEBUG] Set as hero image: ${mediaDoc.id}`)
               }
             } catch (error) {
               console.error(`[IMAGE DEBUG] Failed to upload image:`, error)
@@ -288,7 +305,7 @@ export async function POST(req: NextRequest) {
             postId: post.id,
             title: parsed.title,
             slug: slug,
-            imagesUploaded: Object.keys(uploadedImages).length,
+            categories: matchedCategories.matched.map(c => c.title),
           })
         } catch (createError: any) {
           console.error('Payload create error details:', {
