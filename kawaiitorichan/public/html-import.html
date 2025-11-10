@@ -241,8 +241,8 @@
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
             <div class="upload-text">Click to select or drag files here</div>
-            <div class="upload-hint">Supports .html and .htm files</div>
-            <input type="file" id="fileInput" multiple accept=".html,.htm">
+            <div class="upload-hint">Select HTML files + image files (jpg, png, gif, webp)</div>
+            <input type="file" id="fileInput" multiple accept=".html,.htm,.jpg,.jpeg,.png,.gif,.webp,.svg">
         </div>
 
         <div id="fileListContainer" style="display: none;">
@@ -294,12 +294,32 @@
         });
 
         function handleFiles(files) {
-            selectedFiles = Array.from(files).filter(f =>
+            // Accept HTML files and image files
+            selectedFiles = Array.from(files).filter(f => {
+                const name = f.name.toLowerCase();
+                return name.endsWith('.html') ||
+                       name.endsWith('.htm') ||
+                       name.endsWith('.jpg') ||
+                       name.endsWith('.jpeg') ||
+                       name.endsWith('.png') ||
+                       name.endsWith('.gif') ||
+                       name.endsWith('.webp') ||
+                       name.endsWith('.svg') ||
+                       f.type.startsWith('image/');
+            });
+
+            if (selectedFiles.length === 0) {
+                alert('Please select HTML and/or image files');
+                return;
+            }
+
+            // Check if at least one HTML file is selected
+            const hasHtml = selectedFiles.some(f =>
                 f.name.endsWith('.html') || f.name.endsWith('.htm')
             );
 
-            if (selectedFiles.length === 0) {
-                alert('Please select HTML files only');
+            if (!hasHtml) {
+                alert('Please include at least one HTML file');
                 return;
             }
 
@@ -309,12 +329,18 @@
         }
 
         function updateFileList() {
-            fileList.innerHTML = selectedFiles.map((file, index) => `
-                <div class="file-item">
-                    <span class="file-name">${file.name}</span>
-                    <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
-                </div>
-            `).join('');
+            fileList.innerHTML = selectedFiles.map((file, index) => {
+                const isImage = file.type.startsWith('image/') ||
+                               /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
+                const icon = isImage ? '🖼️' : '📄';
+
+                return `
+                    <div class="file-item">
+                        <span class="file-name">${icon} ${file.name}</span>
+                        <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         clearBtn.addEventListener('click', () => {
