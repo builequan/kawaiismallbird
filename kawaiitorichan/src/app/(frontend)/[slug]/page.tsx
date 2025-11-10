@@ -16,6 +16,7 @@ import { fixMediaUrl } from '@/utilities/fixMediaUrl'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { BirdSlideshow } from '@/components/BirdSlideshow'
+import RichText from '@/components/RichText'
 // import { HeroWithSlideshow } from '@/components/HeroWithSlideshow'
 // import { ModernHomepage } from '@/components/Homepage/ModernHomepage'
 // import type { Post, Category } from '@/payload-types'
@@ -319,9 +320,13 @@ export default async function Page({ params: paramsPromise }: Args) {
                             {featuredPosts.docs[0].title}
                           </h3>
                           {featuredPosts.docs[0].excerpt && (
-                            <p className="text-gray-700 text-lg mb-6 line-clamp-3">
-                              {featuredPosts.docs[0].excerpt}
-                            </p>
+                            <div className="text-gray-700 text-lg mb-6 line-clamp-3 prose-sm prose-gray">
+                              <RichText
+                                data={featuredPosts.docs[0].excerpt}
+                                enableGutter={false}
+                                enableProse={false}
+                              />
+                            </div>
                           )}
                           <div className="flex items-center justify-end">
                             <span className="text-orange-600 font-semibold group-hover:underline">
@@ -404,9 +409,13 @@ export default async function Page({ params: paramsPromise }: Args) {
                           </a>
                         </h3>
                         {post.excerpt && (
-                          <p className="text-gray-600 line-clamp-3 mb-4">
-                            {post.excerpt}
-                          </p>
+                          <div className="text-gray-600 line-clamp-3 mb-4 prose-sm prose-gray">
+                            <RichText
+                              data={post.excerpt}
+                              enableGutter={false}
+                              enableProse={false}
+                            />
+                          </div>
                         )}
                         <div className="flex items-center justify-end text-sm text-gray-500">
                           <a

@@ -47,6 +47,14 @@ export default buildConfig({
           Component: '@/views/ContentImport',
           path: '/content-import',
         },
+        HTMLImport: {
+          Component: '@/views/HTMLImport',
+          path: '/html-import',
+        },
+        HtmlUpload: {
+          Component: '@/views/HtmlUpload',
+          path: '/html-upload',
+        },
       },
     },
     importMap: {

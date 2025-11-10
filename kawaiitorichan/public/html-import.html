@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Bulk Upload - Kawaii Tori Chan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f5f5ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #f0f0ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 13px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .file-size {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-upload:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-upload:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #eee;
+            color: #333;
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: #ddd;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .result-section {
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .result-success {
+            color: #27ae60;
+        }
+
+        .result-error {
+            color: #e74c3c;
+        }
+
+        .result-warning {
+            color: #f39c12;
+        }
+
+        .result-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            padding: 15px;
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .summary-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 HTML Bulk Upload</h1>
+        <p class="subtitle">Upload HTML files to automatically create blog posts</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click to select or drag files here</div>
+            <div class="upload-hint">Supports .html and .htm files</div>
+            <input type="file" id="fileInput" multiple accept=".html,.htm">
+        </div>
+
+        <div id="fileListContainer" style="display: none;">
+            <div class="file-list" id="fileList"></div>
+            <div class="button-group">
+                <button class="btn-upload" id="uploadBtn">Upload & Convert</button>
+                <button class="btn-clear" id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div id="resultsContainer" style="display: none;">
+            <div class="results">
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const fileList = document.getElementById('fileList');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsDiv = document.getElementById('results');
+
+        let selectedFiles = [];
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(f =>
+                f.name.endsWith('.html') || f.name.endsWith('.htm')
+            );
+
+            if (selectedFiles.length === 0) {
+                alert('Please select HTML files only');
+                return;
+            }
+
+            updateFileList();
+            fileListContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                </div>
+            `).join('');
+        }
+
+        clearBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            fileInput.value = '';
+            fileListContainer.style.display = 'none';
+            resultsContainer.style.display = 'none';
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                alert('No files selected');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<span class="loading"></span>Uploading...';
+
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('files', file);
+                });
+
+                const response = await fetch('/api/html-import/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = 'Upload & Convert';
+            }
+        });
+
+        function displayResults(data) {
+            let html = '';
+
+            if (data.summary) {
+                html += `
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-number">${data.summary.total}</div>
+                            <div class="summary-label">Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" style="color: #27ae60;">${data.summary.successful}</div>
+                            <div class="summary-label">Success</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" style="color: #e74c3c;">${data.summary.failed}</div>
+                            <div class="summary-label">Failed</div>
+                        </div>
+                        ${data.summary.warnings > 0 ? `
+                            <div class="summary-item">
+                                <div class="summary-number" style="color: #f39c12;">${data.summary.warnings}</div>
+                                <div class="summary-label">Warnings</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            if (data.results?.success?.length > 0) {
+                html += '<div class="result-section"><div class="result-title result-success">✓ Successfully Imported</div>';
+                data.results.success.forEach(item => {
+                    html += `
+                        <div class="result-item">
+                            <strong>${item.filename}</strong><br>
+                            Title: ${item.title}<br>
+                            Slug: ${item.slug}<br>
+                            Categories: ${item.categories?.join(', ') || 'None'}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (data.results?.warnings?.length > 0) {
+                html += '<div class="result-section"><div class="result-title result-warning">⚠ Warnings</div>';
+                data.results.warnings.forEach(item => {
+                    html += `<div class="result-item">📁 ${item.filename}: ${item.message}</div>`;
+                });
+                html += '</div>';
+            }
+
+            if (data.results?.failed?.length > 0) {
+                html += '<div class="result-section"><div class="result-title result-error">✗ Failed</div>';
+                data.results.failed.forEach(item => {
+                    html += `<div class="result-item">📁 ${item.filename}: ${item.error}</div>`;
+                });
+                html += '</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+            resultsContainer.style.display = 'block';
+            fileListContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
