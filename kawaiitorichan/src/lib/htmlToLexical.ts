@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom'
 /**
  * Payload Lexical format uses specific field names and structure
  * This converter creates the proper format expected by Payload CMS
+ * Focus on core structures that Payload definitely supports
  */
 
 interface TextNode {
@@ -21,6 +22,9 @@ interface ParagraphNode {
   indent: number
   version: number
   children: TextNode[]
+  direction?: 'ltr' | 'rtl' | null
+  textStyle?: string
+  textFormat?: number
 }
 
 interface HeadingNode {
@@ -30,6 +34,7 @@ interface HeadingNode {
   indent: number
   version: number
   children: TextNode[]
+  direction?: 'ltr' | 'rtl' | null
 }
 
 interface ListNode {
@@ -59,7 +64,14 @@ interface QuoteNode {
   children: ParagraphNode[]
 }
 
-type LexicalNode = ParagraphNode | HeadingNode | ListNode | QuoteNode
+interface UploadNode {
+  type: 'upload'
+  relationTo: 'media'
+  value: string
+  alt: string
+}
+
+type LexicalNode = ParagraphNode | HeadingNode | ListNode | QuoteNode | UploadNode
 
 /**
  * Create a text node with proper Payload format
@@ -86,11 +98,15 @@ function createParagraphNode(children: TextNode[]): ParagraphNode {
     indent: 0,
     version: 1,
     children: children.length > 0 ? children : [createTextNode('')],
+    direction: 'ltr',
+    textStyle: '',
+    textFormat: 0,
   }
 }
 
 /**
  * Extract text content and formatting from HTML element
+ * NOTE: Links are extracted as text only (Payload's link support requires special fields)
  */
 function extractTextWithFormatting(element: Element): TextNode[] {
   const nodes: TextNode[] = []
@@ -108,28 +124,35 @@ function extractTextWithFormatting(element: Element): TextNode[] {
       const tagName = el.tagName.toLowerCase()
 
       if (['strong', 'b'].includes(tagName)) {
-        // Format 1 = bold
-        const text = el.textContent?.trim()
-        if (text) {
-          nodes.push(createTextNode(text, 1))
-        }
+        // Bold format - apply to text nodes
+        const childNodes = extractTextWithFormatting(el)
+        childNodes.forEach(child => {
+          nodes.push(createTextNode(child.text, child.format | 1))
+        })
       } else if (['em', 'i'].includes(tagName)) {
-        // Format 2 = italic
-        const text = el.textContent?.trim()
-        if (text) {
-          nodes.push(createTextNode(text, 2))
-        }
+        // Italic format
+        const childNodes = extractTextWithFormatting(el)
+        childNodes.forEach(child => {
+          nodes.push(createTextNode(child.text, child.format | 2))
+        })
       } else if (tagName === 'u') {
-        // Format 4 = underline
-        const text = el.textContent?.trim()
-        if (text) {
-          nodes.push(createTextNode(text, 4))
-        }
+        // Underline format
+        const childNodes = extractTextWithFormatting(el)
+        childNodes.forEach(child => {
+          nodes.push(createTextNode(child.text, child.format | 4))
+        })
       } else if (tagName === 'a') {
-        // Links are complex - for now just extract text
+        // Links: Extract text with optional href as text annotation
+        // Payload's link support requires internal doc references which we don't have here
         const text = el.textContent?.trim()
+        const href = el.getAttribute('href')
         if (text) {
-          nodes.push(createTextNode(text))
+          // Include href in the text as notation for now
+          if (href && href !== '#') {
+            nodes.push(createTextNode(`${text} (${href})`))
+          } else {
+            nodes.push(createTextNode(text))
+          }
         }
       } else {
         // Recursively process other elements
@@ -144,6 +167,7 @@ function extractTextWithFormatting(element: Element): TextNode[] {
 
 /**
  * Convert HTML to Payload Lexical format
+ * Focuses on structures that Payload CMS definitely supports
  */
 export function convertHTMLToPayloadLexical(htmlContent: string): any {
   // Wrap content if needed
@@ -203,6 +227,7 @@ export function convertHTMLToPayloadLexical(htmlContent: string): any {
           indent: 0,
           version: 1,
           children: textNodes,
+          direction: 'ltr',
         } as HeadingNode)
       }
     } else if (tagName === 'blockquote') {
@@ -258,13 +283,47 @@ export function convertHTMLToPayloadLexical(htmlContent: string): any {
         } as ListNode)
       }
     } else if (tagName === 'table') {
-      // Extract table text content
-      const tableText = element.textContent?.trim()
-      if (tableText) {
-        children.push(createParagraphNode([createTextNode('[Table: ' + tableText.substring(0, 100) + '...]')]))
+      // Convert table to formatted text with line breaks
+      // Tables in plain Lexical are complex - simplify to readable text format
+      const rows: string[] = []
+      element.querySelectorAll('tr').forEach((tr: any) => {
+        const cells: string[] = []
+        tr.querySelectorAll('td, th').forEach((cell: any) => {
+          cells.push(cell.textContent?.trim() || '')
+        })
+        rows.push(cells.join(' | '))
+      })
+      if (rows.length > 0) {
+        rows.forEach(row => {
+          children.push(createParagraphNode([createTextNode(row)]))
+        })
       }
     } else if (tagName === 'img') {
-      // Skip images for now
+      // Handle images with media ID markers
+      const src = element.getAttribute('src')
+      const alt = element.getAttribute('alt') || 'Image'
+
+      if (src) {
+        // Check for __MEDIA_ID_ marker (indicates image was uploaded)
+        const mediaIdMatch = src.match(/__MEDIA_ID_([^_]+)__/)
+        if (mediaIdMatch) {
+          const mediaId = mediaIdMatch[1]
+          children.push({
+            type: 'upload',
+            relationTo: 'media',
+            value: mediaId,
+            alt: alt
+          } as UploadNode)
+        } else if (src.startsWith('http')) {
+          // External image URL
+          children.push({
+            type: 'upload',
+            relationTo: 'media',
+            value: src,
+            alt: alt
+          } as UploadNode)
+        }
+      }
     } else if (tagName === 'br') {
       // Skip br tags
     } else {
