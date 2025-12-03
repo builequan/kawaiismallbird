@@ -12,12 +12,14 @@ import RichTextWithFilteredReferences from '@/components/RichTextWithFilteredRef
 import ImportedPostContent from '@/components/ImportedPostContent'
 import AffiliateLinksEnhanced from '@/components/AffiliateLinksEnhanced'
 import ContentWithAffiliateLinksOptimized from '@/components/ContentWithAffiliateLinksOptimized'
+import RichTextWithGlossary from '@/components/RichTextWithGlossary'
 import SemanticRelatedPosts from '@/components/SemanticRelatedPosts'
 import PostReferences from '@/components/PostReferences'
 import TableOfContents from '@/components/TableOfContents'
 import { StructuredData } from '@/components/StructuredData'
 import { Breadcrumbs } from '@/components/Breadcrumbs'
 import { CommentSection } from '@/components/CommentSection'
+import { AdSidebar } from '@/components/AdSidebar'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -163,19 +165,24 @@ export default async function Post({ params: paramsPromise }: Args) {
       <PostHero post={post} />
 
       <div className="flex flex-col items-center gap-4 pt-4 sm:pt-8 text-gray-900">
-        <div className="w-full max-w-7xl mx-auto lg:grid lg:grid-cols-[1fr_48rem_1fr] px-0">
-          <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 px-4 sm:px-6 md:px-8 pb-8 text-gray-900">
+        <div className="w-full max-w-7xl mx-auto lg:grid lg:grid-cols-[1fr_48rem_1fr] px-0 relative">
+          {/* Right Sidebar - AdSense (Desktop Only) */}
+          <AdSidebar />
+
+          <div className="col-start-1 col-span-1 lg:col-start-2 lg:col-span-1 px-4 sm:px-6 md:px-8 pb-8 text-gray-900">
             {/* SEO: Breadcrumb Navigation */}
             <Breadcrumbs items={breadcrumbItems} className="mb-6" />
 
             {/* Table of Contents */}
             <TableOfContents content={post.content} className="mb-8" />
 
-            {/* Wrap content to add inline affiliate links */}
-            <ContentWithAffiliateLinksOptimized postId={String(post.id)} products={affiliateProducts}>
-              {/* Display content without references section */}
-              <RichTextWithFilteredReferences className="text-gray-900 [&_*]:text-gray-900" content={post.content} />
-            </ContentWithAffiliateLinksOptimized>
+            {/* Wrap content to add inline affiliate links and glossary tooltips */}
+            <RichTextWithGlossary postId={String(post.id)}>
+              <ContentWithAffiliateLinksOptimized postId={String(post.id)} products={affiliateProducts}>
+                {/* Display content without references section */}
+                <RichTextWithFilteredReferences className="text-gray-900 [&_*]:text-gray-900" content={post.content} />
+              </ContentWithAffiliateLinksOptimized>
+            </RichTextWithGlossary>
 
             {/* Display collapsible references - default closed */}
             <PostReferences content={post.content} defaultOpen={false} />
