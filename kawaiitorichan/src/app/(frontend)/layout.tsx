@@ -56,6 +56,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         {/* RSS Feed for blog syndication */}
         <link rel="alternate" type="application/rss+xml" title="Kawaii Small Bird RSS Feed" href="/feed.xml" />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3202734384173696"
+          crossOrigin="anonymous"
+        />
         {/* Google Search Console verification */}
         <GoogleSiteVerification />
         {/* Site-wide SEO: Organization and WebSite schemas */}
