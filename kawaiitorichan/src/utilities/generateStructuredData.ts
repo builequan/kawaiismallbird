@@ -1,6 +1,6 @@
 import type { Post, Page, Category, Media } from '@/payload-types'
 import { getServerSideURL } from './getURL'
-import { serializeRichTextToExcerpt, serializeRichTextToPlainText } from './serializeRichText'
+import { serializeRichTextToExcerpt, serializeRichTextToPlainText, serializeRichTextToFullText } from './serializeRichText'
 import { calculateReadingTime } from './calculateReadingTime'
 
 export interface ArticleSchema {
@@ -49,11 +49,16 @@ export interface OrganizationSchema {
   '@type': 'Organization'
   name: string
   url: string
+  description?: string
   logo?: {
     '@type': 'ImageObject'
     url: string
+    width?: number
+    height?: number
   }
   sameAs?: string[]
+  inLanguage?: string
+  foundingDate?: string
 }
 
 export interface WebSiteSchema {
@@ -65,14 +70,6 @@ export interface WebSiteSchema {
   publisher?: {
     '@type': 'Organization'
     name: string
-  }
-  potentialAction?: {
-    '@type': 'SearchAction'
-    target: {
-      '@type': 'EntryPoint'
-      urlTemplate: string
-    }
-    'query-input': string
   }
   inLanguage?: string
 }
@@ -154,30 +151,61 @@ export function generateArticleSchema(post: Post): ArticleSchema {
   }
 
   // Extract author information
-  const authors = post.populatedAuthors?.map((author) => ({
-    '@type': 'Person' as const,
-    name: author.name || 'Anonymous',
-  })) || [{
-    '@type': 'Person' as const,
-    name: 'Bird Care Expert',
-  }]
+  // If no authors populated, use the organization as author (Google-compliant fallback)
+  let authors: ArticleSchema['author']
+  if (post.populatedAuthors && post.populatedAuthors.length > 0) {
+    authors = post.populatedAuthors.map((author) => ({
+      '@type': 'Person' as const,
+      name: author.name || 'Anonymous',
+    }))
+  } else {
+    // Use Organization as author when no individual author is specified
+    // This is a valid approach per Google's author markup guidelines
+    authors = [{
+      '@type': 'Organization' as const,
+      name: 'Kawaii Small Bird',
+    }]
+  }
 
-  // Convert excerpt from RichText to plain text
+  // Convert excerpt from RichText to plain text for description
+  // Priority: meta.description > excerpt > content (first paragraph)
   let description: string | undefined = post.meta?.description
   if (!description && post.excerpt) {
     description = serializeRichTextToExcerpt(post.excerpt, 160)
   }
+  // Fallback to content if no description yet
+  if (!description && post.content) {
+    description = serializeRichTextToExcerpt(post.content, 160)
+  }
+  // Final fallback: use title with site context
+  if (!description) {
+    description = `${post.title} - 小鳥の飼育情報`
+  }
 
-  // Calculate actual word count from content (not just estimate from reading time)
+  // Calculate actual word count from content using full text extraction
+  // Japanese text: count characters (excluding spaces) as word count is not meaningful
+  // Mixed content: use character count / 2 as approximation for Japanese
   let wordCount: number | undefined
   if (post.content) {
-    const contentText = serializeRichTextToPlainText(post.content)
-    // Count words more accurately - remove extra whitespace and count
-    const words = contentText.trim().split(/\s+/).filter(w => w.length > 0)
-    wordCount = words.length
+    const contentText = serializeRichTextToFullText(post.content)
 
-    // Fallback to reading time estimate if word count is 0
-    if (wordCount === 0) {
+    // For Japanese content, character count is more meaningful than word count
+    // Japanese averages ~2 characters per "word" equivalent
+    const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(contentText)
+
+    if (hasJapanese) {
+      // Count non-whitespace characters for Japanese text
+      const charCount = contentText.replace(/\s/g, '').length
+      // Use character count as word count (standard for Japanese SEO)
+      wordCount = charCount
+    } else {
+      // For non-Japanese content, count words normally
+      const words = contentText.trim().split(/\s+/).filter(w => w.length > 0)
+      wordCount = words.length
+    }
+
+    // Fallback to reading time estimate if word count is still 0
+    if (!wordCount || wordCount === 0) {
       wordCount = calculateReadingTime(post.content) * 200
     }
   }
@@ -289,6 +317,7 @@ export function generateCategoryBreadcrumbs(
 
 /**
  * Generate Organization schema for the site
+ * Enhanced with additional recommended properties for better Google entity recognition
  */
 export function generateOrganizationSchema(): OrganizationSchema {
   const serverUrl = getServerSideURL()
@@ -298,15 +327,21 @@ export function generateOrganizationSchema(): OrganizationSchema {
     '@type': 'Organization',
     name: 'Kawaii Small Bird',
     url: serverUrl,
+    description: '小鳥の飼育、健康管理、種類に関する総合情報サイト。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の飼い方を詳しく解説します。',
     logo: {
       '@type': 'ImageObject',
       url: `${serverUrl}/website-template-OG.webp`,
+      width: 1200,
+      height: 630,
     },
+    inLanguage: 'ja',
+    foundingDate: '2024',
   }
 }
 
 /**
- * Generate WebSite schema with search box
+ * Generate WebSite schema
+ * Note: SearchAction (sitelinks search box) was deprecated by Google in November 2024
  */
 export function generateWebSiteSchema(): WebSiteSchema {
   const serverUrl = getServerSideURL()
@@ -316,18 +351,10 @@ export function generateWebSiteSchema(): WebSiteSchema {
     '@type': 'WebSite',
     name: 'Kawaii Small Bird',
     url: serverUrl,
-    description: '小鳥の飼育、健康管理、種類に関する総合情報サイト',
+    description: '小鳥の飼育、健康管理、種類に関する総合情報サイト。セキセイインコ、オカメインコ、文鳥など、様々な小鳥の飼い方を詳しく解説します。',
     publisher: {
       '@type': 'Organization',
       name: 'Kawaii Small Bird',
-    },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${serverUrl}/search?q={search_term_string}`,
-      },
-      'query-input': 'required name=search_term_string',
     },
     inLanguage: 'ja',
   }
