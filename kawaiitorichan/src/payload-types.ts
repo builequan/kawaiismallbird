@@ -75,6 +75,7 @@ export interface Config {
     users: User;
     'affiliate-products': AffiliateProduct;
     comments: Comment;
+    glossary: Glossary;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -94,6 +95,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     'affiliate-products': AffiliateProductsSelect<false> | AffiliateProductsSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
+    glossary: GlossarySelect<false> | GlossarySelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1135,6 +1137,45 @@ export interface Comment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "glossary".
+ */
+export interface Glossary {
+  id: number;
+  /**
+   * The Japanese term (e.g., 文鳥)
+   */
+  term: string;
+  /**
+   * Hiragana reading for sorting (e.g., ぶんちょう)
+   */
+  reading: string;
+  /**
+   * 2-3 sentence definition in Japanese
+   */
+  definition: string;
+  /**
+   * Where the definition came from
+   */
+  source: 'wikipedia' | 'llm';
+  /**
+   * Link to Japanese Wikipedia article (if source is Wikipedia)
+   */
+  wikipediaUrl?: string | null;
+  /**
+   * Posts that contain this term
+   */
+  posts?: (number | Post)[] | null;
+  /**
+   * Category for grouping terms
+   */
+  category?:
+    | ('bird-species' | 'bird-care' | 'bird-anatomy' | 'bird-behavior' | 'equipment' | 'food' | 'health' | 'general')
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1337,6 +1378,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'comments';
         value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'glossary';
+        value: number | Glossary;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1875,6 +1920,21 @@ export interface CommentsSelect<T extends boolean = true> {
   content?: T;
   approved?: T;
   ipAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "glossary_select".
+ */
+export interface GlossarySelect<T extends boolean = true> {
+  term?: T;
+  reading?: T;
+  definition?: T;
+  source?: T;
+  wikipediaUrl?: T;
+  posts?: T;
+  category?: T;
   updatedAt?: T;
   createdAt?: T;
 }

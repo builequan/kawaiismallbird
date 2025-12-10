@@ -36,6 +36,7 @@ import {
 } from '@/utilities/generateStructuredData'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+import RelatedEntities from '@/components/RelatedEntities'
 
 // Enable ISR (Incremental Static Regeneration) for better SEO
 export const revalidate = 600 // Revalidate every 10 minutes for fresher content
@@ -175,6 +176,9 @@ export default async function Post({ params: paramsPromise }: Args) {
 
             {/* Table of Contents */}
             <TableOfContents content={post.content} className="mb-8" />
+
+            {/* Related Bird Entities - Entity-Oriented SEO */}
+            <RelatedEntities content={post.content} className="mb-8" />
 
             {/* Wrap content to add inline affiliate links and glossary tooltips */}
             <RichTextWithGlossary postId={String(post.id)}>

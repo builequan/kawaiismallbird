@@ -125,6 +125,73 @@ export interface HowToSchema {
   image?: string
 }
 
+export interface AnimalSchema {
+  '@context': 'https://schema.org'
+  '@type': 'Animal'
+  name: string
+  alternateName?: string[]
+  description?: string
+  image?: string
+  sameAs?: string[]
+  additionalProperty?: {
+    '@type': 'PropertyValue'
+    name: string
+    value: string
+  }[]
+}
+
+export interface BirdSpeciesPageSchema {
+  '@context': 'https://schema.org'
+  '@type': 'CollectionPage'
+  name: string
+  description?: string
+  url: string
+  about: AnimalSchema
+  mainEntity: {
+    '@type': 'ItemList'
+    name: string
+    description?: string
+    numberOfItems: number
+    itemListElement: {
+      '@type': 'ListItem'
+      position: number
+      url: string
+      name: string
+      image?: string
+    }[]
+  }
+  breadcrumb?: BreadcrumbSchema
+  inLanguage?: string
+}
+
+export interface BirdData {
+  name: string
+  englishName: string
+  scientificName?: string
+  image: string
+  searchTerms: string[]
+  description: string
+  basicInfo: {
+    origin: string
+    lifespan: string
+    size: string
+    weight: string
+  }
+  characteristics: string[]
+  careTips: string[]
+  // Extended entity attributes for SEO
+  extendedInfo?: {
+    dietType?: string
+    noiseLevel?: string
+    careLevel?: string
+    apartmentSuitable?: string
+    socialNeeds?: string
+    talkingAbility?: string
+    colors?: string[]
+    wikipediaUrl?: string
+  }
+}
+
 /**
  * Generate Article/BlogPosting schema for a post
  */
@@ -406,8 +473,26 @@ export function generateCollectionPageSchema(
 }
 
 /**
+ * Helper function to extract text from a Lexical node recursively
+ */
+function extractTextFromNode(node: any): string {
+  if (!node) return ''
+
+  if (node.type === 'text' && node.text) {
+    return node.text
+  }
+
+  if (node.children && Array.isArray(node.children)) {
+    return node.children.map(extractTextFromNode).join('')
+  }
+
+  return ''
+}
+
+/**
  * Extract FAQ items from post content
- * Looks for Q&A patterns in Japanese (Q: or 質問: followed by A: or 回答:)
+ * Looks for Q&A patterns in Japanese and question-style headings
+ * Enhanced for entity-oriented SEO to capture common FAQ patterns
  */
 export function extractFAQFromContent(content: any): FAQSchema | null {
   if (!content) return null
@@ -415,13 +500,10 @@ export function extractFAQFromContent(content: any): FAQSchema | null {
   const plainText = serializeRichTextToPlainText(content)
   const faqs: FAQSchema['mainEntity'] = []
 
-  // Pattern 1: Q: ... A: ...
-  // Pattern 2: 質問: ... 回答: ... or 答え: ...
-  // Pattern 3: Question headers followed by answers
+  // Pattern 1: Explicit Q&A format (Q: ... A: ...)
   const qaPairs = plainText.split(/(?=Q:|質問:|Q\d+|質問\d+)/i)
 
   for (const pair of qaPairs) {
-    // Try to extract question and answer
     const qMatch = pair.match(/(?:Q:|質問:|Question:|Q\d+:|質問\d+:)\s*(.+?)(?=A:|回答:|答え:|Answer:|A\d+:|回答\d+:|$)/is)
     const aMatch = pair.match(/(?:A:|回答:|答え:|Answer:|A\d+:|回答\d+:)\s*(.+?)(?=Q:|質問:|$)/is)
 
@@ -435,11 +517,104 @@ export function extractFAQFromContent(content: any): FAQSchema | null {
           name: question,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: answer,
+            text: answer.slice(0, 500), // Limit answer length for schema
           },
         })
       }
     }
+  }
+
+  // Pattern 2: Question-style headings (Japanese patterns)
+  // Common patterns: "〜とは？", "〜ですか？", "〜の方法", "〜のコツ", "なぜ〜", "どうすれば〜"
+  const questionPatterns = [
+    // "〜とは？" - "What is ~?"
+    /(.+?とは[？?])\s*\n+(.+?)(?=\n\n|\n(?:[^\n]+とは[？?])|$)/gs,
+    // "〜ですか？" / "〜ますか？" - Question ending
+    /(.+?(?:です|ます)か[？?])\s*\n+(.+?)(?=\n\n|\n(?:[^\n]+(?:です|ます)か[？?])|$)/gs,
+    // "なぜ〜" / "どうして〜" - "Why ~?"
+    /((?:なぜ|どうして).+?[？?])\s*\n+(.+?)(?=\n\n|\n(?:(?:なぜ|どうして).+?[？?])|$)/gs,
+    // "どうすれば〜" / "どうやって〜" - "How to ~?"
+    /((?:どうすれば|どうやって|どのように).+?[？?])\s*\n+(.+?)(?=\n\n|$)/gs,
+    // "〜の原因" / "〜の理由" - "Cause of ~" / "Reason for ~"
+    /(.+?の(?:原因|理由)[は]?[？?]?)\s*\n+(.+?)(?=\n\n|$)/gs,
+    // "〜の対策" / "〜の方法" / "〜のやり方" - "How to deal with ~"
+    /(.+?の(?:対策|方法|やり方|コツ|ポイント)[は]?[？?]?)\s*\n+(.+?)(?=\n\n|$)/gs,
+  ]
+
+  for (const pattern of questionPatterns) {
+    let match
+    while ((match = pattern.exec(plainText)) !== null) {
+      const question = match[1].trim()
+      const answer = match[2].trim()
+
+      // Validate question and answer
+      if (
+        question.length >= 8 &&
+        question.length <= 200 &&
+        answer.length >= 20 &&
+        // Avoid duplicates
+        !faqs.some(faq => faq.name === question)
+      ) {
+        faqs.push({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: answer.slice(0, 500), // Limit answer length
+          },
+        })
+      }
+    }
+  }
+
+  // Pattern 3: Look for Lexical content with heading nodes that are questions
+  if (content?.root?.children) {
+    const extractQuestionsFromLexical = (children: any[]): void => {
+      for (let i = 0; i < children.length; i++) {
+        const node = children[i]
+
+        // Check if this is a heading node with question-like text
+        if (node.type === 'heading' && node.tag && ['h2', 'h3'].includes(node.tag)) {
+          const headingText = extractTextFromNode(node)
+
+          // Check if heading ends with ? or Japanese question markers
+          if (headingText && /[？?]$/.test(headingText)) {
+            // Look for the next paragraph(s) as the answer
+            let answerText = ''
+            for (let j = i + 1; j < children.length && j < i + 4; j++) {
+              const nextNode = children[j]
+              if (nextNode.type === 'heading') break // Stop at next heading
+              const text = extractTextFromNode(nextNode)
+              if (text) {
+                answerText += (answerText ? ' ' : '') + text
+              }
+            }
+
+            if (
+              headingText.length >= 8 &&
+              answerText.length >= 20 &&
+              !faqs.some(faq => faq.name === headingText)
+            ) {
+              faqs.push({
+                '@type': 'Question',
+                name: headingText,
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: answerText.slice(0, 500),
+                },
+              })
+            }
+          }
+        }
+
+        // Recursively check children
+        if (node.children) {
+          extractQuestionsFromLexical(node.children)
+        }
+      }
+    }
+
+    extractQuestionsFromLexical(content.root.children)
   }
 
   // Only return FAQ schema if we found at least 2 Q&A pairs
@@ -447,7 +622,7 @@ export function extractFAQFromContent(content: any): FAQSchema | null {
     return {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
-      mainEntity: faqs,
+      mainEntity: faqs.slice(0, 10), // Limit to 10 FAQs for schema
     }
   }
 
@@ -513,4 +688,116 @@ export function extractHowToFromContent(post: Post): HowToSchema | null {
   }
 
   return null
+}
+
+/**
+ * Generate comprehensive structured data for bird species pages
+ * Includes Animal entity schema with detailed attributes for entity-oriented SEO
+ */
+export function generateBirdSpeciesPageSchema(
+  bird: BirdData,
+  slug: string,
+  posts: Post[]
+): BirdSpeciesPageSchema {
+  const serverUrl = getServerSideURL()
+  const pageUrl = `${serverUrl}/birds/${slug}`
+
+  // Build Animal entity schema with all available attributes
+  const additionalProperties: AnimalSchema['additionalProperty'] = [
+    { '@type': 'PropertyValue', name: '原産地', value: bird.basicInfo.origin },
+    { '@type': 'PropertyValue', name: '寿命', value: bird.basicInfo.lifespan },
+    { '@type': 'PropertyValue', name: '体長', value: bird.basicInfo.size },
+    { '@type': 'PropertyValue', name: '体重', value: bird.basicInfo.weight },
+  ]
+
+  // Add extended attributes if available
+  if (bird.extendedInfo) {
+    if (bird.extendedInfo.dietType) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: '食性', value: bird.extendedInfo.dietType })
+    }
+    if (bird.extendedInfo.noiseLevel) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: '鳴き声レベル', value: bird.extendedInfo.noiseLevel })
+    }
+    if (bird.extendedInfo.careLevel) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: '飼育難易度', value: bird.extendedInfo.careLevel })
+    }
+    if (bird.extendedInfo.apartmentSuitable) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: 'マンション適性', value: bird.extendedInfo.apartmentSuitable })
+    }
+    if (bird.extendedInfo.socialNeeds) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: '社会性', value: bird.extendedInfo.socialNeeds })
+    }
+    if (bird.extendedInfo.talkingAbility) {
+      additionalProperties.push({ '@type': 'PropertyValue', name: 'おしゃべり能力', value: bird.extendedInfo.talkingAbility })
+    }
+  }
+
+  // Build alternate names array
+  const alternateName = [bird.englishName, ...bird.searchTerms.filter(t => t !== bird.name && t !== bird.englishName)]
+  if (bird.scientificName) {
+    alternateName.push(bird.scientificName)
+  }
+
+  // Build sameAs links (Wikipedia, etc.)
+  const sameAs: string[] = []
+  if (bird.extendedInfo?.wikipediaUrl) {
+    sameAs.push(bird.extendedInfo.wikipediaUrl)
+  }
+
+  // Animal entity schema
+  const animalSchema: AnimalSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Animal',
+    name: bird.name,
+    alternateName: alternateName.length > 0 ? alternateName : undefined,
+    description: bird.description,
+    image: `${serverUrl}${bird.image}`,
+    sameAs: sameAs.length > 0 ? sameAs : undefined,
+    additionalProperty: additionalProperties,
+  }
+
+  // Build item list from posts
+  const itemListElement = posts.slice(0, 20).map((post, index) => {
+    let imageUrl: string | undefined
+    if (post.heroImage && typeof post.heroImage === 'object' && 'url' in post.heroImage) {
+      imageUrl = `${serverUrl}${post.heroImage.url}`
+    }
+
+    return {
+      '@type': 'ListItem' as const,
+      position: index + 1,
+      url: `${serverUrl}/posts/${post.slug}`,
+      name: post.title,
+      image: imageUrl,
+    }
+  })
+
+  // Breadcrumb schema
+  const breadcrumbSchema: BreadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'ホーム', item: serverUrl },
+      { '@type': 'ListItem', position: 2, name: '鳥の種類', item: `${serverUrl}/#bird-types` },
+      { '@type': 'ListItem', position: 3, name: bird.name, item: pageUrl },
+    ],
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${bird.name}の飼い方・特徴・関連記事`,
+    description: `${bird.name}（${bird.englishName}）の基本情報、特徴、飼育方法を詳しく解説。${bird.description}`,
+    url: pageUrl,
+    about: animalSchema,
+    mainEntity: {
+      '@type': 'ItemList',
+      name: `${bird.name}の関連記事`,
+      description: `${bird.name}に関する飼育情報、健康管理、お世話のコツ`,
+      numberOfItems: posts.length,
+      itemListElement,
+    },
+    breadcrumb: breadcrumbSchema,
+    inLanguage: 'ja',
+  }
 }

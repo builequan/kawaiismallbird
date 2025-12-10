@@ -32,6 +32,7 @@ import { default as default_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/component
 import { default as default_7a21b3af2f675c2ef0519a77f989ca89 } from '@/views/InternalLinks'
 import { default as default_8c599912d2cca0fb5e4ec1f836b09374 } from '@/views/AffiliateLinks'
 import { default as default_bf6b90f1ebd3388fbb1e207cd4cf57b8 } from '@/views/ContentImport'
+import { default as default_glossary_view } from '@/views/Glossary'
 
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -67,5 +68,6 @@ export const importMap = {
   "@/components/BeforeLogin#default": default_8a7ab0eb7ab5c511aba12e68480bfe5e,
   "@/views/InternalLinks#default": default_7a21b3af2f675c2ef0519a77f989ca89,
   "@/views/AffiliateLinks#default": default_8c599912d2cca0fb5e4ec1f836b09374,
-  "@/views/ContentImport#default": default_bf6b90f1ebd3388fbb1e207cd4cf57b8
+  "@/views/ContentImport#default": default_bf6b90f1ebd3388fbb1e207cd4cf57b8,
+  "@/views/Glossary#default": default_glossary_view
 }

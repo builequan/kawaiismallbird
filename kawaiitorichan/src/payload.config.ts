@@ -14,6 +14,7 @@ import { Tags } from './collections/Tags'
 import { Users } from './collections/Users'
 import { AffiliateProducts } from './collections/AffiliateProducts'
 import { Comments } from './collections/Comments'
+import { Glossary } from './collections/Glossary'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { InternalLinksSettings } from './globals/InternalLinksSettings'
@@ -55,6 +56,10 @@ export default buildConfig({
           Component: '@/views/HtmlUpload',
           path: '/html-upload',
         },
+        Glossary: {
+          Component: '@/views/Glossary',
+          path: '/glossary-manager',
+        },
       },
     },
     importMap: {
@@ -87,7 +92,7 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: getDatabaseAdapter(),
-  collections: [Pages, Posts, Media, Categories, Tags, Users, AffiliateProducts, Comments],
+  collections: [Pages, Posts, Media, Categories, Tags, Users, AffiliateProducts, Comments, Glossary],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer, InternalLinksSettings],
   plugins: [

@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { ChevronRight } from 'lucide-react'
 import Image from 'next/image'
+import { generateBirdSpeciesPageSchema, type BirdData } from '@/utilities/generateStructuredData'
+import { StructuredData } from '@/components/StructuredData'
+import { BirdInfobox } from '@/components/BirdInfobox'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -17,13 +20,14 @@ interface PageProps {
   }>
 }
 
-// Bird data with SEO-optimized information
-const birdData = {
+// Bird data with SEO-optimized information and entity attributes
+const birdData: Record<string, BirdData> = {
   'budgerigar': {
     name: 'セキセイインコ',
     englishName: 'Budgerigar',
+    scientificName: 'Melopsittacus undulatus',
     image: '/birds/budgerigar.webp',
-    searchTerms: ['セキセイインコ', 'budgerigar', 'バジー'],
+    searchTerms: ['セキセイインコ', 'budgerigar', 'バジー', 'インコ'],
     description: 'オーストラリア原産の人気ペット鳥。初心者にも飼いやすく、美しい色彩と社交的な性格が特徴です。',
     basicInfo: {
       origin: 'オーストラリア',
@@ -42,13 +46,24 @@ const birdData = {
       '新鮮な水と多様な餌を提供',
       'ケージは広めのものを選ぶ',
       '温度管理に注意（20〜25度が理想）'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '雑食性（種子、野菜、果物）',
+      noiseLevel: '中程度',
+      careLevel: '初心者向け',
+      apartmentSuitable: '適している',
+      socialNeeds: '高い（毎日の交流が必要）',
+      talkingAbility: 'あり（単語や短いフレーズ）',
+      colors: ['グリーン', 'ブルー', 'イエロー', 'ホワイト', 'バイオレット'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/セキセイインコ'
+    }
   },
   'cockatiel': {
     name: 'オカメインコ',
     englishName: 'Cockatiel',
+    scientificName: 'Nymphicus hollandicus',
     image: '/birds/cockatiel.webp',
-    searchTerms: ['オカメインコ', 'cockatiel', 'カクテル'],
+    searchTerms: ['オカメインコ', 'cockatiel', 'カクテル', 'オカメ'],
     description: '特徴的な冠羽を持つオーストラリア原産の中型インコ。口笛が得意で、温和な性格から家族向けペットとして人気です。',
     basicInfo: {
       origin: 'オーストラリア',
@@ -67,13 +82,24 @@ const birdData = {
       '毎日のスキンシップが重要',
       '羽粉が多いので掃除をこまめに',
       'バランスの良い食事管理'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '雑食性（種子、ペレット、野菜）',
+      noiseLevel: '中〜高（口笛が多い）',
+      careLevel: '初心者〜中級者向け',
+      apartmentSuitable: '条件付きで適している',
+      socialNeeds: '非常に高い（寂しがり屋）',
+      talkingAbility: '限定的（口笛やメロディが得意）',
+      colors: ['ノーマルグレー', 'ルチノー', 'パール', 'シナモン', 'パイド'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/オカメインコ'
+    }
   },
   'java-sparrow': {
     name: '文鳥',
     englishName: 'Java Sparrow',
+    scientificName: 'Lonchura oryzivora',
     image: '/birds/java-sparrow.webp',
-    searchTerms: ['文鳥', 'java sparrow', 'ブンチョウ'],
+    searchTerms: ['文鳥', 'java sparrow', 'ブンチョウ', 'ぶんちょう'],
     description: '日本で古くから愛される小型の鳥。静かで飼いやすく、美しい鳴き声と上品な姿が魅力的です。',
     basicInfo: {
       origin: 'インドネシア（ジャワ島）',
@@ -92,11 +118,22 @@ const birdData = {
       '水浴びを好むので水浴び容器を用意',
       '寒さに弱いので保温対策必須',
       '繊細な性格なので優しく接する'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '種子食（シード中心）',
+      noiseLevel: '低い（静か）',
+      careLevel: '初心者向け',
+      apartmentSuitable: '非常に適している',
+      socialNeeds: '中程度（つがいでの飼育推奨）',
+      talkingAbility: 'なし',
+      colors: ['桜文鳥', '白文鳥', 'シナモン', 'シルバー'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/ブンチョウ'
+    }
   },
   'canary': {
     name: 'カナリア',
     englishName: 'Canary',
+    scientificName: 'Serinus canaria domestica',
     image: '/birds/canary.webp',
     searchTerms: ['カナリア', 'canary', 'カナリヤ'],
     description: 'カナリア諸島原産の美声の持ち主。鮮やかな黄色の羽と美しいさえずりで、観賞用・鑑賞用として世界中で愛されています。',
@@ -117,13 +154,24 @@ const birdData = {
       '歌の練習には静かな環境が必要',
       '日光浴を好む',
       'カナリアシードを主食に'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '種子食（カナリアシード中心）',
+      noiseLevel: '中程度（美しいさえずり）',
+      careLevel: '初心者向け',
+      apartmentSuitable: '適している',
+      socialNeeds: '低い（単独飼育可能）',
+      talkingAbility: 'なし（歌声のみ）',
+      colors: ['イエロー', 'オレンジ', 'レッド', 'ホワイト', 'モザイク'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/カナリア'
+    }
   },
   'lovebird': {
     name: 'コザクラインコ',
     englishName: 'Peach-faced Lovebird',
+    scientificName: 'Agapornis roseicollis',
     image: '/birds/lovebird.webp',
-    searchTerms: ['コザクラインコ', 'lovebird', 'ラブバード'],
+    searchTerms: ['コザクラインコ', 'lovebird', 'ラブバード', 'ボタンインコ'],
     description: 'アフリカ原産の小型インコ。愛情深い性格で、パートナーとの強い絆を築くことから「ラブバード」と呼ばれています。',
     basicInfo: {
       origin: 'アフリカ南西部',
@@ -142,13 +190,24 @@ const birdData = {
       '十分な遊び道具を用意',
       '噛む力が強いので注意',
       '毎日の交流時間を確保'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '雑食性（種子、野菜、果物）',
+      noiseLevel: '高い（活発に鳴く）',
+      careLevel: '中級者向け',
+      apartmentSuitable: '条件付き（防音対策推奨）',
+      socialNeeds: '非常に高い（ペア飼育推奨）',
+      talkingAbility: '限定的（単語程度）',
+      colors: ['ノーマルグリーン', 'ルチノー', 'オパーリン', 'バイオレット', 'パイド'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/コザクラインコ'
+    }
   },
   'finch': {
     name: 'フィンチ',
     englishName: 'Finch',
+    scientificName: 'Fringillidae / Estrildidae',
     image: '/birds/finch.webp',
-    searchTerms: ['フィンチ', 'finch', '十姉妹', 'ジュウシマツ'],
+    searchTerms: ['フィンチ', 'finch', '十姉妹', 'ジュウシマツ', 'キンカチョウ'],
     description: '多様な種類が存在する小型の鳥。群れで生活することを好み、美しいさえずりと活発な動きが特徴です。',
     basicInfo: {
       origin: '世界各地',
@@ -167,7 +226,17 @@ const birdData = {
       '広めの飛行スペースが必要',
       '種子を中心とした食事',
       '群れの相性に注意'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '種子食',
+      noiseLevel: '低〜中程度',
+      careLevel: '初心者向け',
+      apartmentSuitable: '非常に適している',
+      socialNeeds: '高い（複数飼育推奨）',
+      talkingAbility: 'なし',
+      colors: ['種類により様々'],
+      wikipediaUrl: 'https://ja.wikipedia.org/wiki/フィンチ'
+    }
   },
   'others': {
     name: 'その他の鳥',
@@ -192,7 +261,15 @@ const birdData = {
       '巣箱設置で繁殖を支援',
       'ガラス窓への衝突防止対策',
       '農薬不使用の庭作り'
-    ]
+    ],
+    extendedInfo: {
+      dietType: '種により様々',
+      noiseLevel: '種により様々',
+      careLevel: '種により様々',
+      apartmentSuitable: '種により様々',
+      socialNeeds: '種により様々',
+      talkingAbility: '種により様々'
+    }
   }
 }
 
@@ -281,32 +358,13 @@ export default async function BirdCategoryPage({ params }: PageProps) {
     }).slice(0, 50)
   }
 
-  // Generate structured data for SEO
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: `${bird.name}の関連記事`,
-    description: bird.description,
-    url: `https://kawaiismallbird.com/birds/${slug}`,
-    mainEntity: {
-      '@type': 'ItemList',
-      itemListElement: posts.map((post, index) => ({
-        '@type': 'Article',
-        position: index + 1,
-        name: post.title,
-        url: `https://kawaiismallbird.com/posts/${post.slug}`,
-        description: post.meta?.description || '',
-      }))
-    }
-  }
+  // Generate comprehensive structured data for SEO with Animal entity
+  const structuredData = generateBirdSpeciesPageSchema(bird, slug, posts)
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Add structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      {/* Add structured data with Animal entity schema */}
+      <StructuredData data={structuredData} />
 
       {/* Conditional rendering based on slug */}
       {slug === 'others' ? (
@@ -368,83 +426,64 @@ export default async function BirdCategoryPage({ params }: PageProps) {
                 <span className="text-gray-900 font-semibold">{bird.name}</span>
               </nav>
 
-              {/* Main Bird Information */}
-              <div className="grid md:grid-cols-2 gap-8 items-start">
-                {/* Bird Image */}
-                <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-lg">
-                  <Image
-                    src={bird.image}
-                    alt={`${bird.name}（${bird.englishName}）の写真`}
-                    fill
-                    className="object-cover"
-                    priority
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-
-                {/* Bird Details */}
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                    {bird.name}の飼い方と関連記事
-                  </h1>
-                  <p className="text-lg text-gray-700 mb-6">{bird.description}</p>
-
-                  {/* Basic Information */}
-                  <div className="bg-white rounded-lg p-6 shadow-sm mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">基本情報</h2>
-                    <dl className="grid grid-cols-2 gap-4">
-                      <div>
-                        <dt className="text-sm text-gray-600">原産地</dt>
-                        <dd className="font-semibold text-gray-900">{bird.basicInfo.origin}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm text-gray-600">寿命</dt>
-                        <dd className="font-semibold text-gray-900">{bird.basicInfo.lifespan}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm text-gray-600">体長</dt>
-                        <dd className="font-semibold text-gray-900">{bird.basicInfo.size}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm text-gray-600">体重</dt>
-                        <dd className="font-semibold text-gray-900">{bird.basicInfo.weight}</dd>
-                      </div>
-                    </dl>
+              {/* Main Bird Information with Infobox */}
+              <div className="grid lg:grid-cols-3 gap-8 items-start">
+                {/* Left column: Title, Description, and Characteristics */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                      {bird.name}の飼い方と関連記事
+                    </h1>
+                    {bird.scientificName && (
+                      <p className="text-sm italic text-gray-500 mb-4">
+                        学名: {bird.scientificName}
+                      </p>
+                    )}
+                    <p className="text-lg text-gray-700 mb-4">{bird.description}</p>
+                    <Badge className="bg-green-100 text-green-800 border-green-300 text-lg px-4 py-2">
+                      {posts.length}件の関連記事
+                    </Badge>
                   </div>
 
-                  {/* Article Count Badge */}
-                  <Badge className="bg-green-100 text-green-800 border-green-300 text-lg px-4 py-2">
-                    {posts.length}件の関連記事
-                  </Badge>
-                </div>
-              </div>
+                  {/* Characteristics and Care Tips */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Characteristics */}
+                    <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">特徴</h2>
+                      <ul className="space-y-2">
+                        {bird.characteristics.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-green-600 mr-2">✓</span>
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
-              {/* Characteristics and Care Tips */}
-              <div className="grid md:grid-cols-2 gap-6 mt-8">
-                {/* Characteristics */}
-                <div className="bg-white rounded-lg p-6 shadow-sm">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">特徴</h2>
-                  <ul className="space-y-2">
-                    {bird.characteristics.map((item, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-green-600 mr-2">✓</span>
-                        <span className="text-gray-700">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                    {/* Care Tips */}
+                    <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">飼育のポイント</h2>
+                      <ul className="space-y-2">
+                        {bird.careTips.map((item, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-blue-600 mr-2">•</span>
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Care Tips */}
-                <div className="bg-white rounded-lg p-6 shadow-sm">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">飼育のポイント</h2>
-                  <ul className="space-y-2">
-                    {bird.careTips.map((item, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-blue-600 mr-2">•</span>
-                        <span className="text-gray-700">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Right column: Wikipedia-style Infobox */}
+                <div className="lg:col-span-1">
+                  <BirdInfobox
+                    bird={bird}
+                    slug={slug}
+                    relatedBirds={Object.entries(birdData)
+                      .filter(([key]) => key !== slug && key !== 'others')
+                      .map(([key, data]) => ({ slug: key, name: data.name }))}
+                  />
                 </div>
               </div>
             </div>
