@@ -8,8 +8,8 @@ import { HideRecaptchaBadge } from '@/components/ContactForm/HideRecaptchaBadge'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'お問い合わせ | Golf Website',
-  description: 'お気軽にお問い合わせください。ゴルフに関するご質問、ご相談を承っております。',
+  title: 'お問い合わせ | Kawaii Bird - 小鳥の飼育情報サイト',
+  description: 'お気軽にお問い合わせください。小鳥の飼育に関するご質問、ご相談を承っております。',
 }
 
 export default function ContactPage() {
@@ -18,13 +18,13 @@ export default function ContactPage() {
       <HideRecaptchaBadge />
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <div className="container mx-auto px-4 py-16 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               お問い合わせ
             </h1>
             <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto">
-              ゴルフに関するご質問、ご相談など、お気軽にお問い合わせください
+              小鳥の飼育に関するご質問、ご相談など、お気軽にお問い合わせください
             </p>
           </div>
         </div>
@@ -45,10 +45,10 @@ export default function ContactPage() {
 
               {/* Info Cards */}
               <div className="grid md:grid-cols-2 gap-4 mb-8">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-start">
                     <svg
-                      className="w-6 h-6 text-green-600 mt-1 mr-3 flex-shrink-0"
+                      className="w-6 h-6 text-orange-600 mt-1 mr-3 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -61,12 +61,12 @@ export default function ContactPage() {
                       />
                     </svg>
                     <div>
-                      <h3 className="font-semibold text-green-900 mb-1">
-                        営業時間
+                      <h3 className="font-semibold text-orange-900 mb-1">
+                        対応時間
                       </h3>
-                      <p className="text-sm text-green-700">
-                        平日 9:00 - 18:00<br />
-                        土日祝日 休業
+                      <p className="text-sm text-orange-700">
+                        できる限り迅速に<br />
+                        お返事いたします
                       </p>
                     </div>
                   </div>
@@ -92,8 +92,8 @@ export default function ContactPage() {
                         返信について
                       </h3>
                       <p className="text-sm text-blue-700">
-                        通常1-2営業日以内<br />
-                        お急ぎの場合はお電話ください
+                        通常1-2日以内に<br />
+                        ご返信いたします
                       </p>
                     </div>
                   </div>
@@ -132,11 +132,11 @@ export default function ContactPage() {
                 </div>
                 <div className="bg-white rounded-lg p-4">
                   <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: 電話でのお問い合わせ
+                    Q: 小鳥の飼育相談
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    A: お急ぎの場合は、営業時間内（平日9:00-18:00）にお電話でもお問い合わせを
-                    承っております。
+                    A: 小鳥の飼育に関するご質問は、できる限り詳しくお書きください。
+                    鳥の種類、年齢、症状などをお伝えいただけると、より適切な回答が可能です。
                   </p>
                 </div>
               </div>

@@ -230,7 +230,7 @@ export function generateArticleSchema(post: Post): ArticleSchema {
     // This is a valid approach per Google's author markup guidelines
     authors = [{
       '@type': 'Organization' as const,
-      name: 'Kawaii Small Bird',
+      name: 'Kawaii Bird 編集部',
     }]
   }
 

@@ -6,13 +6,31 @@ import type { Post } from '@/payload-types'
 import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
 
+// Default author for E-E-A-T signals
+const DEFAULT_AUTHOR = 'Kawaii Bird 編集部'
+
 export const PostHero: React.FC<{
   post: Post
 }> = ({ post }) => {
-  const { categories, heroImage, populatedAuthors, publishedAt, title } = post
+  const { categories, heroImage, populatedAuthors, publishedAt, title, updatedAt } = post
 
   const hasAuthors =
     populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
+
+  const authorName = hasAuthors ? formatAuthors(populatedAuthors) : DEFAULT_AUTHOR
+
+  // Format dates for display
+  const publishDate = publishedAt ? new Date(publishedAt).toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }) : null
+
+  const updateDate = updatedAt ? new Date(updatedAt).toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }) : null
 
   return (
     <div className="relative">
@@ -23,7 +41,7 @@ export const PostHero: React.FC<{
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
         </div>
       )}
-      
+
       {/* Content */}
       <div className="container relative z-10 -mt-32 lg:grid lg:grid-cols-[1fr_48rem_1fr] text-white">
         <div className="col-start-1 col-span-1 md:col-start-2 md:col-span-2 bg-transparent p-8">
@@ -52,13 +70,25 @@ export const PostHero: React.FC<{
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 md:gap-16">
-            {hasAuthors && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm text-white/70">Author</p>
+            {/* Author - Always show for E-E-A-T */}
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-white/70">執筆</p>
+              <p className="font-medium">{authorName}</p>
+            </div>
 
-                  <p>{formatAuthors(populatedAuthors)}</p>
-                </div>
+            {/* Published Date */}
+            {publishDate && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-white/70">公開日</p>
+                <p>{publishDate}</p>
+              </div>
+            )}
+
+            {/* Updated Date - show if different from published */}
+            {updateDate && updateDate !== publishDate && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-white/70">更新日</p>
+                <p>{updateDate}</p>
               </div>
             )}
           </div>

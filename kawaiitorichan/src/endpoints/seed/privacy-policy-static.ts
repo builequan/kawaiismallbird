@@ -1,8 +1,8 @@
 import type { RequiredDataFromCollectionSlug } from 'payload'
 
-// Static fallback for About Us page when database is not seeded
-export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
-  slug: 'about-us',
+// Static fallback for Privacy Policy page
+export const privacyPolicyStatic: RequiredDataFromCollectionSlug<'pages'> = {
+  slug: 'privacy-policy',
   _status: 'published',
   hero: {
     type: 'lowImpact',
@@ -22,7 +22,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
             children: [
               {
                 mode: 'normal',
-                text: '小鳥と暮らす幸せな毎日へ',
+                text: 'プライバシーポリシー',
                 type: 'text',
                 style: '',
                 detail: 0,
@@ -48,19 +48,10 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
               type: 'root',
               children: [
                 {
-                  type: 'heading',
-                  tag: 'h2',
-                  children: [{ type: 'text', text: '私たちのビジョン' }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: 'Kawaii Birdは、小鳥をペットとして飼育する方々のための総合情報サイトです。セキセイインコ、オカメインコ、文鳥、フィンチなど、人気の小鳥たちの飼育方法、健康管理、栄養管理など、小鳥と幸せに暮らすための実践的な情報をお届けしています。',
+                    text: 'Kawaii Bird（以下「当サイト」）は、お客様の個人情報の保護を重要視しています。本プライバシーポリシーでは、当サイトがどのように個人情報を収集、使用、保護するかについて説明いたします。',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
@@ -75,7 +66,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
-                  children: [{ type: 'text', text: '運営者について' }],
+                  children: [{ type: 'text', text: '1. 収集する情報' }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -85,22 +76,13 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: '当サイトは、小鳥の飼育歴10年以上の愛鳥家チームによって運営されています。私たちは実際にセキセイインコ、オカメインコ、文鳥などを飼育しており、日々の経験から得た知識と、獣医師や専門家への取材を通じて、信頼性の高い情報をお届けしています。',
+                    text: '当サイトでは、以下の情報を収集する場合があります：',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
                     style: '',
                     version: 1,
                   }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'heading',
-                  tag: 'h2',
-                  children: [{ type: 'text', text: '私たちが大切にしていること' }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -115,28 +97,21 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '正確性：獣医師監修のもと、科学的根拠に基づいた情報を提供' }
+                        { type: 'text', text: 'お問い合わせフォームを通じてご提供いただく氏名、メールアドレス、お問い合わせ内容' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '実践性：実際の飼育経験から得た、すぐに役立つアドバイス' }
+                        { type: 'text', text: 'サイト利用時に自動的に収集されるアクセスログ情報（IPアドレス、ブラウザの種類、アクセス日時など）' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '安全性：小鳥の健康と安全を最優先にした情報発信' }
-                      ],
-                    },
-                    {
-                      type: 'listitem',
-                      version: 1,
-                      children: [
-                        { type: 'text', text: '最新性：定期的な情報更新で、最新の飼育知識をお届け' }
+                        { type: 'text', text: 'Cookieによる利用状況の情報' }
                       ],
                     },
                   ],
@@ -144,7 +119,23 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
-                  children: [{ type: 'text', text: 'コンテンツの特徴' }],
+                  children: [{ type: 'text', text: '2. 情報の利用目的' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '収集した情報は、以下の目的で利用いたします：',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -159,35 +150,21 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '小鳥の種類別の詳しい飼育ガイド' }
+                        { type: 'text', text: 'お問い合わせへの対応' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '健康管理と病気予防の正確な情報' }
+                        { type: 'text', text: 'サイトの改善およびサービス向上' }
                       ],
                     },
                     {
                       type: 'listitem',
                       version: 1,
                       children: [
-                        { type: 'text', text: '栄養バランスの取れた食事管理' }
-                      ],
-                    },
-                    {
-                      type: 'listitem',
-                      version: 1,
-                      children: [
-                        { type: 'text', text: '快適なケージ環境の作り方' }
-                      ],
-                    },
-                    {
-                      type: 'listitem',
-                      version: 1,
-                      children: [
-                        { type: 'text', text: '小鳥との絆を深めるトレーニング方法' }
+                        { type: 'text', text: 'アクセス解析による利用傾向の把握' }
                       ],
                     },
                   ],
@@ -195,7 +172,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
-                  children: [{ type: 'text', text: 'なぜ小鳥が大切なのか' }],
+                  children: [{ type: 'text', text: '3. 第三者への情報提供' }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -205,7 +182,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: '小鳥たちは私たちの生活に彩りと癒しをもたらしてくれます。その愛らしい姿と美しい歌声は、日々のストレスから私たちを解放し、自然とのつながりを思い出させてくれます。',
+                    text: '当サイトは、以下の場合を除き、お客様の個人情報を第三者に提供することはありません：',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
@@ -218,10 +195,40 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   version: 1,
                 },
                 {
+                  type: 'list',
+                  listType: 'bullet',
+                  version: 1,
+                  children: [
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      children: [
+                        { type: 'text', text: 'お客様の同意がある場合' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      children: [
+                        { type: 'text', text: '法令に基づく開示要請があった場合' }
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '4. Cookieについて' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: '私たちは、この素晴らしい小鳥たちの世界を、より多くの人々と共有したいと考えています。一緒に小鳥たちの魅力を探求し、彼らとの素敵な時間を過ごしましょう。',
+                    text: '当サイトでは、利便性の向上やアクセス解析のためにCookieを使用しています。Cookieはお客様のブラウザに保存される小さなテキストファイルです。ブラウザの設定によりCookieを無効にすることも可能ですが、一部の機能が制限される場合があります。',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
@@ -236,16 +243,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
-                  children: [{ type: 'text', text: '重要なお知らせ' }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'heading',
-                  tag: 'h3',
-                  children: [{ type: 'text', text: '医療アドバイスについて', detail: 0, format: 1, mode: 'normal', style: '', version: 1 }],
+                  children: [{ type: 'text', text: '5. 広告配信サービス' }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -255,57 +253,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: '当サイトに掲載されている情報は、一般的な情報提供を目的としており、専門的なアドバイスや指導を目的としたものではありません。小鳥の健康や医療に関する事項については、必ず獣医師などの専門家にご相談ください。当サイトの情報を利用したことによる直接的または間接的な損害について、当サイトは一切の責任を負いかねます。',
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    version: 1,
-                  }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'heading',
-                  tag: 'h3',
-                  children: [{ type: 'text', text: '著作権について', detail: 0, format: 1, mode: 'normal', style: '', version: 1 }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'paragraph',
-                  children: [{
-                    type: 'text',
-                    text: '当サイトに掲載されているテキスト、画像、動画、その他のコンテンツの著作権は、当サイトまたはコンテンツ提供者に帰属します。これらのコンテンツを無断で複製、転載、配布、公開することは、著作権法により禁止されています。',
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    version: 1,
-                  }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'heading',
-                  tag: 'h3',
-                  children: [{ type: 'text', text: '外部リンクについて', detail: 0, format: 1, mode: 'normal', style: '', version: 1 }],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-                {
-                  type: 'paragraph',
-                  children: [{
-                    type: 'text',
-                    text: '当サイトから外部サイトへのリンクが含まれている場合がありますが、リンク先のサイトのコンテンツや運営について、当サイトは一切の責任を負いません。外部サイトをご利用の際は、そのサイトの利用規約やプライバシーポリシーをご確認ください。',
+                    text: '当サイトでは、第三者配信の広告サービス（Google AdSenseなど）を利用することがあります。このような広告配信事業者は、ユーザーの興味に応じた広告を表示するためにCookieを使用することがあります。',
                     detail: 0,
                     format: 0,
                     mode: 'normal',
@@ -320,7 +268,7 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
-                  children: [{ type: 'text', text: 'お問い合わせ' }],
+                  children: [{ type: 'text', text: '6. アフィリエイトプログラム' }],
                   direction: 'ltr',
                   format: '',
                   indent: 0,
@@ -330,9 +278,125 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   type: 'paragraph',
                   children: [{
                     type: 'text',
-                    text: '小鳥に関するご質問やご意見、写真の投稿など、お気軽にお問い合わせください。私たちは小鳥を愛するすべての方々からのメッセージをお待ちしています。',
+                    text: '当サイトは、Amazon.co.jp、楽天市場、A8.netなどのアフィリエイトプログラムに参加しています。これらのリンクを通じて商品を購入された場合、当サイトは紹介料を受け取ることがあります。',
                     detail: 0,
                     format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '7. アクセス解析ツール' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '当サイトでは、Googleによるアクセス解析ツール「Googleアナリティクス」を利用しています。このGoogleアナリティクスはトラフィックデータの収集のためにCookieを使用しています。このトラフィックデータは匿名で収集されており、個人を特定するものではありません。',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '8. 情報の保護' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '当サイトは、お客様の個人情報を適切に管理し、不正アクセス、紛失、破壊、改ざん、漏洩などを防止するため、合理的な技術的・組織的なセキュリティ対策を講じます。',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '9. お問い合わせ' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '本プライバシーポリシーに関するご質問やお問い合わせは、お問い合わせフォームよりご連絡ください。',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '10. ポリシーの変更' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '当サイトは、必要に応じて本プライバシーポリシーの内容を変更することがあります。変更後のプライバシーポリシーは、当サイトに掲載した時点から効力を生じるものとします。',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '最終更新日：2025年12月12日',
+                    detail: 0,
+                    format: 2,
                     mode: 'normal',
                     style: '',
                     version: 1,
@@ -354,11 +418,11 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
     },
   ],
   meta: {
-    title: 'わたしたちについて | Kawaii Bird - 小鳥の飼育情報サイト',
-    description: '小鳥の飼育歴10年以上の愛鳥家チームが運営する、信頼性の高い小鳥飼育情報サイトです。',
+    title: 'プライバシーポリシー | Kawaii Bird - 小鳥の飼育情報サイト',
+    description: 'Kawaii Birdのプライバシーポリシーです。個人情報の取り扱いについてご説明いたします。',
   },
-  title: 'わたしたちについて',
-  id: 4,
-  createdAt: '2025-09-02T14:25:19.974Z',
+  title: 'プライバシーポリシー',
+  id: 5,
+  createdAt: '2025-12-12T00:00:00.000Z',
   updatedAt: '2025-12-12T00:00:00.000Z',
 }
