@@ -71,6 +71,7 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       hasNestedDropdown: true,
       dropdownItems: categoryDropdownItems
     },
+    { label: 'プライバシー', href: '/privacy-policy' },
     { label: 'お問い合わせ', href: '/contact' },
   ]
 
