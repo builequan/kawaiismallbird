@@ -26,6 +26,7 @@ import path from 'path'
 import type { Post } from '@/payload-types'
 
 import { PostHero } from '@/heros/PostHero'
+import { AuthorBioBox } from '@/components/AuthorBioBox'
 import { generateMeta } from '@/utilities/generateMeta'
 import {
   generateArticleSchema,
@@ -193,6 +194,12 @@ export default async function Post({ params: paramsPromise }: Args) {
 
             {/* Display enhanced affiliate product recommendations with products from the article */}
             <AffiliateLinksEnhanced postId={String(post.id)} content={post.content} />
+
+            {/* Author Bio Box - E-E-A-T Signal */}
+            <AuthorBioBox
+              publishedAt={post.publishedAt || undefined}
+              updatedAt={post.updatedAt}
+            />
 
             {/* Comments Section */}
             <CommentSection postId={String(post.id)} />

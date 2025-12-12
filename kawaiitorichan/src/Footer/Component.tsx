@@ -1,6 +1,7 @@
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import Link from 'next/link'
 import React from 'react'
+import { Twitter, Instagram, Youtube } from 'lucide-react'
 
 import type { Footer } from '@/payload-types'
 
@@ -8,9 +9,17 @@ import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { CMSLink } from '@/components/Link'
 import { Logo } from '@/components/Logo/Logo'
 
+// Social media links for E-E-A-T
+const socialLinks = [
+  { href: 'https://twitter.com/kawaiibirdsite', label: 'Twitter', icon: Twitter },
+  { href: 'https://instagram.com/kawaiibirdsite', label: 'Instagram', icon: Instagram },
+  { href: 'https://youtube.com/@kawaiibirdsite', label: 'YouTube', icon: Youtube },
+]
+
 // Static footer links for legal pages
 const staticFooterLinks = [
   { href: '/about-us', label: 'サイトについて' },
+  { href: '/team', label: '編集部紹介' },
   { href: '/privacy-policy', label: 'プライバシーポリシー' },
   { href: '/terms-of-service', label: '利用規約' },
   { href: '/contact', label: 'お問い合わせ' },
@@ -29,8 +38,27 @@ export async function Footer() {
             <Logo />
           </Link>
           <p className="text-sm text-gray-400 max-w-md">
-            小鳥の飼育歴10年以上の愛鳥家チームが運営する、信頼性の高い小鳥飼育情報サイトです。
+            小鳥の飼育歴10年以上の愛鳥家チームが運営する、獣医師監修の信頼性の高い小鳥飼育情報サイトです。
           </p>
+
+          {/* Social Media Links */}
+          <div className="flex gap-3">
+            {socialLinks.map((social) => {
+              const Icon = social.icon
+              return (
+                <a
+                  key={social.href}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center transition-colors"
+                  aria-label={social.label}
+                >
+                  <Icon className="w-4 h-4 text-white" />
+                </a>
+              )
+            })}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
