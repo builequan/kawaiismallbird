@@ -3,6 +3,9 @@ import React from 'react'
 import Link from 'next/link'
 import { User, Award, BookOpen, Heart, Mail, ArrowRight } from 'lucide-react'
 
+// Force dynamic rendering - don't pre-render during build
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '編集部・監修者紹介 | Kawaii Bird - 小鳥の飼育情報サイト',
   description: 'Kawaii Bird編集部と監修獣医師のご紹介。小鳥の飼育歴10年以上の愛鳥家チームと鳥類専門獣医師が、信頼性の高い情報をお届けします。',
