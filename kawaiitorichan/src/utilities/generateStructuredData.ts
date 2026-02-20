@@ -2,6 +2,7 @@ import type { Post, Page, Category, Media } from '@/payload-types'
 import { getServerSideURL } from './getURL'
 import { serializeRichTextToExcerpt, serializeRichTextToPlainText, serializeRichTextToFullText } from './serializeRichText'
 import { calculateReadingTime } from './calculateReadingTime'
+import { veterinaryAdvisor, getDefaultAuthor } from '@/data/team-members'
 
 export interface ArticleSchema {
   '@context': 'https://schema.org'
@@ -31,6 +32,12 @@ export interface ArticleSchema {
   articleSection?: string[]
   wordCount?: number
   inLanguage?: string
+  reviewedBy?: {
+    '@type': 'Person'
+    name: string
+    jobTitle?: string
+    description?: string
+  }
 }
 
 export interface BreadcrumbSchema {
@@ -218,19 +225,19 @@ export function generateArticleSchema(post: Post): ArticleSchema {
   }
 
   // Extract author information
-  // If no authors populated, use the organization as author (Google-compliant fallback)
+  // Use Person author with pen name for better E-E-A-T signals
+  const defaultAuthor = getDefaultAuthor()
   let authors: ArticleSchema['author']
   if (post.populatedAuthors && post.populatedAuthors.length > 0) {
     authors = post.populatedAuthors.map((author) => ({
       '@type': 'Person' as const,
-      name: author.name || 'Anonymous',
+      name: author.name || defaultAuthor.name,
     }))
   } else {
-    // Use Organization as author when no individual author is specified
-    // This is a valid approach per Google's author markup guidelines
+    // Use Person author (editor-in-chief pen name) for better E-E-A-T
     authors = [{
-      '@type': 'Organization' as const,
-      name: 'Kawaii Bird 編集部',
+      '@type': 'Person' as const,
+      name: defaultAuthor.name,
     }]
   }
 
@@ -302,6 +309,12 @@ export function generateArticleSchema(post: Post): ArticleSchema {
     articleSection: articleSections.length > 0 ? articleSections : undefined,
     wordCount,
     inLanguage: post.language || 'ja',
+    reviewedBy: {
+      '@type': 'Person',
+      name: veterinaryAdvisor.name,
+      jobTitle: veterinaryAdvisor.jobTitle,
+      description: '鳥類診療を専門とする獣医師、臨床経験10年以上、AAV会員',
+    },
   }
 
   return schema

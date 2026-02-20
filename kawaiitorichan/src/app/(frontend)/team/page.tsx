@@ -1,58 +1,57 @@
 import type { Metadata } from 'next'
 import React from 'react'
 import Link from 'next/link'
-import { User, Award, BookOpen, Heart, Mail, ArrowRight } from 'lucide-react'
+import { Award, BookOpen, Heart, Mail, ArrowRight } from 'lucide-react'
+import { teamMembers, veterinaryAdvisor } from '@/data/team-members'
+import { getServerSideURL } from '@/utilities/getURL'
 
 // Force dynamic rendering - don't pre-render during build
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: '編集部・監修者紹介 | Kawaii Bird - 小鳥の飼育情報サイト',
-  description: 'Kawaii Bird編集部と監修獣医師のご紹介。小鳥の飼育歴10年以上の愛鳥家チームと鳥類専門獣医師が、信頼性の高い情報をお届けします。',
+  description: 'Kawaii Bird編集部と監修獣医師のご紹介。鈴木みどり（編集長）、田中はるか（健康・栄養担当）、佐藤ことり（飼育環境担当）の3名と鳥類専門獣医師が、信頼性の高い情報をお届けします。',
 }
 
-const teamMembers = [
-  {
-    name: 'Kawaii Bird 編集長',
-    role: '編集長・コンテンツ責任者',
-    experience: '小鳥飼育歴15年',
-    birds: 'セキセイインコ、オカメインコ',
-    description: 'セキセイインコとの出会いをきっかけに小鳥の魅力に取り憑かれ、現在は3羽のインコと暮らしています。正確で実践的な情報発信を心がけています。',
-    credentials: ['日本愛玩動物協会会員', '愛玩動物飼養管理士'],
-  },
-  {
-    name: 'ライター A',
-    role: '健康・栄養担当ライター',
-    experience: '小鳥飼育歴12年',
-    birds: '文鳥、十姉妹',
-    description: '文鳥との暮らしから小鳥の健康管理の重要性を学びました。獣医師への取材を通じて、正確な健康情報をわかりやすくお伝えしています。',
-    credentials: ['ペット栄養管理士', '動物看護助手'],
-  },
-  {
-    name: 'ライター B',
-    role: '飼育環境・用品担当ライター',
-    experience: '小鳥飼育歴10年',
-    birds: 'カナリア、錦華鳥',
-    description: '快適なケージ環境づくりを追求し、様々な飼育用品をテストしてきました。初心者の方にもわかりやすい情報をお届けします。',
-    credentials: ['ペットショップ勤務経験あり'],
-  },
-]
+function generateTeamStructuredData() {
+  const serverUrl = getServerSideURL()
 
-const veterinaryAdvisor = {
-  title: '監修獣医師',
-  description: '当サイトの医療・健康に関する記事は、鳥類診療を専門とする獣医師の監修のもと作成されています。',
-  credentials: [
-    '獣医師免許取得',
-    '鳥類診療専門',
-    '臨床経験10年以上',
-    'Association of Avian Veterinarians会員',
-  ],
-  note: '※監修獣医師のプライバシー保護のため、個人名の公開は控えさせていただいております。',
+  const profilePages = teamMembers.map((member) => ({
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: member.name,
+      jobTitle: member.role,
+      description: member.description,
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Kawaii Small Bird',
+        url: serverUrl,
+      },
+      knowsAbout: ['小鳥の飼育', '鳥類ケア', member.birds],
+    },
+    url: `${serverUrl}/team`,
+    inLanguage: 'ja',
+  }))
+
+  return profilePages
 }
 
 export default function TeamPage() {
+  const structuredData = generateTeamStructuredData()
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
+      {/* Structured Data */}
+      {structuredData.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-500 to-amber-500 py-16">
         <div className="container mx-auto px-4 text-center">
@@ -130,10 +129,12 @@ export default function TeamPage() {
             {teamMembers.map((member, index) => (
               <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                  {/* Avatar */}
+                  {/* Avatar with unique gradient */}
                   <div className="flex-shrink-0">
-                    <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center">
-                      <User className="w-10 h-10 text-white" />
+                    <div className={`w-20 h-20 bg-gradient-to-br ${member.avatarGradient.from} ${member.avatarGradient.to} rounded-full flex items-center justify-center`}>
+                      <span className="text-2xl font-bold text-white">
+                        {member.name.charAt(0)}
+                      </span>
                     </div>
                   </div>
 
@@ -146,10 +147,14 @@ export default function TeamPage() {
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-2">
                       <span>{member.experience}</span>
                       <span>飼育鳥: {member.birds}</span>
                     </div>
+
+                    <p className="text-sm text-gray-500 mb-3">
+                      {member.birdNames}
+                    </p>
 
                     <p className="text-gray-700 mb-4">{member.description}</p>
 

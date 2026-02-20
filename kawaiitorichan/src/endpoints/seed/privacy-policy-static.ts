@@ -391,6 +391,70 @@ export const privacyPolicyStatic: RequiredDataFromCollectionSlug<'pages'> = {
                   version: 1,
                 },
                 {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '運営者情報' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'list',
+                  listType: 'bullet',
+                  version: 1,
+                  children: [
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'サイト名：Kawaii Bird（かわいい小鳥）' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '運営者：Kawaii Bird 編集部' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '代表者：鈴木 みどり（編集長）' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'サイトURL：https://kawaiitorichan.com' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'お問い合わせ：/contact ページよりお願いいたします' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '設立：2024年' }
+                      ],
+                    },
+                  ],
+                },
+                {
                   type: 'paragraph',
                   children: [{
                     type: 'text',

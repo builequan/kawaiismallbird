@@ -2,17 +2,21 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { User, Award, Calendar, ExternalLink } from 'lucide-react'
+import { Award, Calendar, ExternalLink } from 'lucide-react'
+import { teamMembers, veterinaryAdvisor, findTeamMember, getDefaultAuthor } from '@/data/team-members'
+import type { TeamMember } from '@/data/team-members'
 
 interface AuthorBioBoxProps {
   authorName?: string
+  authorId?: string
   publishedAt?: string
   updatedAt?: string
   className?: string
 }
 
 export const AuthorBioBox: React.FC<AuthorBioBoxProps> = ({
-  authorName = 'Kawaii Bird 編集部',
+  authorName,
+  authorId,
   publishedAt,
   updatedAt,
   className = '',
@@ -25,41 +29,57 @@ export const AuthorBioBox: React.FC<AuthorBioBoxProps> = ({
     })
   }
 
+  // Resolve the team member from authorId, authorName, or fallback to default
+  let member: TeamMember | undefined
+  if (authorId) {
+    member = findTeamMember(authorId)
+  }
+  if (!member && authorName) {
+    member = findTeamMember(authorName)
+  }
+  if (!member) {
+    member = getDefaultAuthor()
+  }
+
   return (
     <div className={`bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6 my-8 ${className}`}>
       <div className="flex items-start gap-4">
-        {/* Author Avatar */}
+        {/* Author Avatar with unique gradient */}
         <div className="flex-shrink-0">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg">
-            <User className="w-8 h-8 text-white" />
+          <div className={`w-16 h-16 bg-gradient-to-br ${member.avatarGradient.from} ${member.avatarGradient.to} rounded-full flex items-center justify-center shadow-lg`}>
+            <span className="text-xl font-bold text-white">
+              {member.name.charAt(0)}
+            </span>
           </div>
         </div>
 
         {/* Author Info */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-bold text-gray-900 text-lg">{authorName}</h4>
+            <h4 className="font-bold text-gray-900 text-lg">{member.name}</h4>
             <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full">
+              {member.roleShort}
+            </span>
+            <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
               <Award className="w-3 h-3" />
               獣医師監修
             </span>
           </div>
 
           <p className="text-gray-600 text-sm mb-3">
-            小鳥の飼育歴10年以上の愛鳥家チームです。セキセイインコ、オカメインコ、文鳥などの飼育経験を活かし、獣医師監修のもと信頼性の高い情報をお届けしています。
+            {member.description}
           </p>
 
           {/* Credentials */}
           <div className="flex flex-wrap gap-2 mb-3">
             <span className="inline-flex items-center text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
-              飼育歴10年以上
+              {member.experience}
             </span>
-            <span className="inline-flex items-center text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
-              獣医師監修記事
-            </span>
-            <span className="inline-flex items-center text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
-              日本愛玩動物協会会員
-            </span>
+            {member.credentials.map((cred, i) => (
+              <span key={i} className="inline-flex items-center text-xs bg-white border border-gray-200 text-gray-600 px-2 py-1 rounded">
+                {cred}
+              </span>
+            ))}
           </div>
 
           {/* Date Info */}

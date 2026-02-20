@@ -100,6 +100,134 @@ export const aboutStatic: RequiredDataFromCollectionSlug<'pages'> = {
                 {
                   type: 'heading',
                   tag: 'h2',
+                  children: [{ type: 'text', text: '運営者情報' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'list',
+                  listType: 'bullet',
+                  version: 1,
+                  children: [
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'サイト名：Kawaii Bird（かわいい小鳥）' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '運営者：Kawaii Bird 編集部' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '代表者：鈴木 みどり（編集長）' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'サイトURL：https://kawaiitorichan.com' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: 'お問い合わせ：/contact ページよりお願いいたします' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '設立：2024年' }
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '編集方針' }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'paragraph',
+                  children: [{
+                    type: 'text',
+                    text: '当サイトでは、以下の編集方針に基づき記事を作成・公開しています。',
+                    detail: 0,
+                    format: 0,
+                    mode: 'normal',
+                    style: '',
+                    version: 1,
+                  }],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  version: 1,
+                },
+                {
+                  type: 'list',
+                  listType: 'bullet',
+                  version: 1,
+                  children: [
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '記事の執筆は、小鳥の飼育経験10年以上の編集部メンバーが担当しています' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '健康・医療に関する記事は、鳥類専門獣医師が内容を確認・監修しています' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '情報の正確性を担保するため、最新の獣医学文献や公的機関の情報を参照しています' }
+                      ],
+                    },
+                    {
+                      type: 'listitem',
+                      version: 1,
+                      indent: 0,
+                      children: [
+                        { type: 'text', text: '公開後も定期的に内容を見直し、必要に応じて更新を行っています' }
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
                   children: [{ type: 'text', text: '監修獣医師のご紹介' }],
                   direction: 'ltr',
                   format: '',
